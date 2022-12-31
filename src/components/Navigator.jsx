@@ -6,18 +6,27 @@ const Navigator = () => {
 
     return (
         <nav className="fixed top-0 flex flex-row justify-between border-b-[1px] border-b-white h-16 w-full">
-            <div className="m-4 ml-6">
+            <div className="p-4 pl-6">
                 <p className="text-white"> ~/giang </p>
             </div>
             <div className="flex flex-row justify-between mr-20 w-48">
-                <div>
-                    <p className="text-white m-4 cursor-pointer"
-                        onMouseEnter={() => setShowShowcase(true)}
-                        onMouseLeave={() => setShowShowcase(false)}
-                    > /showcase </p>
+                <div
+                    onMouseEnter={() => setShowShowcase(true)}
+                    onMouseLeave={() => setShowShowcase(false)}
+                >
+                    <p className="text-white m-4 cursor-pointer"> /showcase </p>
                     {
                     showShowcase && (
-                        <div className="relative mt-6 ml-1 border-white border-[1px] border-t-0 w-24 h-16">
+                        <div className="relative mt-8 w-24">
+                            <div className="p-4 py-2">
+                                <p className="text-white">/visual</p>
+                            </div>
+                            <div className="p-4 py-2">
+                                <p className="text-white">/sound</p>
+                            </div>
+                            <div className="p-4 py-2">
+                                <p className="text-white">/collaboration</p>
+                            </div>
                         </div>
                     )
                 }
