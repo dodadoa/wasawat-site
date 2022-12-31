@@ -1,4 +1,6 @@
 ---
+import Navigator from '../components/Navigator.jsx';
+
 export interface Props {
 	title: string;
 }
@@ -16,6 +18,7 @@ const { title } = Astro.props;
 		<title>{title}</title>
 	</head>
 	<body>
+		<Navigator client:load/>
 		<slot />
 	</body>
 </html>
@@ -26,7 +29,7 @@ const { title } = Astro.props;
 	}
 	html {
 		font-family: system-ui, sans-serif;
-		background-color: #F6F6F6;
+		background-color: black;
 	}
 	code {
 		font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
