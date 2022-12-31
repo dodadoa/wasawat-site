@@ -7,7 +7,7 @@ const Navigator = () => {
     return (
         <nav className="fixed top-0 flex flex-row justify-between border-b-[1px] border-b-white h-16 w-full">
             <div className="p-4 pl-6">
-                <p className="text-white"> ~/giang </p>
+                <a href="/" className="text-white"> ~/giang </a>
             </div>
             <div className="flex flex-row justify-between mr-20 w-48">
                 <div
@@ -31,8 +31,8 @@ const Navigator = () => {
                     )
                 }
                 </div>
-                <p className="text-white m-4 cursor-pointer">/blog</p>
-                <p className="text-white m-4 cursor-pointer">/about</p>
+                <a href="/blog" className="text-white m-4 cursor-pointer">/blog</a>
+                <a href="/about" className="text-white m-4 cursor-pointer">/about</a>
             </div>
         </nav>
     )
