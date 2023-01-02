@@ -1,0 +1,190 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="My Tech Radar 2022">
+  <svg id="radar"></svg>
+</Layout>
+
+<script is:inline src="https://d3js.org/d3.v4.min.js"></script>
+<script is:inline src="http://zalando.github.io/tech-radar/release/radar-0.7.js"></script>
+<script is:inline>
+radar_visualization({
+    svg_id: "radar",
+    width: 1500,
+    height: 1000,
+    colors: {
+        background: "#ffffff",
+        grid: "#000",
+        inactive: "#000"
+    },
+    title: "Personal TechRadar",
+    quadrants: [
+        { name: "Languages" },
+        { name: "Backend" },
+        { name: "Frontend" },
+        { name: "Tools + Platform + Infra" }
+    ],
+    rings: [
+        { name: "Adopt / Bored",  color: "#000" },
+        { name: "Love to work with", color: "#000" },
+        { name: "Play around",  color: "#000" },
+        { name: "Avoid",  color: "#000" }
+    ],
+    print_layout: true,
+    entries: [
+        // Languages -> Quandrant 0
+        {
+            label: "Typescript",
+            quadrant: 0,
+            ring: 0,
+        },
+        {
+            label: "Javascript",
+            quadrant: 0,
+            ring: 0,
+        },
+        {
+            label: "Rust",
+            quadrant: 0,
+            ring: 1,
+        },
+        {
+            label: "Elixir",
+            quadrant: 0,
+            ring: 1,
+        },
+        {
+            label: "Go",
+            quadrant: 0,
+            ring: 2,
+        },
+        {
+            label: "Haskell",
+            quadrant: 0,
+            ring: 2,
+        },
+        {
+            label: "Kotlin",
+            quadrant: 0,
+            ring: 2,
+        },
+
+        // Backend -> Quandrant 1
+        {
+            label: "Nodejs",
+            quadrant: 1,
+            ring: 0,
+        },
+        {
+            label: "Tokio",
+            quadrant: 1,
+            ring: 0,
+        },
+        {
+            label: "Express",
+            quadrant: 1,
+            ring: 0,
+        },
+        {
+            label: "Actix",
+            quadrant: 1,
+            ring: 1,
+        },
+        {
+            label: "Prisma",
+            quadrant: 1,
+            ring: 2,
+        },
+        {
+            label: "Phoenix",
+            quadrant: 1,
+            ring: 2,
+        },
+        {
+            label: "Deno",
+            quadrant: 1,
+            ring: 2,
+        },
+        {
+            label: "gRPC for microservices",
+            quadrant: 1,
+            ring: 2,
+        },
+
+        //Frontend -> Quandrant 2
+        {
+            label: "React",
+            quadrant: 2,
+            ring: 0,
+        },
+        {
+            label: "Vue",
+            quadrant: 2,
+            ring: 1,
+        },
+        {
+            label: "Nextjs",
+            quadrant: 2,
+            ring: 0,
+        },
+        {
+            label: "Astro",
+            quadrant: 2,
+            ring: 1,
+        },
+        {
+            label: "Svelte",
+            quadrant: 2,
+            ring: 2,
+        },
+
+         //Tools + Platform -> Quandrant 3
+        {
+            label: "AWS",
+            quadrant: 3,
+            ring: 0
+        },
+        {
+            label: "Prometheus",
+            quadrant: 3,
+            ring: 1
+        },
+        {
+            label: "Grafana",
+            quadrant: 3,
+            ring: 1
+        },
+        {
+            label: "Kubernetes",
+            quadrant: 3,
+            ring: 1
+        },
+        {
+            label: "Datadog",
+            quadrant: 3,
+            ring: 2,
+        },
+        {
+            label: "Headless CMS, Strapi",
+            quadrant: 3,
+            ring: 2,
+        },
+        {
+            label: "statsd",
+            quadrant: 3,
+            ring: 2,
+        },
+        {
+            label: "Fluentd (and FluentBit)",
+            quadrant: 3,
+            ring: 2,
+        },
+        {
+            label: "Wordpress",
+            quadrant: 3,
+            ring: 3,
+        },
+    ]
+});
+</script>
