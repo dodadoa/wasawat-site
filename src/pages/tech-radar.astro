@@ -28,7 +28,7 @@ radar_visualization({
     rings: [
         { name: "Adopt / Bored",  color: "#000" },
         { name: "Love to work with", color: "#000" },
-        { name: "Play around",  color: "#000" },
+        { name: "Play around / Trial",  color: "#000" },
         { name: "Avoid",  color: "#000" }
     ],
     print_layout: true,
@@ -52,7 +52,7 @@ radar_visualization({
         {
             label: "Elixir",
             quadrant: 0,
-            ring: 1,
+            ring: 2,
         },
         {
             label: "Go",
@@ -69,15 +69,15 @@ radar_visualization({
             quadrant: 0,
             ring: 2,
         },
+        {
+            label: "Clojure / ClojureScript",
+            quadrant: 0,
+            ring: 2,
+        },
 
         // Backend -> Quandrant 1
         {
             label: "Nodejs",
-            quadrant: 1,
-            ring: 0,
-        },
-        {
-            label: "Tokio",
             quadrant: 1,
             ring: 0,
         },
@@ -87,9 +87,59 @@ radar_visualization({
             ring: 0,
         },
         {
+            label: "REST",
+            quadrant: 1,
+            ring: 0,
+        },
+        {
+            label: "GraphQL",
+            quadrant: 1,
+            ring: 1,
+        },
+        {
+            label: "r2d2",
+            quadrant: 1,
+            ring: 1,
+        },
+        {
+            label: "Tokio",
+            quadrant: 1,
+            ring: 1,
+        },
+        {
             label: "Actix",
             quadrant: 1,
             ring: 1,
+        },
+        {
+            label: "SQLx",
+            quadrant: 1,
+            ring: 1,
+        },
+        {
+            label: "Diesel",
+            quadrant: 1,
+            ring: 2,
+        },
+        {
+            label: "Tonic",
+            quadrant: 1,
+            ring: 2,
+        },
+        {
+            label: "gRPC",
+            quadrant: 1,
+            ring: 2,
+        },
+        {
+            label: "Juniper",
+            quadrant: 1,
+            ring: 2,
+        },
+        {
+            label: "SeaORM",
+            quadrant: 1,
+            ring: 2,
         },
         {
             label: "Prisma",
@@ -102,12 +152,12 @@ radar_visualization({
             ring: 2,
         },
         {
-            label: "Deno",
+            label: "Ecto",
             quadrant: 1,
             ring: 2,
         },
         {
-            label: "gRPC for microservices",
+            label: "Deno",
             quadrant: 1,
             ring: 2,
         },
@@ -119,12 +169,32 @@ radar_visualization({
             ring: 0,
         },
         {
+            label: "Jest",
+            quadrant: 2,
+            ring: 0
+        },
+        {
+            label: "testing-library",
+            quadrant: 2,
+            ring: 0,
+        },
+        {
+            label: "Cypress",
+            quadrant: 2,
+            ring: 1,
+        },
+        {
             label: "Vue",
             quadrant: 2,
             ring: 1,
         },
         {
-            label: "Nextjs",
+            label: "Next.js",
+            quadrant: 2,
+            ring: 0,
+        },
+        {
+            label: "Gastby",
             quadrant: 2,
             ring: 0,
         },
@@ -134,16 +204,93 @@ radar_visualization({
             ring: 1,
         },
         {
+            label: "Tailwind CSS",
+            quadrant: 2,
+            ring: 1,
+        },
+        {
+            label: "React Hook Form",
+            quadrant: 2,
+            ring: 1,
+        },
+        {
+            label: "Jotai",
+            quadrant: 2,
+            ring: 2,
+        },
+        {
             label: "Svelte",
             quadrant: 2,
             ring: 2,
         },
+        {
+            label: "React Query",
+            quadrant: 2,
+            ring: 2,
+        },
+        {
+            label: "React Native",
+            quadrant: 2,
+            ring: 2,
+        },
+        {
+            label: "Formik",
+            quadrant: 2,
+            ring: 2,
+        },
+        {
+            label: "MUI",
+            quadrant: 2,
+            ring: 2,
+        },
+        {
+            label: "Element UI",
+            quadrant: 2,
+            ring: 2,
+        },
+        {
+            label: "Class-based React",
+            quadrant: 2,
+            ring: 3,
+        },
+        {
+            label: "Redux",
+            quadrant: 2,
+            ring: 3,
+        },
+        
+        
 
-         //Tools + Platform -> Quandrant 3
+         //Tools + Platform + Infra -> Quandrant 3
         {
             label: "AWS",
             quadrant: 3,
             ring: 0
+        },
+        {
+            label: "Github actions",
+            quadrant: 3,
+            ring: 0
+        },
+        {
+            label: "Firebase",
+            quadrant: 3,
+            ring: 0
+        },
+        {
+            label: "Pulumi",
+            quadrant: 3,
+            ring: 1
+        },
+        {
+            label: "Terraform",
+            quadrant: 3,
+            ring: 1
+        },
+        {
+            label: "GCP",
+            quadrant: 3,
+            ring: 1
         },
         {
             label: "Prometheus",
@@ -161,12 +308,32 @@ radar_visualization({
             ring: 1
         },
         {
+            label: "Circle CI",
+            quadrant: 3,
+            ring: 1
+        },
+        {
+            label: "Apache Kafka",
+            quadrant: 3,
+            ring: 1
+        },
+        {
+            label: "Auth0",
+            quadrant: 3,
+            ring: 2
+        },
+        {
             label: "Datadog",
             quadrant: 3,
             ring: 2,
         },
         {
-            label: "Headless CMS, Strapi",
+            label: "Argo Workflow",
+            quadrant: 3,
+            ring: 2,
+        },
+        {
+            label: "Headless CMS - Strapi",
             quadrant: 3,
             ring: 2,
         },
@@ -179,6 +346,46 @@ radar_visualization({
             label: "Fluentd (and FluentBit)",
             quadrant: 3,
             ring: 2,
+        },
+        {
+            label: "eBPF",
+            quadrant: 3,
+            ring: 2,
+        },
+        {
+            label: "io_uring",
+            quadrant: 3,
+            ring: 2,
+        },
+        {
+            label: "Supabase",
+            quadrant: 3,
+            ring: 2
+        },
+        {
+            label: "Elasticsearch",
+            quadrant: 3,
+            ring: 2
+        },
+        {
+            label: "Argo CD",
+            quadrant: 3,
+            ring: 2
+        },
+        {
+            label: "NixOS",
+            quadrant: 3,
+            ring: 2
+        },
+        {
+            label: "SemaphoreCI",
+            quadrant: 3,
+            ring: 2
+        },
+        {
+            label: "Keycloak",
+            quadrant: 3,
+            ring: 2
         },
         {
             label: "Wordpress",
