@@ -7,18 +7,16 @@ import Layout from "../layouts/Layout.astro"
 </Layout>
 
 <script is:inline src="https://d3js.org/d3.v4.min.js"></script>
-<script is:inline src="scripts/radar.js"></script>
+<script src="../externals/radar.js"></script>
 <script>
   radar_visualization({
     svg_id: "radar",
     width: 1500,
     height: 1000,
     colors: {
-      background: "#000",
-      grid: "#fff",
-      inactive: "#fff",
-      textColor: "#fff",
-      textQuadrantsColor: "#fff",
+      background: "#ffffff",
+      grid: "#000",
+      inactive: "#000",
     },
     title: "Personal TechRadar",
     quadrants: [
@@ -28,10 +26,10 @@ import Layout from "../layouts/Layout.astro"
       { name: "Tools + Platform + Infra" },
     ],
     rings: [
-      { name: "Adopt / Bored", color: "#fff" },
-      { name: "Love to work with", color: "#fff" },
-      { name: "Play around / Trial", color: "#fff" },
-      { name: "Avoid", color: "#fff" },
+      { name: "Adopt / Bored", color: "#000" },
+      { name: "Love to work with", color: "#000" },
+      { name: "Play around / Trial", color: "#000" },
+      { name: "Avoid", color: "#000" },
     ],
     print_layout: true,
     entries: [

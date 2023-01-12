@@ -1,14 +1,14 @@
 ---
-import Layout from './Layout.astro';
+import Layout from "./Layout.astro"
 
-const {frontmatter} = Astro.props;
+const { frontmatter } = Astro.props
 ---
 
 <Layout title={frontmatter.title}>
-    <div class="text-white px-6 py-12">
-        <h1 class="text-3xl">{frontmatter.title}</h1>
-        <p>{frontmatter.description}</p>
+  <div class="text-white px-6 py-12">
+    <h1 class="text-3xl">{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
 
-        <slot /> 
-    </div>
+    <slot />
+  </div>
 </Layout>
