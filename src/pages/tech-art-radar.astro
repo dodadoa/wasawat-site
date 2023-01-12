@@ -2,22 +2,23 @@
 import Layout from "../layouts/Layout.astro"
 ---
 
-<Layout title="My Tech Radar 2022">
+<Layout title="My Tech Art Radar 2022">
   <svg id="radar"></svg>
 </Layout>
 
 <script is:inline src="https://d3js.org/d3.v4.min.js"></script>
-<script is:inline src="http://zalando.github.io/tech-radar/release/radar-0.7.js"
-></script>
+<script is:inline src="scripts/radar.js"></script>
 <script is:inline>
   radar_visualization({
     svg_id: "radar",
     width: 1500,
     height: 1000,
     colors: {
-      background: "#ffffff",
-      grid: "#000",
-      inactive: "#000",
+      background: "#000",
+      grid: "#fff",
+      inactive: "#fff",
+      textColor: "#fff",
+      textQuadrantsColor: "#fff",
     },
     title: "Personal TechArt Radar",
     quadrants: [
@@ -27,10 +28,10 @@ import Layout from "../layouts/Layout.astro"
       { name: "Net" },
     ],
     rings: [
-      { name: "Play safe / Adopt", color: "#000" },
-      { name: "Asses", color: "#000" },
-      { name: "Play around / Trial", color: "#000" },
-      { name: "Hold", color: "#000" },
+      { name: "Play safe / Adopt", color: "#fff" },
+      { name: "Asses", color: "#fff" },
+      { name: "Play around / Trial", color: "#fff" },
+      { name: "Hold", color: "#fff" },
     ],
     print_layout: true,
     entries: [
