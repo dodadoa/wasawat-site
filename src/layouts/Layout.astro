@@ -1,5 +1,12 @@
 ---
 import Navigator from "../components/Navigator.jsx"
+import "@fontsource/jetbrains-mono/100.css"
+import "@fontsource/jetbrains-mono/200.css"
+import "@fontsource/jetbrains-mono/300.css"
+import "@fontsource/jetbrains-mono/400.css"
+import "@fontsource/jetbrains-mono/500.css"
+import "@fontsource/jetbrains-mono/600.css"
+import "@fontsource/jetbrains-mono/700.css"
 
 export interface Props {
   title: string
@@ -37,10 +44,5 @@ const { title } = Astro.props
   html {
     background-color: black;
     color: white;
-  }
-
-  code {
-    font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-      DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
   }
 </style>

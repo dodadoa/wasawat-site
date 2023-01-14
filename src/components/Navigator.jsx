@@ -4,14 +4,14 @@ const Navigator = () => {
   const [showShowcase, setShowShowcase] = useState(false)
 
   return (
-    <nav className="fixed top-0 flex flex-row justify-between border-b-[1px] border-b-white h-16 w-full bg-black">
+    <nav className="fixed top-0 flex flex-row justify-between border-b-[1px] border-b-white h-16 w-full bg-black font-mono font-normal">
       <div className="p-4 pl-6">
         <a href="/" className="text-white">
           {" "}
           ~/giang{" "}
         </a>
       </div>
-      <div className="flex flex-row justify-between mr-20 w-48">
+      <div className="flex flex-row justify-between mr-24 w-48">
         <div
           onMouseEnter={() => setShowShowcase(true)}
           onMouseLeave={() => setShowShowcase(false)}
