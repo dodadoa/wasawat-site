@@ -378,20 +378,13 @@ function radar_visualization(config) {
     .style("opacity", 0)
     .style("pointer-events", "none")
     .style("user-select", "none")
-  bubble
-    .append("rect")
-    .attr("rx", 4)
-    .attr("ry", 4)
-    .style("fill", "#333")
+  bubble.append("rect").attr("rx", 4).attr("ry", 4).style("fill", "#333")
   bubble
     .append("text")
     .style("font-family", "sans-serif")
     .style("font-size", "10px")
     .style("fill", "#fff")
-  bubble
-    .append("path")
-    .attr("d", "M 0,0 10,0 5,8 z")
-    .style("fill", "#333")
+  bubble.append("path").attr("d", "M 0,0 10,0 5,8 z").style("fill", "#333")
 
   function showBubble(d) {
     if (d.active || config.print_layout) {

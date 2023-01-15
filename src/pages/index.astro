@@ -2,4 +2,12 @@
 import Layout from "../layouts/Layout.astro"
 ---
 
-<Layout title="Welcome to Wasawat Somno's site" />
+<Layout title="Welcome to Wasawat Somno's site">
+  <div id="root"></div>
+</Layout>
+
+<script>
+import { render } from "../layouts/ThreeLayout.jsx"
+
+render()
+</script>
