@@ -1,0 +1,11 @@
+Model Information:
+* title:	CRT Computer Monitor
+* source:	https://sketchfab.com/3d-models/crt-computer-monitor-f2ff0013f86e4cd0a2aee183a23bdfee
+* author:	Dan (https://sketchfab.com/fizyman)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "CRT Computer Monitor" (https://sketchfab.com/3d-models/crt-computer-monitor-f2ff0013f86e4cd0a2aee183a23bdfee) by Dan (https://sketchfab.com/fizyman) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
