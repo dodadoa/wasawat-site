@@ -4,7 +4,7 @@ const Navigator = () => {
   const [showShowcase, setShowShowcase] = useState(false)
 
   return (
-    <nav className="fixed top-0 flex flex-row justify-between border-b-[1px] border-b-white h-16 w-full bg-black font-mono font-normal">
+    <nav className="fixed z-50 top-0 flex flex-row justify-between border-b-[1px] border-b-white h-16 w-full bg-black font-mono font-normal">
       <div className="p-4 pl-6">
         <a href="/" className="text-white">
           {" "}
