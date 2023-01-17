@@ -20,23 +20,28 @@ const Navigator = () => {
           <p className="text-white m-4 w-36"> /showcase </p>
           {showShowcase && (
             <div className="relative mt-6">
-              <div className="p-4 py-3 border-[1px] border-t-0 border-white bg-black hover:bg-dark-blue">
-                <p className="text-white">/visual</p>
-              </div>
-              <div className="p-4 py-3 border-[1px] border-t-0 border-white bg-black hover:bg-dark-blue">
-                <p className="text-white">/sound</p>
-              </div>
-              <div className="p-4 py-3 border-[1px] border-t-0 border-white bg-black hover:bg-dark-blue">
-                <p className="text-white">/collaboration</p>
-              </div>
+              <a href="/side-projects">
+                <div className="p-4 py-3  bg-black hover:bg-dark-blue">
+                  <p className="text-white">/side_projects</p>
+                </div>
+              </a>
+              <a href="/arts">
+                <div className="p-4 py-3  bg-black hover:bg-dark-blue">
+                  <p className="text-white">/arts</p>
+                </div>
+              </a>
             </div>
           )}
         </div>
-        <a href="/blog" className="text-white m-4 cursor-pointer">
-          /blog
+        <a href="/blog" className="bg-black hover:bg-dark-blue flex flex-col align-middle cursor-pointer">
+          <span  className="text-white m-4">
+            /blog
+          </span>
         </a>
-        <a href="/about" className="text-white m-4 cursor-pointer">
-          /about
+        <a  href="/about" className="bg-black hover:bg-dark-blue flex flex-col align-middle cursor-pointer">
+          <span  className="text-white m-4">
+            /about
+          </span>
         </a>
       </div>
     </nav>
