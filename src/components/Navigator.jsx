@@ -33,15 +33,17 @@ const Navigator = () => {
             </div>
           )}
         </div>
-        <a href="/blog" className="bg-black hover:bg-dark-blue flex flex-col align-middle cursor-pointer">
-          <span  className="text-white m-4">
-            /blog
-          </span>
+        <a
+          href="/blog"
+          className="bg-black hover:bg-dark-blue flex flex-col align-middle cursor-pointer"
+        >
+          <span className="text-white m-4">/blog</span>
         </a>
-        <a  href="/about" className="bg-black hover:bg-dark-blue flex flex-col align-middle cursor-pointer">
-          <span  className="text-white m-4">
-            /about
-          </span>
+        <a
+          href="/about"
+          className="bg-black hover:bg-dark-blue flex flex-col align-middle cursor-pointer"
+        >
+          <span className="text-white m-4">/about</span>
         </a>
       </div>
     </nav>

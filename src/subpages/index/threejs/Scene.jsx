@@ -1,10 +1,10 @@
 import React, { Fragment, useRef, useState, forwardRef } from "react"
 import { Model } from "../../../models/crt"
-import { EffectComposer, Bloom } from '@react-three/postprocessing'
+import { EffectComposer, Bloom } from "@react-three/postprocessing"
 
 export default function Scene() {
   const handleClickCrt = () => {
-    console.log('click')
+    console.log("click")
   }
 
   const [crtHover, setCrtHover] = useState(false)
@@ -14,12 +14,14 @@ export default function Scene() {
   return (
     <group>
       <EffectComposer>
-        {crtHover && <Bloom mipmapBlur luminanceThreshold={0} luminanceSmoothing={1.3} />}
+        {crtHover && (
+          <Bloom mipmapBlur luminanceThreshold={0} luminanceSmoothing={1.3} />
+        )}
       </EffectComposer>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
       <Model
-        handleClickCrt={handleClickCrt} 
+        handleClickCrt={handleClickCrt}
         handlePointerEnterCrt={handlePointerEnterCrt}
         handlePointerLeaveCrt={handlePointerLeaveCrt}
       />
