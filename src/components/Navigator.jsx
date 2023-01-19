@@ -5,7 +5,7 @@ const Navigator = () => {
 
   return (
     <nav className="fixed z-50 top-0 flex flex-row justify-between border-b-[1px] border-b-white h-16 w-full font-mono font-normal bg-black">
-      <div className="p-4 pl-6">
+      <div className="p-4 pl-6 bg-black">
         <a href="/" className="text-white">
           {" "}
           ~/giang{" "}
@@ -20,14 +20,14 @@ const Navigator = () => {
           <p className="text-white m-4 w-36"> /showcase </p>
           {showShowcase && (
             <div className="relative mt-6">
-              <a href="/side-projects">
+              <a href="/side-project">
                 <div className="p-4 py-3  bg-black hover:bg-dark-blue">
-                  <p className="text-white">/side_projects</p>
+                  <p className="text-white">/side_project</p>
                 </div>
               </a>
-              <a href="/arts">
+              <a href="/art">
                 <div className="p-4 py-3  bg-black hover:bg-dark-blue">
-                  <p className="text-white">/arts</p>
+                  <p className="text-white">/art</p>
                 </div>
               </a>
             </div>

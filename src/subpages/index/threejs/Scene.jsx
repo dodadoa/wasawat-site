@@ -1,6 +1,6 @@
 import React, { Fragment, useRef, useState, forwardRef } from "react"
 import { Model } from "../../../models/crt"
-import { EffectComposer, Bloom } from "@react-three/postprocessing"
+import { EffectComposer, Bloom, Noise } from "@react-three/postprocessing"
 
 export default function Scene() {
   const handleClickCrt = () => {
@@ -17,6 +17,7 @@ export default function Scene() {
         {crtHover && (
           <Bloom mipmapBlur luminanceThreshold={0} luminanceSmoothing={1.3} />
         )}
+        <Noise opacity={0.1} />
       </EffectComposer>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
