@@ -1,4 +1,4 @@
-import React, { Fragment, useRef, useState, forwardRef } from "react"
+import React, { useState } from "react"
 import { Model } from "../../../models/crt"
 import { EffectComposer, Bloom, Noise } from "@react-three/postprocessing"
 
@@ -15,9 +15,9 @@ export default function Scene() {
     <group>
       <EffectComposer>
         {crtHover && (
-          <Bloom mipmapBlur luminanceThreshold={0} luminanceSmoothing={1.3} />
+          <Bloom mipmapBlur radius={0.7} luminanceThreshold={0} luminanceSmoothing={1.3}/>
         )}
-        <Noise opacity={0.1} />
+        <Noise opacity={0.08} />
       </EffectComposer>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
