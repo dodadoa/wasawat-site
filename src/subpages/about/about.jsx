@@ -9,8 +9,8 @@ const About = () => {
     <div className="font-light font-mono px-12 w-4/5 text-md text-white leading-10 mt-24">
       <Tab.Group onChange={setSelectedIndex}>
         <Tab.List className="">
-          <Tab as="button" className={`border-[1px] border-white p-2.5 text-sm rounded-tl rounded-bl focus:outline-none ${selectedIndex === 0 && 'bg-dark-blue'}`}>~Engineer</Tab>
-          <Tab as="button" className={`border-[1px] border-white border-l-0 p-2.5 rounded-tr rounded-br text-sm focus:outline-none ${selectedIndex === 1 && 'bg-dark-blue'}`}>~Artist</Tab>
+          <Tab as="button" className={`border-[1px] border-white py-2.5 px-6 text-sm rounded-tl rounded-bl hover:shadow-2xl hover:shadow-yellow-300 focus:outline-none ${selectedIndex === 0 && 'bg-dark-blue'}`}>~Engineer</Tab>
+          <Tab as="button" className={`border-[1px] border-white border-l-0 py-2.5 px-6 rounded-tr rounded-br text-sm hover:shadow-2xl hover:shadow-yellow-300 focus:outline-none ${selectedIndex === 1 && 'bg-dark-blue'}`}>~Artist</Tab>
         </Tab.List>
         <Tab.Panels>
           <Tab.Panel>
