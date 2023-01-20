@@ -15,7 +15,12 @@ export default function Scene() {
     <group>
       <EffectComposer>
         {crtHover && (
-          <Bloom mipmapBlur radius={0.7} luminanceThreshold={0} luminanceSmoothing={1.3}/>
+          <Bloom
+            mipmapBlur
+            radius={0.7}
+            luminanceThreshold={0}
+            luminanceSmoothing={1.3}
+          />
         )}
         <Noise opacity={0.08} />
       </EffectComposer>

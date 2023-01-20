@@ -1,38 +1,8 @@
 ---
-import Layout from "../layouts/Layout.astro"
-import Tabs from "../components/tabs.jsx"
+import Layout from "../layouts/layout.astro"
+import About from "../subpages/about/about.jsx"
 ---
 
 <Layout title="About Wasawat Somno">
-  <div class="font-light font-mono px-12 w-4/5 text-xl text-white leading-10">
-    <Tabs client:load/>
-    
-    <p class="pt-14">
-      Software engineer. Product enthusiast. Data visualization enthusiast.
-    </p>
-    <p class="pt-6">
-      I like functional programming and various fields and aspects of
-      programming language (I'm still learning about it). My current favorite
-      languages are
-      <u
-        ><a
-          class="hover:underline hover:decoration-red-400"
-          href="https://www.rust-lang.org/"
-          target="_blank">Rust</a
-        ></u
-      >, and
-      <u
-        ><a
-          class="hover:underline hover:decoration-red-400"
-          href="https://www.haskell.org/">Haskell</a
-        ></u
-      >.
-    </p>
-    <p class="pt-6">
-      I am also currently exploring the low-level programming, data engineering,
-      cloud native infrastructure (CNCF stuffs), and Blockchain technologies.
-      Sometimes, I live-coding with friends using Veda(GLSL) for Algorave.
-      Sometimes, I collaborate with artists for art exhibition.
-    </p>
-  </div>
+  <About client:load />
 </Layout>

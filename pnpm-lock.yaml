@@ -7,6 +7,7 @@ specifiers:
   "@astrojs/vercel": ^2.4.0
   "@fontsource/inter": ^4.5.14
   "@fontsource/jetbrains-mono": ^4.5.11
+  "@headlessui/react": ^1.7.7
   "@react-spring/three": ^9.6.1
   "@react-spring/web": ^9.6.1
   "@react-three/drei": ^9.52.6
@@ -33,6 +34,7 @@ dependencies:
   "@astrojs/vercel": 2.4.0
   "@fontsource/inter": 4.5.14
   "@fontsource/jetbrains-mono": 4.5.11
+  "@headlessui/react": 1.7.7_biqbaboplfbrettd7655fr4n2y
   "@react-spring/three": 9.6.1_gomtgsyi2ezk55nxt2bgusgpbu
   "@react-spring/web": 9.6.1_biqbaboplfbrettd7655fr4n2y
   "@react-three/drei": 9.52.6_ujgrnjqg6qzyiwznfocw5cghpm
@@ -674,6 +676,21 @@ packages:
       {
         integrity: sha512-IW1qgWGkjlN1O6Jf+6LWF9DpcdXhyQEXhTlzfVKrWHX+ProuOT5FcrEAj34AR+19CgAb9Sheda2slORnybBsdw==,
       }
+    dev: false
+
+  /@headlessui/react/1.7.7_biqbaboplfbrettd7655fr4n2y:
+    resolution:
+      {
+        integrity: sha512-BqDOd/tB9u2tA0T3Z0fn18ktw+KbVwMnkxxsGPIH2hzssrQhKB5n/6StZOyvLYP/FsYtvuXfi9I0YowKPv2c1w==,
+      }
+    engines: { node: ">=10" }
+    peerDependencies:
+      react: ^16 || ^17 || ^18
+      react-dom: ^16 || ^17 || ^18
+    dependencies:
+      client-only: 0.0.1
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
     dev: false
 
   /@jridgewell/gen-mapping/0.1.1:
@@ -2344,6 +2361,13 @@ packages:
         integrity: sha512-qu3pN8Y3qHNgE2AFweciB1IfMnmZ/fsNTEE+NOFjmGB2F/7rLhnhzppvpCnN4FovtP26k8lHyy9ptEbNwWFLzw==,
       }
     engines: { node: ">=6" }
+    dev: false
+
+  /client-only/0.0.1:
+    resolution:
+      {
+        integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==,
+      }
     dev: false
 
   /clone/1.0.4:
