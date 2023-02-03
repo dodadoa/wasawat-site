@@ -1,6 +1,6 @@
 ---
 title: Summary of my personal tech-radar of 2022
-layout: ../../layouts/BlogLayout.astro
+layout: ../../../layouts/BlogLayout.astro
 ---
 
 # Frontend

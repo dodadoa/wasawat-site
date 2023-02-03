@@ -285,6 +285,7 @@ function radar_visualization(config) {
       .style("font-family", "Arial, Helvetica")
       .style("font-size", "30")
       .style("font-weight", "bold")
+      .style("fill", "#999")
 
     // date
     radar
