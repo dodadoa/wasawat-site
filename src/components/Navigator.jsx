@@ -26,7 +26,7 @@ const Navigator = () => {
                 </div>
               </a>
               <a href="/art" className="hover:no-underline">
-                <div className="p-4 py-3  bg-black hover:bg-dark-blue">
+                <div className="p-4 py-3 bg-black hover:bg-dark-blue">
                   <p className="text-white">/art</p>
                 </div>
               </a>
