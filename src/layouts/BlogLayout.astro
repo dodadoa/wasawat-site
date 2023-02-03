@@ -8,7 +8,7 @@ const { frontmatter } = Astro.props
   <div class="text-white px-6 py-12 font-mono">
     <header class="text-3xl">{frontmatter.title}</header>
     <p>{frontmatter.description}</p>
-    <div class="pr-16">
+    <div class="pr-16 mt-8">
       <slot />
     </div>
   </div>
@@ -25,5 +25,12 @@ const { frontmatter } = Astro.props
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
     font-size: 14px;
+  }
+
+  a {
+    color: #a3dd64;
+  }
+  a:hover {
+    text-decoration: underline;
   }
 </style>

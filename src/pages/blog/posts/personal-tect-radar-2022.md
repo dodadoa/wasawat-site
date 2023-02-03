@@ -3,6 +3,8 @@ title: Summary of my personal tech-radar of 2022
 layout: ../../../layouts/BlogLayout.astro
 ---
 
+[Link to tech-radar](../../../../tech-radar)
+
 # Frontend
 
 - I put redux as avoid, since most of project I used there is no need for redux, normally what we want
