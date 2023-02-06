@@ -7,7 +7,7 @@ layout: ../../../layouts/blogLayout.astro
 
 # Backend
 - I'm becoming more convinced to not use ORM much in the project while most of my friends are big fans. Ofc, it's handy and
-in the very beginning can provide lots of convenient stuff like querying, and generating data models, but later in terms of maintenance it's becoming more burden to sync all of the stuff and you still have to use raw SQL (or SQL builder anyway) if things getting more complex especially if your main job is to transfer data, I will go with SQL builder instead (so as `SQLx`), but if the application is medium size, then ORM still pretty handy anyway; `Prisma` is my choice when working with `node` and `SeaORM` is my choice when working with `Rust` because lately I'm a fan of a native async solution, so I don't use much on `diesel` (I heard that they have `async` as well
+in the very beginning can provide lots of convenient stuff like querying, and generating data models, but later in terms of maintenance it's becoming more burden to sync all of the stuff and you still have to use raw SQL (or SQL builder anyway) if things getting more cwomplex especially if your main job is to transfer data, I will go with SQL builder instead (so as `SQLx`), but if the application is medium size, then ORM still pretty handy anyway; `Prisma` is my choice when working with `node` and `SeaORM` is my choice when working with `Rust` because lately I'm a fan of a native async solution, so I don't use much on `diesel` (I heard that they have `async` as well
 but I haven't looked at it yet).
 
 # Frontend
