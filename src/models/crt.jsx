@@ -1,12 +1,12 @@
 import React, { useRef, useState, useEffect } from "react"
 import { useGLTF } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
+
 import { useSpring, animated } from "@react-spring/three"
 
 export function Model(props) {
   const { nodes, materials } = useGLTF("/models/crt/scene-transformed.glb")
   const ref = useRef()
-  const [hovered, hover] = useState(false)
 
   useFrame((state, delta) => {
     ref.current.rotation.y -= 0.005
