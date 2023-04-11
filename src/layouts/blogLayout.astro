@@ -4,7 +4,7 @@ import Layout from "./layout.astro"
 const { frontmatter } = Astro.props
 ---
 
-<Layout title={frontmatter.title} preview={frontmatter.preview}>
+<Layout title={frontmatter.title} preview={frontmatter.preview} description={frontmatter.description}>
   <div class="text-white px-6 py-12 font-mono">
     <header class="text-3xl">
       {frontmatter.title}

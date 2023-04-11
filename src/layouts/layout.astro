@@ -10,11 +10,12 @@ import "@fontsource/jetbrains-mono/600.css"
 import "@fontsource/jetbrains-mono/700.css"
 
 export interface Props {
-  title: string
-  preview: string
+  title?: string
+  preview?: string
+  description?: string
 }
 
-const { title, preview } = Astro.props
+const { title, preview, description } = Astro.props
 ---
 
 <!DOCTYPE html>
@@ -26,10 +27,11 @@ const { title, preview } = Astro.props
     <meta name="generator" content={Astro.generator} />
     <SEO
       title={title}
+      description={}
       openGraph={{
         basic: {
           title: title,
-          image: preview,
+          image: preview || "",
           type: "website",
         }
       }}

@@ -1,7 +1,7 @@
 ---
 title: Summary of my personal tech-radar of 2022
 layout: ../../../layouts/blogLayout.astro
-preview: /blogs/tech-radar-preview.png
+preview: /images/blogs/tech-radar-preview.png
 ---
 
 [Link to tech-radar](../../../../tech-radar)
