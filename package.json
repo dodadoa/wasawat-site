@@ -28,6 +28,7 @@
     "@types/react-dom": "^18.0.6",
     "@types/three": "^0.148.0",
     "astro": "^1.8.0",
+    "astro-seo": "^0.7.2",
     "jotan": "^0.0.0",
     "katex": "^0.16.4",
     "leva": "^0.9.34",

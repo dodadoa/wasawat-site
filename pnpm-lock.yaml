@@ -17,6 +17,7 @@ specifiers:
   '@types/react-dom': ^18.0.6
   '@types/three': ^0.148.0
   astro: ^1.8.0
+  astro-seo: ^0.7.2
   jotan: ^0.0.0
   katex: ^0.16.4
   leva: ^0.9.34
@@ -45,6 +46,7 @@ dependencies:
   '@types/react-dom': 18.0.10
   '@types/three': 0.148.0
   astro: 1.8.0
+  astro-seo: 0.7.2
   jotan: 0.0.0
   katex: 0.16.4
   leva: 0.9.34_biqbaboplfbrettd7655fr4n2y
@@ -1473,6 +1475,10 @@ packages:
   /astring/1.8.4:
     resolution: {integrity: sha512-97a+l2LBU3Op3bBQEff79i/E4jMD2ZLFD8rHx9B6mXyB2uQwhJQYfiDqUwtfjF4QA1F2qs//N6Cw8LetMbQjcw==}
     hasBin: true
+    dev: false
+
+  /astro-seo/0.7.2:
+    resolution: {integrity: sha512-YnSqj4E6vbF7wRk3gcxOPHBjenhfgaINEJlTsnu4sovAyfyGEdQksbioYKoZ+vERRDaYvEricfSzC6fc9lieww==}
     dev: false
 
   /astro/1.8.0:

@@ -5,9 +5,9 @@ const About = () => {
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   return (
-    <div className="font-light font-mono px-8 w-4/5 text-md text-white leading-10 mt-24">
+    <div className="font-mono px-8 w-4/5 text-md text-white leading-8 mt-24">
       <Tab.Group onChange={setSelectedIndex}>
-        <Tab.List className="">
+        <Tab.List className="font-light">
           <Tab
             as="button"
             className={`border-[1px] border-white py-2.5 px-6 text-sm rounded-tl rounded-bl hover:shadow-2xl hover:shadow-yellow-300 focus:outline-none ${
@@ -27,7 +27,7 @@ const About = () => {
         </Tab.List>
         <Tab.Panels>
           <Tab.Panel>
-            <div>
+            <div className="font-thin">
               <p className="pt-14">
                 Software engineer. Product enthusiast. Data visualization
                 enthusiast.
@@ -66,7 +66,7 @@ const About = () => {
             </div>
           </Tab.Panel>
           <Tab.Panel>
-            <div>
+            <div className="font-thin">
               <p className="pt-14">
                 Wasawat Somno (1994) is a programmer, technologist and jargon
                 generator. He collaborates with artists in hope of seeing more
