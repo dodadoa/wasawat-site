@@ -5,7 +5,7 @@ const About = () => {
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   return (
-    <div className="font-mono px-8 w-4/5 text-md text-white leading-8 mt-24">
+    <div className="font-mono px-8 lg:w-4/5 text-md flex flex-col items-center lg:items-start w-full text-white leading-8 mt-24 pb-20">
       <Tab.Group onChange={setSelectedIndex}>
         <Tab.List className="font-light">
           <Tab

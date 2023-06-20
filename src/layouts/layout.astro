@@ -1,5 +1,5 @@
 ---
-import { SEO } from "astro-seo";
+import { SEO } from "astro-seo"
 import Navigator from "../components/navigator.jsx"
 import "@fontsource/jetbrains-mono/100.css"
 import "@fontsource/jetbrains-mono/200.css"
@@ -27,13 +27,13 @@ const { title, preview, description } = Astro.props
     <meta name="generator" content={Astro.generator} />
     <SEO
       title={title}
-      description={}
+      description=""
       openGraph={{
         basic: {
-          title: title,
+          title: title || "",
           image: preview || "",
           type: "website",
-        }
+        },
       }}
     />
     <title>{title}</title>
@@ -43,20 +43,20 @@ const { title, preview, description } = Astro.props
     <main class="mt-16">
       <slot />
     </main>
+    <style is:global>
+      :root {
+        --accent: 124, 58, 237;
+        --accent-gradient: linear-gradient(
+          45deg,
+          rgb(var(--accent)),
+          #da62c4 30%,
+          white 60%
+        );
+      }
+      html {
+        background-color: black;
+        color: white;
+      }
+    </style>
   </body>
 </html>
-<style is:global>
-  :root {
-    --accent: 124, 58, 237;
-    --accent-gradient: linear-gradient(
-      45deg,
-      rgb(var(--accent)),
-      #da62c4 30%,
-      white 60%
-    );
-  }
-  html {
-    background-color: black;
-    color: white;
-  }
-</style>

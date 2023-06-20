@@ -14,9 +14,10 @@ preview: /images/blogs/tech-radar-preview.png
 
 # Frontend
 
-- I put `redux at the beginning of the project` to avoid, since in most of the projects I used there is no need for redux, normally what we want is simple state management with a moderate side effect, which in my opinion, redux is too big for most of my job. Simply put, the `react-context` or `Jotai` would be enough. If I need some side-effect handling, which most of my time involves around the network call, I will use the `react-query` or `react-swr`.
+- I put `redux at the beginning of the project` to avoid, since in most of the projects of mine, there is no need for redux, normally what we want is simple state management with a moderate side effect, which in my opinion, redux is too big for most of my job (`useReducer` is good if you still want the reducer things). Simply put, the `react-context` or `Jotai` would be enough. If I need some side-effect handling, which most of my time involves around the network call, I will use the `react-query` or `react-swr`.
 
 - I've just tried the `Astro` and love its flexibility (although, most of the time I write `react`)
+
 - 
 
 
@@ -24,6 +25,8 @@ preview: /images/blogs/tech-radar-preview.png
 
 - In the next 3-5 years, I think `eBPF` and `io_uring` will be adopted aggressively, so I should learn about it and
 thus include this on my radar as a trial. For `io_uring`, it seems at this time, a very progressive feature for kernel in this recent year, it will become an `async` API for the next generation for sure (since it is not only for async harddisk API anymore, it is now the general async for kernel).
+
+- `cilium` use `eBPF` under its hood.   
 
 # Languages
 
