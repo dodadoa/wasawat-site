@@ -13,14 +13,14 @@ const Navigator = () => {
         </a>
       </div>
       <div className="lg:hidden">
-        <div className="py-5 px-3 w-10 break-all leading-[6px]" onClick={() => setOpenhamburger(true)}>
+        <div className="py-6 px-3 w-10 break-all leading-[6px]" onClick={() => setOpenhamburger(true)}>
          ~~
         </div>
       </div>
       {
         openHamburger && (
           <>
-          <div className="lg:hidden absolute top-0 right-0 p-2 w-10 h-10 text-white z-10" onClick={() => setOpenhamburger(false)}> x </div>
+          <div className="lg:hidden absolute top-0 right-0 p-2 py-4 w-10 h-10 text-white z-10" onClick={() => setOpenhamburger(false)}> x </div>
           <div className="lg:hidden absolute w-full h-48 bg-dark-blue flex flex-col p-4">
             <a
               href="/blog"
