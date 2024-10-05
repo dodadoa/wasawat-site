@@ -1,19 +1,35 @@
 ---
 import Layout from "../layouts/layout.astro"
-const allPosts = await Astro.glob("./blog/posts/*.md")
+let allPosts: Record<string, any>[] = [];
+try {
+  allPosts = await Astro.glob("./blog/posts/*.md");
+} catch (error) {
+  console.error(error);
+}
 ---
 
 <Layout title="Wasawat Somno's blog" description="blogs">
   <div class="text-white px-8 py-8 font-mono">
     <h1 class="text-3xl">Blogs</h1>
-    <div class="mt-4">
-      {
-        allPosts.map((post) => (
-          <ul class="cursor-pointer hover:underline">
-            <a href={post.url}>{post.frontmatter.title}</a>
-          </ul>
-        ))
-      }
-    </div>
+    {
+      allPosts.length === 0 && (
+        <div class="mt-4">
+          <p>No blog post yet.</p>
+        </div>
+      )
+    }
+    {
+      allPosts.length > 0 && (
+        <div class="mt-4">
+          {
+            allPosts.map((post) => (
+              <ul class="cursor-pointer hover:underline mb-4">
+                <a href={post.url}>{post.frontmatter.title}</a>
+              </ul>
+            ))
+          }
+        </div>
+      )
+    }
   </div>
 </Layout>
