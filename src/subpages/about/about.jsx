@@ -29,13 +29,14 @@ const About = () => {
           <Tab.Panel>
             <div className="font-thin">
               <p className="pt-14">
-                Software engineer. Product enthusiast. Data visualization
-                enthusiast.
+              I am a software developer who is also interested in developing consulting skills and product development. 
+              I value quality code and teamwork. I am passionate about software development and also interested in 
+              practices such as pair programming, trunk-based development, continuous integration, and continuous delivery. 
+              My skills vary ranging from frontend to backend and infrastructure. 
               </p>
               <p className="pt-6">
                 I like functional programming and various fields and aspects of
-                programming language (I'm still learning about it). My current
-                favorite languages are{" "}
+                programming language. My current favorite languages are{" "}
                 <u>
                   <a
                     className="hover:underline hover:decoration-red-400"
@@ -43,6 +44,16 @@ const About = () => {
                     target="_blank"
                   >
                     Rust
+                  </a>
+                </u>
+                , {" "}
+                <u>
+                  <a
+                    className="hover:underline hover:decoration-red-400"
+                    href="https://ziglang.org/"
+                    target="_blank"
+                  >
+                    Zig
                   </a>
                 </u>
                 , and{" "}
@@ -58,9 +69,8 @@ const About = () => {
               </p>
               <p className="pt-6">
                 I am also currently exploring the low-level programming, data
-                engineering, cloud native infrastructure (CNCF stuffs), and
-                Blockchain technologies. Sometimes, I live-coding with friends
-                using Veda(GLSL) for Algorave. Sometimes, I collaborate with
+                engineering, cloud native infrastructure (CNCF stuffs), and Graphic programming (as a hobby). 
+                Sometimes, I live-coding with friends using Veda(GLSL) for Algorave. Sometimes, I collaborate with
                 artists for art exhibition.
               </p>
             </div>
@@ -68,21 +78,32 @@ const About = () => {
           <Tab.Panel>
             <div className="font-thin">
               <p className="pt-14">
-                Wasawat Somno (1994) is a programmer, technologist and jargon
-                generator. He collaborates with artists in hope of seeing more
-                technologies being exploited more creatively. His previous
-                collaboration with artist Tewprai Bualoi explored on memories of
-                digital file in a physical forms in "I'm thinking of you
-                fondly"(2019). Other examples include a collaboration with Nanut
-                Thanapornrapee, in exploring on AI and Innate consciousness,
-                methapholically to the reborn of a restaurant and collaboration
-                with Humanist.us on exploring the mapping between map, territory
-                and physical world in "Tentacular Territoria”(2020). He also
-                worked as technical assistant and programmer for artists,
-                including Nawin Nuthong(2020) in his solo at Bangkok CityCity
-                Gallery in "THE IMMORTALS ARE QUITE BUSY THESE DAYS" and Ellen
-                Pearlman from ThoughtWorks Art New York in "AIBO" - the BRAIN
-                opera. (2019)
+              Wasawat Somno (1994) is a programmer who finds himself lately doing visual and music with code. 
+              He enjoys playing with different programs and frameworks - TouchDesigner, SuperCollider, Tidal Cycles, 
+              MaxMSP, Hydra.js, and the list keeps growing up.
+
+              <br/><br/>
+              He sometimes plays VJ in the club scene or visual/audio at art scene with friends and collective, 
+              for example DXPRNZ by Blozxom at DECOMMUNE (2022) using TouchDesigner and AI generated images, and Buddhasilp.io 
+              at AraiArai (2021) using live-coding language: Veda.GLSL. He also duo with Thanapat Ryan in 
+              Diage festival at live-coding music stage. He was also doing visual for music performance for 
+              People of Ari in RE:SYN using TouchDesigner working with OSC.
+
+              <br/><br/>
+              He is also interested in organizing tech art/music events including BYOB (Bring Your Own Beamer) 
+              with his collective JAAG (Joint artistic Amateur Group) at Bangkok CityCity Gallery (2023) featuring, 
+              also organizing live-coding music event with Thanapat Ryan in “The end is near - A dystopian Electronic Party” 
+              at DECOMMUNE (2022), Iterations and sequences at Community lab (2023), and Cybernaut party at Unformat Studio (2024) 
+              featuring artists from New York and Ho Chi Minh with his collective Cornea Cochlear Club. 
+
+              <br/><br/>
+              He also enjoys collaborating with artists in the hope of seeing more technologies being exploited more creatively. 
+              His previous collaboration with artist Tewprai Bualoi explored memories of digital files in a physical form in 
+              "I'm thinking of you fondly"(2019) at BACC. Other examples include a collaboration with Nanut Thanapornrapee, 
+              in exploring AI and Innate consciousness, methapholically to the reborn of a restaurant. He also worked 
+              as a technical assistant and programmer for artists, including Nawin Nuthong (2020) in his solo at Bangkok CityCity Gallery 
+              in "THE IMMORTALS ARE QUITE BUSY THESE DAYS" and Ellen Pearlman from ThoughtWorks Art New York in 
+              "AIBO" - the BRAIN opera (2019).
               </p>
             </div>
           </Tab.Panel>
