@@ -77,7 +77,7 @@ const About = () => {
           </Tab.Panel>
           <Tab.Panel>
             <div className="font-thin">
-              <p className="pt-14">
+              <p className="pt-6">
               Wasawat Somno (1994) is a programmer who finds himself lately doing visual and music with code. 
               He enjoys playing with different programs and frameworks - TouchDesigner, SuperCollider, Tidal Cycles, 
               MaxMSP, Hydra.js, and the list keeps growing up.
@@ -105,6 +105,13 @@ const About = () => {
               in "THE IMMORTALS ARE QUITE BUSY THESE DAYS" and Ellen Pearlman from ThoughtWorks Art New York in 
               "AIBO" - the BRAIN opera (2019).
               </p>
+              <a 
+                className="hover:font-bold block w-44"
+                target="_blank" 
+                href="https://shrouded-runner-ae1.notion.site/Wasawat-Somno-dc377ed5daf94a79a57575adc00331bf?pvs=4"
+              >
+                <p className="pt-10 text-yellow-300">/More about me/</p>
+              </a>
             </div>
           </Tab.Panel>
         </Tab.Panels>
