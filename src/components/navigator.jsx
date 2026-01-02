@@ -1,7 +1,6 @@
-import React, { useState } from "react"
+import { useState } from "react"
 
 const Navigator = () => {
-  const [showShowcase, setShowShowcase] = useState(false)
   const [openHamburger, setOpenhamburger] = useState(false)
 
   return (
@@ -34,23 +33,18 @@ const Navigator = () => {
             >
               <span className="text-white">/about</span>
             </a>
-            <p className="text-white w-36" onClick={() => setShowShowcase((prev) => !prev)}> /showcase </p>
-            {
-              showShowcase && (
-                <div className="flex flex-col ml-4">
-                  <a href="/side-project" className="hover:no-underline">
-                    <p className="text-white">/side_project</p>
-                  </a>
-                  <a href="/art" className="hover:no-underline">
-                    <p className="text-white">/art</p>
-                  </a>
-                  <a href="/talks" className="hover:no-underline">
-                    <p className="text-white">/talks</p>
-                  </a>
-                </div>
-                
-              )
-            }
+            <a
+              href="/art"
+              className=""
+            >
+              <span className="text-white">/art</span>
+            </a>
+            <a
+              href="/talks"
+              className=""
+            >
+              <span className="text-white">/talks</span>
+            </a>
            
           </div>
           </>
@@ -58,32 +52,18 @@ const Navigator = () => {
       }
       
       <div className="lg:flex lg:flex-row lg:justify-between lg:mr-6 hidden">
-        <div
-          className="cursor-pointer bg-black hover:bg-dark-blue"
-          onMouseEnter={() => setShowShowcase(true)}
-          onMouseLeave={() => setShowShowcase(false)}
+        <a
+          href="/art"
+          className="bg-black hover:bg-dark-blue hover:no-underline flex flex-col align-middle cursor-pointer"
         >
-          <p className="text-white m-4 w-36"> /showcase </p>
-          {showShowcase && (
-            <div className="relative mt-6">
-              <a href="/side-project" className="hover:no-underline">
-                <div className="p-4 py-3  bg-black hover:bg-dark-blue">
-                  <p className="text-white">/side_project</p>
-                </div>
-              </a>
-              <a href="/art" className="hover:no-underline">
-                <div className="p-4 py-3 bg-black hover:bg-dark-blue">
-                  <p className="text-white">/art</p>
-                </div>
-              </a>
-              <a href="/talks" className="hover:no-underline">
-                <div className="p-4 py-3 bg-black hover:bg-dark-blue">
-                  <p className="text-white">/talks</p>
-                </div>
-              </a>
-            </div>
-          )}
-        </div>
+          <span className="text-white m-4">/art</span>
+        </a>
+        <a
+          href="/talks"
+          className="bg-black hover:bg-dark-blue hover:no-underline flex flex-col align-middle cursor-pointer"
+        >
+          <span className="text-white m-4">/talks</span>
+        </a>
         <a
           href="/blog"
           className="bg-black hover:bg-dark-blue hover:no-underline flex flex-col align-middle cursor-pointer"
