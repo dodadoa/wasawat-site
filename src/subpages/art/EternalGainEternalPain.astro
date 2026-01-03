@@ -1,14 +1,16 @@
 ---
+import { linkInstagramMentions } from "../../utils/instagramMentions";
+
+const text1 = linkInstagramMentions("(2025, Thailand, Print on fabric, metal frame, custom software (openworm's c302 project), mixed media.)<br />re:complex<br />at @goetheinstitut.thailand<br />7-13 November 2025<br />guest curator: @alcoholidaysss");
+const text2 = linkInstagramMentions("<strong>Project Installation consultation:</strong> @toeeyt");
+const text3 = linkInstagramMentions("<strong>3d mockup:</strong> @msyves");
+const text4 = linkInstagramMentions("<strong>Project consultation:</strong> @roma_or_am_i");
+const text5 = linkInstagramMentions("<strong>Installation:</strong><br />Wutthiphong Chaiwong<br />Nuttawut Kaiwansin<br />@sawasdeenut");
+const text6 = linkInstagramMentions("<strong>Special Thanks:</strong><br />@nowheredweller<br />@nanut.t<br />Johannes Hossfeld<br />Kullaya Wapinanon<br />@gracenaholic<br />@nawinnuthong");
 ---
 
 <div class="mt-4 max-w-3xl">
-  <p class="mb-2 text-sm opacity-80">
-    (2025, Thailand, Print on fabric, metal frame, custom software (openworm's c302 project), mixed media.)<br />
-    re:complex<br />
-    at @goetheinstitut.thailand<br />
-    7-13 November 2025<br />
-    guest curator: @alcoholidaysss
-  </p>
+  <p class="mb-2 text-sm opacity-80" set:html={text1}></p>
   
   <p class="mb-4 mt-4">
     The simulations of four parallel worlds of the nematode Caenorhabditis elegans' neural pathway—an organism (roundworm) whose whole neural map data has been collected and simulated. They are displayed with each quadrant. Each quadrant presents a different condition based on the quadrant's description: induced pain, induced pleasure, or complete absence of the worm.
@@ -27,21 +29,12 @@
   </p>
   
   <div class="mt-6 pt-4 border-t border-gray-700">
-    <p class="text-sm mb-2"><strong>Project Installation consultation:</strong> @toeeyt</p>
-    <p class="text-sm mb-2"><strong>3d mockup:</strong> @msyves</p>
-    <p class="text-sm mb-2"><strong>Project consultation:</strong> @roma_or_am_i</p>
-    <p class="text-sm mb-4"><strong>Installation:</strong><br />
-    Wutthiphong Chaiwong<br />
-    Nuttawut Kaiwansin<br />
-    @sawasdeenut</p>
+    <p class="text-sm mb-2" set:html={text2}></p>
+    <p class="text-sm mb-2" set:html={text3}></p>
+    <p class="text-sm mb-2" set:html={text4}></p>
+    <p class="text-sm mb-4" set:html={text5}></p>
     
-    <p class="text-sm"><strong>Special Thanks:</strong><br />
-    @nowheredweller<br />
-    @nanut.t<br />
-    Johannes Hossfeld<br />
-    Kullaya Wapinanon<br />
-    @gracenaholic<br />
-    @nawinnuthong</p>
+    <p class="text-sm" set:html={text6}></p>
   </div>
 </div>
 

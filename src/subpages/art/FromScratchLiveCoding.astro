@@ -1,11 +1,14 @@
 ---
+import { linkInstagramMentions } from "../../utils/instagramMentions";
+
+const text1 = linkInstagramMentions("In 'evals', a live-coding performance at @bangkok_kunsthalle on July 4th 2025<br />Organized by @synap.home.lab in collaboration with @corneacochlearclub and @bangkok_kunsthalle");
+const text2 = linkInstagramMentions("<strong>Sound Engineer</strong><br />@skykys._<br />@nowheredweller");
+const text3 = linkInstagramMentions("<strong>Special thanks</strong><br />@renickbell<br />@synap.home.lab");
+const text4 = linkInstagramMentions("<strong>Photo by</strong><br />@puttisinn (@puttisinc)");
 ---
 
 <div class="mt-4 max-w-3xl">
-  <p class="mb-2 text-sm opacity-80">
-    In 'evals', a live-coding performance at @bangkok_kunsthalle on July 4th 2025<br />
-    Organized by @synap.home.lab in collaboration with @corneacochlearclub and @bangkok_kunsthalle
-  </p>
+  <p class="mb-2 text-sm opacity-80" set:html={text1}></p>
   
   <p class="mb-4 mt-4">
     I start by scratching sound into the microphone and then manipulating it with code (using TidalCycles). Layer by layer, more sounds are scratched, combined, and transformed, all unfolding improvisationally on the fly.
@@ -20,16 +23,11 @@
   </p>
   
   <div class="mt-6 pt-4 border-t border-gray-700">
-    <p class="text-sm mb-2"><strong>Sound Engineer</strong><br />
-    @skykys._<br />
-    @nowheredweller</p>
+    <p class="text-sm mb-2" set:html={text2}></p>
     
-    <p class="text-sm mb-2"><strong>Special thanks</strong><br />
-    @renickbell<br />
-    @synap.home.lab</p>
+    <p class="text-sm mb-2" set:html={text3}></p>
     
-    <p class="text-sm"><strong>Photo by</strong><br />
-    @puttisinn (@puttisinc)</p>
+    <p class="text-sm" set:html={text4}></p>
   </div>
 </div>
 

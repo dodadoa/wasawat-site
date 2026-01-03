@@ -10,6 +10,7 @@ import * as THREE from "three"
 extend({ TextGeometry })
 
 // Individual animated text character component - fully preloaded with staggered appearance
+// Currently disabled - kept for future use
 function AnimatedTextChar({ position, font, material, initialChar, isHovering, changeInterval, delay }) {
   const [, setChar] = useState(initialChar)
   const [isVisible, setIsVisible] = useState(false)
@@ -87,6 +88,7 @@ export default function Scene() {
   }
 
   const [crtHover, setCrtHover] = useState(false)
+  const ENABLE_TEXT_GRID = false // Set to true to activate text grid
   
   const handlePointerEnterCrt = () => {
     setCrtHover(true)
@@ -97,7 +99,9 @@ export default function Scene() {
   }
 
   // Generate random characters in 20x20 grid (full screen - 100% width and height) - fully preloaded
+  // Currently disabled - kept for future use
   const textGrid = useMemo(() => {
+    if (!ENABLE_TEXT_GRID) return []
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?"
     const gridSize = 20
     const spacing = 2.2
@@ -123,7 +127,9 @@ export default function Scene() {
   }, [])
 
   // Pre-create materials for better performance (white bloom) - preloaded with opacity 0
+  // Currently disabled - kept for future use
   const materials = useMemo(() => {
+    if (!ENABLE_TEXT_GRID) return []
     return textGrid.map((item) => {
       const material = new THREE.MeshStandardMaterial({
         color: "#ffffff",
@@ -159,28 +165,32 @@ export default function Scene() {
           handlePointerLeaveCrt={handlePointerLeaveCrt}
         />
       </group>
-      {/* Name - preloaded, appears instantly */}
-      <mesh position={[-4.1, 0.1, 2]} visible={crtHover}>
-        <textGeometry
-          args={["wasawat somno", { font, size: 0.5, height: 0.08 }]}
-        />
-        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={2} />
-      </mesh>
-      {/* Random text grid background - fully preloaded, appears one by one on hover */}
-      <group>
-        {textGrid.map((item, index) => (
-          <AnimatedTextChar
-            key={index}
-            position={[item.x, item.y, item.z]}
-            font={font}
-            material={materials[index]}
-            initialChar={item.initialChar}
-            isHovering={crtHover}
-            changeInterval={item.changeInterval}
-            delay={item.delay}
+      {/* Name - appears on hover */}
+      {crtHover && (
+        <mesh position={[-4.1, 0.1, 2]}>
+          <textGeometry
+            args={["wasawat somno", { font, size: 0.5, height: 0.08 }]}
           />
-        ))}
-      </group>
+          <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={2} />
+        </mesh>
+      )}
+      {/* Random text grid background - currently disabled, set ENABLE_TEXT_GRID to true to activate */}
+      {ENABLE_TEXT_GRID && (
+        <group>
+          {textGrid.map((item, index) => (
+            <AnimatedTextChar
+              key={index}
+              position={[item.x, item.y, item.z]}
+              font={font}
+              material={materials[index]}
+              initialChar={item.initialChar}
+              isHovering={crtHover}
+              changeInterval={item.changeInterval}
+              delay={item.delay}
+            />
+          ))}
+        </group>
+      )}
       <fog
         attach="fog"
         color="blue"
