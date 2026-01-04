@@ -80,8 +80,12 @@ function AnimatedTextChar({ position, font, material, initialChar, isHovering, c
   )
 }
 
-export default function Scene() {
-  const font = new FontLoader().parse(fontDamione)
+export default function Scene({ preloadedFont }) {
+  // Use preloaded font if provided, otherwise load it
+  const font = preloadedFont || useMemo(() => {
+    const loader = new FontLoader()
+    return loader.parse(fontDamione)
+  }, [])
 
   const handleClickCrt = () => {
     console.log("click")

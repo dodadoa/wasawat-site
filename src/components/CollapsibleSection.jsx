@@ -13,7 +13,7 @@ const CollapsibleSection = ({ title, children, defaultOpen = false, level = 2 })
         <>
           <DisclosureButton 
             as="button" 
-            className={`w-full text-left flex items-center justify-between border border-white p-4 h-[60px] cursor-pointer transition-colors duration-300 hover:bg-gradient-to-r hover:from-green-500/20 hover:via-green-400/30 hover:to-green-500/20 hover:border-green-400 ${
+            className={`w-full text-left flex items-center justify-between border border-white p-2 cursor-pointer transition-colors duration-300 hover:bg-gradient-to-r hover:from-green-500/20 hover:via-green-400/30 hover:to-green-500/20 hover:border-green-400 ${
               level === 3 ? "ml-4" : ""
             }`}
           >
