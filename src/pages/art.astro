@@ -1,121 +1,38 @@
 ---
 import Layout from "../layouts/layout.astro"
-import EternalGainEternalPain from "../subpages/art/EternalGainEternalPain.astro"
-import HereNowAbsoluteElsewhere from "../subpages/art/HereNowAbsoluteElsewhere.astro"
-import FromScratchLiveCoding from "../subpages/art/FromScratchLiveCoding.astro"
-import GimmeTheLight from "../subpages/art/GimmeTheLight.astro"
-import VinAVParaCartography from "../subpages/art/VinAVParaCartography.astro"
-import Unfest2025 from "../subpages/art/Unfest2025.astro"
-import BYOB from "../subpages/art/BYOB.astro"
-import CollapsibleSection from "../components/CollapsibleSection.jsx"
+import { artSections } from "../data/artArchive.js"
 ---
 
 <Layout title="Wasawat Somno's art projects">
-  <main class="font-mono p-8 pb-20">
-    
-    <h1 class="font-bold text-4xl mb-4">Archives</h1>
+  <div class="relative z-10 font-mono p-8 pb-20 max-w-4xl">
+    <p class="text-[10px] uppercase tracking-widest text-[#404040] mb-2">[archives]</p>
+    <h1 class="font-bold text-3xl lg:text-4xl mb-10 text-[#e8e8e8]">Archives</h1>
 
-    <CollapsibleSection client:load title="TechArt" level={2}>
-      <CollapsibleSection client:load title="Collaboration" level={3}>
-        <ul class="list-disc">
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">
-            Neotokyo/Neonatus with Nanut
-          </li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">
-            Tentacular Teriterria
-          </li>
-        </ul>
-      </CollapsibleSection>
+    {
+      artSections.map((section) => (
+        <section class="mb-10">
+          <h2 class="font-bold text-xl mb-4 text-[#e8e8e8] uppercase tracking-wide">{section.title}</h2>
 
-      <CollapsibleSection client:load title="Technical Consultant/Assistant/Advisor" level={3}>
-        <ul class="list-disc">
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">Nawin Nuthong</li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">JAM</li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">Tewprai</li>
-          <!-- <li class="mt-2 ml-4 hover:underline cursor-pointer">Ellen</li> -->
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">Omer Wasim</li>
-        </ul>
-      </CollapsibleSection>
-    </CollapsibleSection>
-
-    <CollapsibleSection client:load title="Audio" level={2}>
-      <CollapsibleSection client:load title="Algorave [WrappedByte]" level={3}>
-        <ul class="list-disc">
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">
-            The end is near: a dystopian electronic party. Duo with Thanapat
-            Ogaslert (CSRCSR) at De Commune. Also organize and promote the event.
-          </li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">Sonic thread</li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">Sonic thread</li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">Ghost (as JAAG)</li>
-        </ul>
-      </CollapsibleSection>
-
-      <CollapsibleSection client:load title="DJ [DJ Kanyoke]" level={3}>
-        <ul class="list-disc">
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">Ghost (as JAAG)</li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">
-            Opening Party for Nanut, This history is auto-generated
-          </li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">
-            Closing Party for Nanut, This history is auto-generated
-          </li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">
-            Mix, invited guest for Blozxom for Bangkok Community Radio (BCR)
-          </li>
-        </ul>
-      </CollapsibleSection>
-
-      <CollapsibleSection client:load title="From Scratch Live Coding From Scratch" level={3}>
-        <FromScratchLiveCoding />
-      </CollapsibleSection>
-
-      <CollapsibleSection client:load title="Gimme the light, and you shall receive the praise" level={3}>
-        <GimmeTheLight />
-      </CollapsibleSection>
-
-      <CollapsibleSection client:load title="VinA/V #02: Para-Cartography" level={3}>
-        <VinAVParaCartography />
-      </CollapsibleSection>
-
-      <CollapsibleSection client:load title="LiveCoding AudioVisual duo with @pasuthh at Unfest2025" level={3}>
-        <Unfest2025 />
-      </CollapsibleSection>
-    </CollapsibleSection>
-
-    <CollapsibleSection client:load title="Visual" level={2}>
-      <CollapsibleSection client:load title="VJ" level={3}>
-        <ul class="list-disc">
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">
-            Gallery night performance With Karnpapon (The Black Codes) at Mal
-            studio, and with Nanut at Tentacles Gallery
-          </li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">
-            Bangkok street noise With Karnpapon (The Black Codes)
-          </li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">DXPRN (as JAAG)</li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">
-            VJing for Jon Samurai at JAM (as JAAG)
-          </li>
-          <li class="mt-2 ml-4 hover:underline cursor-pointer">
-            Sonic Thread with Thanapat Ogaslert (CSRCSR) at Tentacles Gallery
-          </li>
-        </ul>
-      </CollapsibleSection>
-
-      <CollapsibleSection client:load title="BYOB" level={3}>
-        <BYOB />
-      </CollapsibleSection>
-    </CollapsibleSection>
-
-    <CollapsibleSection client:load title="Installations" level={2}>
-      <CollapsibleSection client:load title="Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)" level={3}>
-        <EternalGainEternalPain />
-      </CollapsibleSection>
-      
-      <CollapsibleSection client:load title="Here-now; absolute-elsewhere" level={3}>
-        <HereNowAbsoluteElsewhere />
-      </CollapsibleSection>
-    </CollapsibleSection>
-  </main>
+          {section.groups.map((group) => (
+            <div class="mb-6 ml-4">
+              {group.title && <h3 class="text-[11px] uppercase tracking-widest text-[#404040] mb-2">{group.title}</h3>}
+              <ul class="list-disc ml-4">
+                {group.items.map((item) => (
+                  <li class="mt-2">
+                    {item.slug ? (
+                      <a href={`/art/${item.slug}`} class="hover:underline">
+                        {item.label}
+                      </a>
+                    ) : (
+                      item.label
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      ))
+    }
+  </div>
 </Layout>

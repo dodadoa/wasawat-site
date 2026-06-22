@@ -40,23 +40,81 @@ const { title, preview, description } = Astro.props
   </head>
   <body>
     <Navigator client:load />
-    <main class="mt-16">
+    <main class="relative z-10 mt-16 pointer-events-auto">
       <slot />
     </main>
     <style is:global>
       :root {
-        --accent: 124, 58, 237;
-        --accent-gradient: linear-gradient(
-          45deg,
-          rgb(var(--accent)),
-          #da62c4 30%,
-          white 60%
-        );
+        --bg: #000000;
+        --bg-elevated: #0d0d0d;
+        --text: #e8e8e8;
+        --text-muted: #737373;
+        --text-dim: #404040;
+        --border: #262626;
+        --border-subtle: #1a1a1a;
       }
-      html {
-        background-color: black;
-        color: white;
+
+      html,
+      body {
+        background-color: var(--bg);
+        color: var(--text-muted);
+        font-family: "JetBrains Mono", monospace;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      main {
+        color: var(--text-muted);
+      }
+
+      h1,
+      h2,
+      h3 {
+        color: var(--text);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      a {
+        color: var(--text-muted);
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: var(--text);
+      }
+
+      nav {
+        pointer-events: auto;
+      }
+
+      ::selection {
+        background: #333;
+        color: #fff;
+      }
+
+      .opacity-80 {
+        opacity: 1;
+        color: var(--text-dim);
+      }
+
+      .border-gray-700,
+      .border-neutral-800,
+      .border-neutral-200 {
+        border-color: var(--border) !important;
+      }
+
+      figcaption {
+        color: var(--text-dim);
       }
     </style>
+  <script>
+    // Prevent bfcache from restoring stale Astro island hydration states,
+    // which causes React roots to mount a second time into an already-rendered container.
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) {
+        window.location.reload()
+      }
+    })
+  </script>
   </body>
 </html>

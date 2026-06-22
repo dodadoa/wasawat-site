@@ -1,0 +1,44 @@
+---
+import Layout from "../layouts/layout.astro"
+---
+
+<Layout title="Landing — ASCII Roguelike" description="Top-down ASCII roguelike exploration">
+  <div id="game-container"></div>
+</Layout>
+
+<style is:global>
+  body:has(#game-container) {
+    overflow: hidden;
+  }
+
+  body:has(#game-container) main {
+    margin: 0 !important;
+    padding: 0;
+    width: 100%;
+  }
+</style>
+
+<style>
+  #game-container {
+    position: fixed;
+    top: 4rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 0;
+    overflow: hidden;
+    background: #000000;
+  }
+
+  #game-container canvas {
+    display: block;
+    image-rendering: pixelated;
+  }
+</style>
+
+<script>
+  import { startGame } from "../game/phaserGame.js"
+
+  startGame("game-container")
+</script>

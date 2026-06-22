@@ -1,31 +1,87 @@
 ---
-import { linkInstagramMentions } from "../../utils/instagramMentions";
+import { linkInstagramMentions } from "../../utils/instagramMentions"
 
-const text1 = linkInstagramMentions("At @bartemp.bkk for @nonnonnon_bangkok<br />Mutant Club, 3rd Oct.");
-const text2 = linkInstagramMentions("Thank you so much @maehappyair @nonnonnon_bangkok");
-const text3 = linkInstagramMentions("<strong>Special thank</strong> @krung_khet for helping me setup the sound and test the website");
-const text4 = linkInstagramMentions("<strong>Special thank</strong> @pin_natthamon for the clips");
+const credits = linkInstagramMentions(
+  "At @bartemp.bkk for @nonnonnon_bangkok<br />Mutant Club, 3rd Oct."
+)
+const thanks1 = linkInstagramMentions("Thank you so much @maehappyair @nonnonnon_bangkok")
+const thanks2 = linkInstagramMentions(
+  "<strong>Special thank</strong> @krung_khet for helping me setup the sound and test the website"
+)
+const thanks3 = linkInstagramMentions("<strong>Special thank</strong> @pin_natthamon for the clips")
 ---
 
 <div class="mt-4 max-w-3xl">
-  <p class="mb-2 text-sm opacity-80" set:html={text1}></p>
-  
-  <p class="mb-4 mt-4">
-    I asked the audiences to scan the QR Code to open my website that made their phones a strobe. The website would ask for the permission to control the phone camera, and then control the phone flashlight. The Strobe would randomly change the BPM between 120 to 500.
-  </p>
-  
+  <p class="mb-2 text-sm opacity-80" set:html={credits}></p>
+  <p class="mb-6 text-sm opacity-80">Post-screen strategy for low-tech rooms</p>
+
   <p class="mb-4">
-    Before and late in my set, I would beg the audiences to give me some more light as an inspiration (- as a spotlight) and in exchange, I would continue to give them my sound back.
+    This piece grows directly from a practical question: what if the venue has no projector, and
+    sometimes almost no lighting? If I cannot assume projector or lighting, I ask the audience to
+    become the light system.
   </p>
-  
-  <div class="mt-6 pt-4 border-t border-gray-700">
-    <p class="text-sm mb-2" set:html={text2}></p>
-    
+
+  <p class="mb-4">
+    I invite people to scan a website, grant camera and flashlight permission, and turn their phones
+    into moving strobes. Their batteries become my spotlight; their recording devices become part of
+    the stage instead of only documenting it. Later in the set, I may ask them to scan again if the
+    crowd is smaller than expected.
+  </p>
+
+  <p class="mb-4">
+    I am interested in DIY methods that turn audience assets (phones, attention, batteries) and space
+    assets (walls, darkness, existing light) into part of the piece itself. The goal is not only to
+    make it work, but to make the room feel visually strong. At the same time, I try to rely less on
+    dragging in a big screen as the default solution — while still craving the scale of massive LED
+    architecture, the kind you can feel from far away in large US venues.
+  </p>
+
+  <figure class="my-8">
+    <img
+      src="/images/las-vegas-sphere.jpg"
+      alt="Las Vegas Sphere, a large LED dome venue in the US"
+      class="w-full"
+      loading="lazy"
+    />
+    <figcaption class="mt-2 text-sm opacity-70">
+      Las Vegas Sphere. Photo: Matt Walter, CC BY 2.0 via Wikimedia Commons
+    </figcaption>
+  </figure>
+
+  <h2 class="font-light text-xl mb-3 mt-8">How the system works</h2>
+
+  <p class="mb-4">
+    Each phone joins through the browser. The site requests camera and flashlight access, then drives
+    flashlight pulses from each device camera stream. Strobes do not sync together — each phone runs
+    its own tempo, randomly set between 120 and 180 BPM, so the crowd becomes a distributed,
+    out-of-phase light field.
+  </p>
+
+  <p class="mb-4">
+    Before and late in my set, I would beg the audiences to give me some more light as an inspiration
+    — as a spotlight — and in exchange, I would continue to give them my sound back.
+  </p>
+
+  <figure class="my-8">
+    <a
+      href="https://www.instagram.com/p/DP4E_7Mkz0-/?img_index=1"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="hover:underline"
+    >
+      Gimme the light performance (Instagram)
+    </a>
+  </figure>
+
+  <figure class="my-8">
+    <img src="/images/qr.png" alt="QR code to join Gimme the light" class="w-48" loading="lazy" />
+    <figcaption class="mt-2 text-sm opacity-70">Scan to join</figcaption>
+  </figure>
+
+  <div class="mt-6 pt-4 border-t border-neutral-800">
+    <p class="text-sm mb-2" set:html={thanks1}></p>
     <p class="text-sm mb-2">Thank you all audiences (and folks who help gimme some lights)</p>
-    
-    <p class="text-sm mb-2" set:html={text3}></p>
-    
-    <p class="text-sm" set:html={text4}></p>
+    <p class="text-sm mb-2" set:html={thanks2}></p>
+    <p class="text-sm" set:html={thanks3}></p>
   </div>
 </div>
-

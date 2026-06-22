@@ -1,8 +1,8 @@
 ---
 import Layout from "../layouts/layout.astro"
-import About from "../subpages/about/about.jsx"
+import AboutPage from "../subpages/about/about.jsx"
 ---
 
 <Layout title="About Wasawat Somno" description="about">
-  <About client:load />
+  <AboutPage client:only="react" />
 </Layout>

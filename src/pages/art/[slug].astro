@@ -1,0 +1,47 @@
+---
+import Layout from "../../layouts/layout.astro"
+import { artworkPages } from "../../data/artArchive.js"
+import FromScratchLiveCoding from "../../subpages/art/FromScratchLiveCoding.astro"
+import GimmeTheLight from "../../subpages/art/GimmeTheLight.astro"
+import VinAVParaCartography from "../../subpages/art/VinAVParaCartography.astro"
+import Unfest2025 from "../../subpages/art/Unfest2025.astro"
+import BYOB from "../../subpages/art/BYOB.astro"
+import EternalGainEternalPain from "../../subpages/art/EternalGainEternalPain.astro"
+import HereNowAbsoluteElsewhere from "../../subpages/art/HereNowAbsoluteElsewhere.astro"
+import SelfCensoredStepSequencer from "../../subpages/art/SelfCensoredStepSequencer.astro"
+import AsIfYouWouldStillBeHere from "../../subpages/art/AsIfYouWouldStillBeHere.astro"
+
+const components = {
+  "from-scratch-live-coding": FromScratchLiveCoding,
+  "gimme-the-light": GimmeTheLight,
+  "vina-v-para-cartography": VinAVParaCartography,
+  unfest2025: Unfest2025,
+  byob: BYOB,
+  "eternal-gain-eternal-pain": EternalGainEternalPain,
+  "here-now-absolute-elsewhere": HereNowAbsoluteElsewhere,
+  "self-censored-step-sequencer": SelfCensoredStepSequencer,
+  "as-if-you-would-still-be-here": AsIfYouWouldStillBeHere,
+}
+
+export function getStaticPaths() {
+  return Object.keys(artworkPages).map((slug) => ({ params: { slug } }))
+}
+
+export const prerender = true
+
+const { slug } = Astro.params
+const artwork = slug ? artworkPages[slug] : undefined
+const Content = slug ? components[slug] : undefined
+
+if (!artwork || !Content) {
+  return Astro.redirect("/art")
+}
+---
+
+<Layout title={artwork.title}>
+  <div class="relative z-10 font-mono p-8 pb-20 max-w-4xl">
+    <a href="/art" class="text-[#737373] hover:text-[#e8e8e8] text-[11px] uppercase tracking-widest">← Archives</a>
+    <h1 class="font-bold text-2xl lg:text-3xl mt-6 mb-2 text-[#e8e8e8]">{artwork.title}</h1>
+    <Content />
+  </div>
+</Layout>

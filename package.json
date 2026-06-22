@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "private": true,
+  "packageManager": "pnpm@10.28.0",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -31,6 +32,7 @@
     "katex": "^0.16.11",
     "leva": "^0.9.35",
     "mafs": "^0.10.1",
+    "phaser": "^4.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwindcss": "^3.4.17",
@@ -39,5 +41,8 @@
   "devDependencies": {
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp"]
   }
 }

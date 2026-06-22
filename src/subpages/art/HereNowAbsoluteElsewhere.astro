@@ -1,32 +1,69 @@
 ---
+import { linkInstagramMentions } from "../../utils/instagramMentions"
+
+const collaboration = linkInstagramMentions("In collaboration with P.A.T.C.H.")
 ---
 
 <div class="mt-4 max-w-3xl">
+  <p class="mb-2 text-sm opacity-80" set:html={collaboration}></p>
   <p class="mb-2 text-sm opacity-80">
-    In collaboration with P.A.T.C.H.<br />
-    for Close Inspection From Afar<br />
+    for <em>Close Inspection From Afar</em><br />
     at ETAK BKK<br />
-    (12th - 26th, July 2025, Realtime system, custom software, mixed media, 3 channels, LLM; variable duration)
+    (12th – 26th July 2025; realtime system, custom software, mixed media, 3 channels, LLM; variable
+    duration)
   </p>
-  
+
+  <figure class="my-8">
+    <img
+      src="/images/Here-Now-Installation-Daylight.jpg"
+      alt="Here-now; absolute-elsewhere installation at ETAK BKK with screens, floral elements, and orbital display"
+      class="w-full"
+      loading="lazy"
+    />
+    <figcaption class="mt-2 text-sm opacity-70">Installation view, ETAK BKK</figcaption>
+  </figure>
+
   <p class="mb-4 mt-4">
-    This project uses the three-body problem as a metaphor to generate speculative fiction about global relationships. Each celestial body represents a country, and their distances reflect the state of diplomacy — when the bodies move too close, it suggests conflict; when they move apart, it represents stability or peace.
+    This project uses the three-body problem as a metaphor for global relationships. Three celestial
+    bodies represent countries: when they move too close it suggests conflict, when they drift apart it
+    suggests relative stability or peace. The core intention is to produce realtime speculative fiction
+    that stays dynamic — as the elements move, the story also changes.
   </p>
-  
+
   <p class="mb-4">
-    An algorithm calculates the distances between the three bodies and interprets them as indicators of current geopolitical tension. This data is sent as a prompt to a large language model (such as GPT-4 or Grok), which generates a short speculative fiction about a possible future based on the current state.
+    Three-body distance values are interpreted as geopolitical tension, and the shifting state
+    produces realtime narrative conditions. This data is sent to an LLM (Grok / ChatGPT) to generate
+    speculative fiction while also letting me compare how different models construct stories under the
+    same input.
   </p>
-  
+
   <p class="mb-4">
-    The generated text is then used as input for StreamDiffusion, which creates a visual scene displayed on the top of the screen. The bottom section prints or embosses the generated story and image, archiving each event as a record of "machine-written history."
+    The generated text drives StreamDiffusion visuals on the top screen, while story and image are
+    printed or embossed on the bottom as machine-written history. Archived outputs feed the next prompt
+    to build continuous memory. The backend runs in TouchDesigner with custom Python software sending
+    OSC data.
   </p>
-  
-  <p class="mb-4">
-    Each new event adds to the archive and becomes part of the next prompt, allowing the system to remember previous narratives and build a continuous, evolving story about the future.
-  </p>
-  
+
+  <figure class="my-8">
+    <video controls class="w-full" preload="metadata">
+      <source src="/video/here-now-Archive.mp4" type="video/mp4" />
+    </video>
+    <figcaption class="mt-2 text-sm opacity-70">Archive documentation</figcaption>
+  </figure>
+
+  <figure class="my-8">
+    <img
+      src="/images/Here-Now-Diagrams.jpg"
+      alt="Conceptual diagram of the three celestial bodies system, exhibits, and here-now light cone"
+      class="w-full"
+      loading="lazy"
+    />
+    <figcaption class="mt-2 text-sm opacity-70">System diagram</figcaption>
+  </figure>
+
   <p>
-    A flower arrangement accompanies the installation, acting as a living decoration that grows or withers by the end of the exhibition. Painted in metallic tones, the flowers appear futuristic but lifeless — reflecting smaller nations that drift around the larger powers, present yet with little influence on the global scale.
+    A metallic flower arrangement accompanies the installation, growing or wilting by the end of the
+    exhibition — a metaphor for minor powers orbiting larger ones, present yet with little influence on
+    the global scale.
   </p>
 </div>
-
