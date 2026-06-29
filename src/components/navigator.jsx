@@ -1,21 +1,30 @@
 import { useState } from "react"
 
 const linkClass =
-  "text-[#737373] hover:text-[#e8e8e8] hover:no-underline uppercase text-[11px] tracking-widest flex flex-col align-middle cursor-pointer"
+  "hover:no-underline uppercase text-[13px] tracking-widest flex flex-col align-middle cursor-pointer"
+const linkStyle = { color: "var(--text-muted)" }
 
 const Navigator = () => {
   const [openHamburger, setOpenhamburger] = useState(false)
 
   return (
-    <nav className="fixed z-[100] top-0 flex flex-row justify-between h-16 w-full font-mono font-normal bg-black border-b border-[#1a1a1a] pointer-events-auto">
-      <div className="p-4 pl-6 bg-black">
-        <a href="/" className="text-[#e8e8e8] hover:text-white hover:no-underline text-[11px] tracking-widest uppercase">
+    <nav
+      className="fixed z-[100] top-0 flex flex-row justify-between h-10 w-full font-mono font-normal bg-black pointer-events-auto"
+      style={{ borderBottom: "1px solid var(--border-subtle)" }}
+    >
+      <div className="p-2 pl-6 bg-black flex items-center">
+        <a
+          href="/"
+          className="hover:no-underline text-[13px] tracking-widest uppercase"
+          style={{ color: "var(--text)" }}
+        >
           ~/giang
         </a>
       </div>
       <div className="lg:hidden">
         <div
-          className="py-6 px-3 w-10 break-all leading-[6px] text-[#737373] cursor-pointer uppercase text-[11px]"
+          className="py-3 px-3 w-10 break-all leading-[6px] cursor-pointer uppercase text-[13px]"
+          style={{ color: "var(--text-muted)" }}
           onClick={() => setOpenhamburger(true)}
         >
           menu
@@ -24,28 +33,36 @@ const Navigator = () => {
       {openHamburger && (
         <>
           <div
-            className="lg:hidden absolute top-0 right-0 p-2 py-4 w-10 h-10 text-[#737373] z-10 cursor-pointer text-[11px] uppercase"
+            className="lg:hidden absolute top-0 right-0 p-2 py-4 w-10 h-10 z-10 cursor-pointer text-[13px] uppercase"
+            style={{ color: "var(--text-muted)" }}
             onClick={() => setOpenhamburger(false)}
           >
             x
           </div>
-          <div className="lg:hidden absolute top-16 w-full bg-black border-b border-[#262626] flex flex-col p-4 gap-3">
-            <a href="/art">
-              <span className="text-[#737373] uppercase text-[11px] tracking-widest">/art</span>
+          <div
+            className="lg:hidden absolute top-10 w-full bg-black flex flex-col p-4 gap-3"
+            style={{ borderBottom: "1px solid var(--border)" }}
+          >
+            <a href="/index">
+              <span className="uppercase text-[13px] tracking-widest" style={{ color: "var(--text-muted)" }}>
+                /index
+              </span>
             </a>
             <a href="/about">
-              <span className="text-[#737373] uppercase text-[11px] tracking-widest">/about</span>
+              <span className="uppercase text-[13px] tracking-widest" style={{ color: "var(--text-muted)" }}>
+                /about
+              </span>
             </a>
           </div>
         </>
       )}
 
-      <div className="lg:flex lg:flex-row lg:justify-between lg:mr-6 hidden">
-        <a href="/art" className={linkClass}>
-          <span className="m-4">/art</span>
+      <div className="lg:flex lg:flex-row lg:items-center lg:justify-between lg:mr-6 hidden">
+        <a href="/index" className={linkClass} style={linkStyle}>
+          <span className="mx-4">/index</span>
         </a>
-        <a href="/about" className={linkClass}>
-          <span className="m-4">/about</span>
+        <a href="/about" className={linkClass} style={linkStyle}>
+          <span className="mx-4">/about</span>
         </a>
       </div>
     </nav>

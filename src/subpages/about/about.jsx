@@ -4,12 +4,15 @@ const About = () => {
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   const tabClass = (active) =>
-    `border border-[#262626] py-2.5 px-6 text-[11px] uppercase tracking-widest hover:bg-[#0d0d0d] focus:outline-none ${
-      active ? "bg-[#0d0d0d] text-[#e8e8e8] border-[#404040]" : "text-[#737373] bg-black"
+    `border py-2.5 px-6 text-[13px] uppercase tracking-widest focus:outline-none ${
+      active ? "text-[var(--text)] border-[var(--border)]" : "text-[var(--text-muted)] border-[var(--border-subtle)]"
     }`
+  const tabStyle = (active) => ({
+    background: active ? "var(--bg-elevated)" : "var(--bg)",
+  })
 
   return (
-    <div className="relative z-10 font-mono px-8 lg:w-4/5 text-md flex flex-col items-center lg:items-start w-full text-[#737373] leading-8 mt-24 pb-20">
+    <div className="relative z-10 font-mono px-8 lg:w-4/5 text-md flex flex-col items-center lg:items-start w-full leading-8 mt-24 pb-20" style={{ color: "var(--text-body)" }}>
       <div className="font-light flex" role="tablist">
         <button
           type="button"
@@ -17,6 +20,7 @@ const About = () => {
           aria-selected={selectedIndex === 0}
           onClick={() => setSelectedIndex(0)}
           className={`${tabClass(selectedIndex === 0)} rounded-tl rounded-bl`}
+          style={tabStyle(selectedIndex === 0)}
         >
           ~Engineer
         </button>
@@ -26,6 +30,7 @@ const About = () => {
           aria-selected={selectedIndex === 1}
           onClick={() => setSelectedIndex(1)}
           className={`${tabClass(selectedIndex === 1)} border-l-0 rounded-tr rounded-br`}
+          style={tabStyle(selectedIndex === 1)}
         >
           ~Artist
         </button>
@@ -108,7 +113,7 @@ const About = () => {
             target="_blank"
             href="https://shrouded-runner-ae1.notion.site/Wasawat-Somno-dc377ed5daf94a79a57575adc00331bf?pvs=4"
           >
-            <p className="pt-10 text-[#737373] underline uppercase text-[11px] tracking-widest">/More about me/</p>
+            <p className="pt-10 underline uppercase text-[13px] tracking-widest" style={{ color: "var(--text-muted)" }}>/More about me/</p>
           </a>
         </div>
       )}

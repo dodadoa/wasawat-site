@@ -1,0 +1,23 @@
+---
+import Layout from "../../layouts/layout.astro"
+import HomeQuadrantView from "../../components/HomeQuadrantView.jsx"
+import { indexLayer } from "../../data/homeQuadrant3d.js"
+---
+
+<Layout title="Index — Wasawat Somno" description="Chronological index of works">
+  <HomeQuadrantView client:load layers={[indexLayer]} showGenreNav={false} />
+</Layout>
+
+<style is:global>
+  body:has(#home-quadrant) {
+    overflow: hidden;
+  }
+
+  body:has(#home-quadrant) main {
+    margin: 0 !important;
+    padding: 0;
+    width: 100%;
+    height: calc(100vh - 4rem);
+    overflow: hidden;
+  }
+</style>

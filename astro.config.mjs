@@ -23,14 +23,20 @@ export default defineConfig({
   }),
   vite: {
     optimizeDeps: {
-      include: ["@react-three/postprocessing", "@react-three/fiber", "three", "phaser"],
+      include: [
+        "@react-three/postprocessing",
+        "@react-three/fiber",
+        "@react-three/drei",
+        "three",
+        "phaser",
+      ],
       exclude: [],
       esbuildOptions: {
         target: "es2020",
       },
     },
     ssr: {
-      noExternal: ["@react-three/postprocessing"],
+      noExternal: ["@react-three/postprocessing", "@react-three/drei"],
     },
     resolve: {
       dedupe: ["three", "@react-three/fiber", "@react-three/postprocessing"],

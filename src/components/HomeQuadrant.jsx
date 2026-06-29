@@ -85,6 +85,13 @@ const qLabelPos = (qx, qy) => ({
   top: qy > 0 ? "5%" : "52%",
 })
 
+const axisLabel = {
+  fontSize: "12px",
+  letterSpacing: "0.2em",
+  textTransform: "uppercase",
+  color: "var(--text-dim)",
+}
+
 export default function HomeQuadrant() {
   const [active, setActive] = useState(false)
   const instanceRef = useRef(false)
@@ -111,48 +118,41 @@ export default function HomeQuadrant() {
       style={{ top: "4rem" }}
     >
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute w-full border-t border-[#262626]" style={{ top: "50%" }} />
-        <div className="absolute h-full border-l border-[#262626]" style={{ left: "50%" }} />
+        <div className="absolute w-full" style={{ top: "50%", borderTop: "1px solid var(--border)" }} />
+        <div className="absolute h-full" style={{ left: "50%", borderLeft: "1px solid var(--border)" }} />
       </div>
 
-      <span
-        className="absolute text-[10px] tracking-[0.2em] uppercase text-[#404040]"
-        style={{ top: "50%", left: "2.5%", transform: "translateY(-50%)" }}
-      >
+      <span className="absolute" style={{ ...axisLabel, top: "50%", left: "2.5%", transform: "translateY(-50%)" }}>
         body
       </span>
-      <span
-        className="absolute text-[10px] tracking-[0.2em] uppercase text-[#404040]"
-        style={{ top: "50%", right: "2.5%", transform: "translateY(-50%)" }}
-      >
+      <span className="absolute" style={{ ...axisLabel, top: "50%", right: "2.5%", transform: "translateY(-50%)" }}>
         machine
       </span>
-      <span
-        className="absolute text-[10px] tracking-[0.2em] uppercase text-[#404040]"
-        style={{ left: "50%", top: "1.5%", transform: "translateX(-50%)" }}
-      >
+      <span className="absolute" style={{ ...axisLabel, left: "50%", top: "1.5%", transform: "translateX(-50%)" }}>
         presence
       </span>
-      <span
-        className="absolute text-[10px] tracking-[0.2em] uppercase text-[#404040]"
-        style={{ left: "50%", bottom: "1.5%", transform: "translateX(-50%)" }}
-      >
+      <span className="absolute" style={{ ...axisLabel, left: "50%", bottom: "1.5%", transform: "translateX(-50%)" }}>
         archive
       </span>
 
       {QUADRANT_LABELS.map((q) => (
         <span
           key={q.label}
-          className="absolute text-[10px] leading-tight pointer-events-none whitespace-pre-line uppercase tracking-wide text-[#262626]"
-          style={qLabelPos(q.qx, q.qy)}
+          className="absolute text-[12px] leading-tight pointer-events-none whitespace-pre-line uppercase tracking-wide"
+          style={{ ...qLabelPos(q.qx, q.qy), color: "var(--text-dim)" }}
         >
           {q.label}
         </span>
       ))}
 
       <div
-        className="absolute w-1 h-1 rounded-full pointer-events-none bg-[#404040]"
-        style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
+        className="absolute w-1.5 h-1.5 rounded-full pointer-events-none"
+        style={{
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          background: "var(--text-dim)",
+        }}
       />
 
       {WORKS.map((work) => (
@@ -167,15 +167,18 @@ export default function HomeQuadrant() {
             zIndex: 10,
           }}
         >
-          <span className="block text-[10px] px-2 py-0.5 whitespace-nowrap leading-5 uppercase tracking-wide text-[#737373] border border-[#262626] bg-black">
+          <span
+            className="block text-[12px] px-2 py-0.5 whitespace-nowrap leading-5 uppercase tracking-wide bg-black"
+            style={{ color: "var(--text-muted)", border: "1px solid var(--border)" }}
+          >
             {work.label}
           </span>
         </a>
       ))}
 
       <span
-        className="absolute text-[10px] tracking-[0.2em] uppercase pointer-events-none text-[#262626]"
-        style={{ bottom: "3%", right: "2%" }}
+        className="absolute text-[12px] tracking-[0.2em] uppercase pointer-events-none"
+        style={{ bottom: "3%", right: "2%", color: "var(--text-dim)" }}
       >
         Wasawat Somno
       </span>

@@ -10,7 +10,7 @@ export function linkInstagramMentions(text: string): string {
   
   return text.replace(mentionPattern, (match, username) => {
     const instagramUrl = `https://www.instagram.com/${username}/`;
-    return `<a href="${instagramUrl}" target="_blank" rel="noopener noreferrer" class="text-[#737373] font-bold hover:underline hover:text-[#e8e8e8]">${match}</a>`;
+    return `<a href="${instagramUrl}" target="_blank" rel="noopener noreferrer" class="font-bold hover:underline" style="color: var(--text-muted);">${match}</a>`;
   });
 }
 

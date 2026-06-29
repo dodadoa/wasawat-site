@@ -40,35 +40,45 @@ const { title, preview, description } = Astro.props
   </head>
   <body>
     <Navigator client:load />
-    <main class="relative z-10 mt-16 pointer-events-auto">
+    <main class="relative z-10 mt-10 pointer-events-auto">
       <slot />
     </main>
     <style is:global>
       :root {
         --bg: #000000;
-        --bg-elevated: #0d0d0d;
-        --text: #e8e8e8;
-        --text-muted: #737373;
-        --text-dim: #404040;
-        --border: #262626;
-        --border-subtle: #1a1a1a;
+        --bg-elevated: #111111;
+        --text: #ffffff;
+        --text-body: #d6d6d6;
+        --text-muted: #ababab;
+        --text-dim: #8f8f8f;
+        --border: #444444;
+        --border-subtle: #333333;
       }
 
       html,
       body {
+        font-size: 18px;
         background-color: var(--bg);
-        color: var(--text-muted);
+        color: var(--text-body);
         font-family: "JetBrains Mono", monospace;
         -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
 
       main {
-        color: var(--text-muted);
+        color: var(--text-body);
+      }
+
+      p,
+      li {
+        color: var(--text-body);
+        line-height: 1.75;
       }
 
       h1,
       h2,
-      h3 {
+      h3,
+      h4 {
         color: var(--text);
         font-weight: 700;
         letter-spacing: -0.02em;
@@ -83,12 +93,20 @@ const { title, preview, description } = Astro.props
         color: var(--text);
       }
 
-      nav {
-        pointer-events: auto;
+      strong {
+        color: var(--text);
+      }
+
+      nav a:hover {
+        color: var(--text);
+      }
+
+      nav a:hover span {
+        color: var(--text);
       }
 
       ::selection {
-        background: #333;
+        background: #555;
         color: #fff;
       }
 
@@ -99,12 +117,17 @@ const { title, preview, description } = Astro.props
 
       .border-gray-700,
       .border-neutral-800,
+      .border-neutral-700,
       .border-neutral-200 {
         border-color: var(--border) !important;
       }
 
       figcaption {
         color: var(--text-dim);
+      }
+
+      code {
+        color: var(--text);
       }
     </style>
   <script>

@@ -11,9 +11,10 @@ const CollapsibleSection = ({ title, children, defaultOpen = false, level = 2 })
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className={`relative z-10 w-full text-left flex items-center justify-between border border-neutral-700 p-2 cursor-pointer transition-colors duration-300 hover:bg-neutral-900 hover:border-neutral-600 ${
+        className={`relative z-10 w-full text-left flex items-center justify-between border p-2 cursor-pointer ${
           level === 3 ? "ml-4" : ""
         }`}
+        style={{ borderColor: "var(--border)", color: "var(--text-body)" }}
       >
         <div className="flex-1 min-w-0">
           <HeadingTag className={`${headingClass} truncate`}>{title}</HeadingTag>
@@ -26,10 +27,17 @@ const CollapsibleSection = ({ title, children, defaultOpen = false, level = 2 })
         <div
           className={
             level === 2
-              ? "mt-2 pl-4 border-l-2 border-neutral-800"
+              ? "mt-2 pl-4 border-l-2"
               : level === 3
-                ? "mt-2 ml-4 pl-4 pr-4 py-2 border-l border-neutral-800 bg-neutral-900"
+                ? "mt-2 ml-4 pl-4 pr-4 py-2 border-l"
                 : "mt-2"
+          }
+          style={
+            level === 2
+              ? { borderColor: "var(--border)" }
+              : level === 3
+                ? { borderColor: "var(--border)", background: "var(--bg-elevated)" }
+                : undefined
           }
         >
           {children}

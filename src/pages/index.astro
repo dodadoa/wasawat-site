@@ -1,10 +1,10 @@
 ---
 import Layout from "../layouts/layout.astro"
-import HomeQuadrant from "../components/HomeQuadrant.jsx"
+import HomeQuadrantView from "../components/HomeQuadrantView.jsx"
 ---
 
 <Layout title="Wasawat Somno" description="Developer/Artist" preview="/images/pages/index.png">
-  <HomeQuadrant client:only="react" />
+  <HomeQuadrantView client:load />
 </Layout>
 
 <style is:global>
@@ -17,5 +17,6 @@ import HomeQuadrant from "../components/HomeQuadrant.jsx"
     padding: 0;
     width: 100%;
     height: calc(100vh - 4rem);
+    overflow: hidden;
   }
 </style>
