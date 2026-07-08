@@ -36,7 +36,7 @@ export default defineConfig({
       },
     },
     ssr: {
-      noExternal: ["@react-three/postprocessing", "@react-three/drei"],
+      noExternal: ["@react-three/postprocessing", "@react-three/drei", "detect-gpu"],
     },
     resolve: {
       dedupe: ["three", "@react-three/fiber", "@react-three/postprocessing"],

@@ -3,8 +3,8 @@ export const XY_SCALE = 5.5
 
 /**
  * Corner phrase labels for the quadrant diagram.
- * x: body (-1) ↔ machine (+1)
- * y: archive (-1) ↔ presence (+1)
+ * x: conceptual (-1) ↔ non-conceptual (+1)
+ * y: system (-1) ↔ non-system (+1)
  * @type {{ x: number, y: number, label: string }[]}
  */
 export const QUADRANT_LABELS = [

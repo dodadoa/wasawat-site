@@ -169,7 +169,7 @@ export default function HomeQuadrant() {
         >
           <span
             className="block text-[12px] px-2 py-0.5 whitespace-nowrap leading-5 uppercase tracking-wide bg-black"
-            style={{ color: "var(--text-muted)", border: "1px solid var(--border)" }}
+            style={{ color: "var(--text-muted)", border: "1px solid var(--border)", boxShadow: "0 0 60px 8px rgba(255, 255, 255, 0.55)" }}
           >
             {work.label}
           </span>
