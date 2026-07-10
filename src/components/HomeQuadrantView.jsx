@@ -1,7 +1,9 @@
 import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls, Html, Line } from "@react-three/drei"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { genreLayers, XY_SCALE, Z_SCALE, Z_AXIS_LABELS, QUADRANT_LABELS } from "../data/homeQuadrant3d.js"
+import HalftoneDitherEffects from "./home/HalftoneDitherEffects.jsx"
+import DomStatsPanel from "./home/DomStatsPanel.jsx"
 
 const S = XY_SCALE  // world units per axis half-length
 
@@ -223,6 +225,27 @@ function ChronologyView({ layer }) {
 
 export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = layers.length > 1 }) {
   const [genreFilter, setGenreFilter] = useState(null)
+  const containerRef = useRef(null)
+  const navRef = useRef(null)
+  // screen-x fraction where the shader stops, so the menu area stays clean
+  const [effectEdge, setEffectEdge] = useState(1)
+
+  useEffect(() => {
+    const container = containerRef.current
+    const measure = () => {
+      const nav = navRef.current
+      if (!container || !nav) {
+        setEffectEdge(1)
+        return
+      }
+      setEffectEdge(nav.offsetLeft / container.clientWidth)
+    }
+    measure()
+    if (!container) return
+    const observer = new ResizeObserver(measure)
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [])
 
   const isSingleChronology =
     layers.length === 1 && layers[0].layout === "chronology"
@@ -232,6 +255,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
   return (
     <div
       id="home-quadrant"
+      ref={containerRef}
       className="fixed left-0 right-0 bottom-0 bg-black"
       style={{ top: "2.5rem", height: "calc(100vh - 2.5rem)", width: "100%" }}
     >
@@ -243,13 +267,21 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
           gl={{ antialias: true, alpha: false }}
           style={{ background: "#000" }}
         >
+          {/* midtone clear color: the halftone/dither passes only texture
+              midtones — after them this renders as a near-black dot field */}
+          <color attach="background" args={["#5e5e5e"]} />
           <Scene genreFilter={genreFilter} />
+          <HalftoneDitherEffects edge={effectEdge} />
         </Canvas>
       )}
+
+      {/* DOM statistics — floats over the dithered left side */}
+      {!isSingleChronology && <DomStatsPanel />}
 
       {/* genre filter — floats over canvas */}
       {showGenreNav && !isSingleChronology && (
         <nav
+          ref={navRef}
           className="absolute top-0 right-0 bottom-0 flex flex-col justify-center gap-2 pr-8"
           style={{
             minWidth: "clamp(120px, 18vw, 220px)",
