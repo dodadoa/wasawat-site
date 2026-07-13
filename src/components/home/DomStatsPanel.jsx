@@ -2,22 +2,78 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 const OVERLAY_ID = "dom-stats-xray-overlay"
 const mono = "'JetBrains Mono', monospace"
-const serif = "'Cormorant Garamond', serif"
 const ink = "#ffffff"
-const inkDim = "rgba(255,255,255,0.65)"
+const inkDim = "rgba(255,255,255,0.55)"
 const inkFaint = "rgba(255,255,255,0.2)"
 
-const tagMain = {
-  fontFamily: mono,
-  color: ink,
-  fontWeight: 500,
-}
+// Bayer 8×8 matrix, values 0..63
+const BAYER8 = [
+   0, 32,  8, 40,  2, 34, 10, 42,
+  48, 16, 56, 24, 50, 18, 58, 26,
+  12, 44,  4, 36, 14, 46,  6, 38,
+  60, 28, 52, 20, 62, 30, 54, 22,
+   3, 35, 11, 43,  1, 33,  9, 41,
+  51, 19, 59, 27, 49, 17, 57, 25,
+  15, 47,  7, 39, 13, 45,  5, 37,
+  63, 31, 55, 23, 61, 29, 53, 21,
+]
 
-const valueSecondary = {
-  fontFamily: serif,
-  fontStyle: "italic",
-  color: inkDim,
-  fontVariantNumeric: "tabular-nums",
+// Renders a number/string via canvas with Bayer 8×8 ordered dithering
+function DitherNumber({ value, fontSize = 13, bold = false, levels = 4 }) {
+  const canvasRef = useRef(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")
+    const dpr = window.devicePixelRatio || 1
+    const weight = bold ? "600 " : ""
+    const fontDecl = `${weight}${fontSize * dpr}px ${mono}`
+    const text = String(value)
+
+    ctx.font = fontDecl
+    const metrics = ctx.measureText(text)
+    const w = Math.ceil(metrics.width) + 6 * dpr
+    const h = Math.ceil(fontSize * 1.6 * dpr)
+
+    canvas.width = w
+    canvas.height = h
+    canvas.style.width = `${w / dpr}px`
+    canvas.style.height = `${h / dpr}px`
+
+    ctx.clearRect(0, 0, w, h)
+    ctx.font = fontDecl
+    ctx.fillStyle = "#ffffff"
+    ctx.textBaseline = "middle"
+    ctx.fillText(text, 3 * dpr, h / 2)
+
+    // Dither the alpha channel with Bayer 8×8
+    const imageData = ctx.getImageData(0, 0, w, h)
+    const data = imageData.data
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4
+        const threshold = BAYER8[(y % 8) * 8 + (x % 8)] / 64.0 - 0.5
+        const a = data[i + 3] / 255
+        const qa = Math.min(1, Math.max(0, a + threshold / levels))
+        const out = qa > 0.5 ? 255 : 0
+        data[i] = 255
+        data[i + 1] = 255
+        data[i + 2] = 255
+        data[i + 3] = out
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0)
+  }, [value, fontSize, bold, levels])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ display: "inline-block", verticalAlign: "middle", imageRendering: "pixelated" }}
+    />
+  )
 }
 
 function collectStats() {
@@ -75,7 +131,6 @@ function truncate(text, max = 42) {
   return text.length > max ? `${text.slice(0, max)}…` : text
 }
 
-/** @param {Element} el @param {DOMRect} rect */
 function getElementMetadata(el, rect) {
   const tag = el.tagName.toLowerCase()
   const idPart = el.id ? `#${el.id}` : ""
@@ -122,9 +177,7 @@ function collectMatchMetadata(tag, panelEl) {
 
 function paintXrayBoxes(overlay, tag, panelEl) {
   overlay.replaceChildren()
-
   const elements = collectMatchMetadata(tag, panelEl)
-
   for (const { rect, selector, size, details } of elements) {
     const box = document.createElement("div")
     Object.assign(box.style, {
@@ -197,6 +250,47 @@ function ensureXrayOverlay() {
   return overlay
 }
 
+// Dotted leader fill between label and value
+function Row({ label, value, faint = false, active = false, onEnter, onLeave }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "baseline",
+        gap: 0,
+        padding: "0.08rem 0",
+        cursor: onEnter ? "crosshair" : "default",
+      }}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+    >
+      <span
+        style={{
+          fontFamily: mono,
+          fontSize: "9px",
+          letterSpacing: "0.08em",
+          color: active ? ink : (faint ? inkFaint : inkDim),
+          textTransform: "uppercase",
+          whiteSpace: "nowrap",
+          transition: "color 0.12s",
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          flex: 1,
+          borderBottom: `1px dotted ${inkFaint}`,
+          margin: "0 4px",
+          transform: "translateY(-3px)",
+          minWidth: "8px",
+        }}
+      />
+      <DitherNumber value={value} fontSize={10} levels={active ? 2 : 4} />
+    </div>
+  )
+}
+
 export default function DomStatsPanel() {
   const [stats, setStats] = useState(null)
   const [hoveredTag, setHoveredTag] = useState(null)
@@ -233,7 +327,6 @@ export default function DomStatsPanel() {
       const overlay = document.getElementById(OVERLAY_ID)
       if (overlay) paintXrayBoxes(overlay, tag, panelRef.current)
     }
-
     window.addEventListener("scroll", update, true)
     window.addEventListener("resize", update)
     return () => {
@@ -254,80 +347,111 @@ export default function DomStatsPanel() {
         left: "2rem",
         top: "50%",
         transform: "translateY(-50%)",
-        width: "clamp(210px, 19vw, 280px)",
-        padding: "1.1rem 1.25rem 1.2rem",
-        background: "rgba(10,10,10,0.65)",
-        backdropFilter: "blur(24px) saturate(140%)",
-        WebkitBackdropFilter: "blur(24px) saturate(140%)",
-        border: "1px solid rgba(255,255,255,0.18)",
-        borderRadius: "18px",
-        boxShadow:
-          "0 0 60px 8px rgba(255,255,255,0.14), 0 16px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.28)",
+        width: "clamp(200px, 17vw, 260px)",
+        padding: "1rem 1.1rem 1rem",
+        background: "rgba(0,0,0,0.82)",
+        backdropFilter: "blur(6px) saturate(120%)",
+        WebkitBackdropFilter: "blur(6px) saturate(120%)",
+        borderLeft: "2px solid rgba(255,255,255,0.55)",
+        borderRadius: 0,
         pointerEvents: "auto",
         zIndex: 16777272,
       }}
       aria-label="Document statistics"
     >
+      {/* header: plain, like a file name */}
       <div
-        className="flex items-baseline justify-between"
-        style={{ fontFamily: mono, fontSize: "9px", letterSpacing: "0.3em", color: inkFaint, pointerEvents: "none" }}
+        style={{
+          fontFamily: mono,
+          fontSize: "9px",
+          letterSpacing: "0.32em",
+          color: inkFaint,
+          marginBottom: "0.5rem",
+          pointerEvents: "none",
+          textTransform: "uppercase",
+          display: "flex",
+          justifyContent: "space-between",
+        }}
       >
-        <span>LIVE</span>
-        <span>/1S</span>
+        <span>document.stats</span>
+        <span style={{ color: inkFaint }}>1s</span>
       </div>
 
-      <div style={{ marginTop: "0.45rem" }}>
+      {/* element count — big dithered hero */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: "0.5rem",
+          marginBottom: "0.5rem",
+          pointerEvents: "none",
+        }}
+      >
+        <DitherNumber value={stats.elements} fontSize={28} bold levels={2} />
+        <span
+          style={{
+            fontFamily: mono,
+            fontSize: "8px",
+            letterSpacing: "0.2em",
+            color: inkDim,
+            textTransform: "uppercase",
+          }}
+        >
+          elements
+        </span>
+      </div>
+
+      <div style={{ borderTop: `1px solid ${inkFaint}`, marginBottom: "0.4rem" }} />
+
+      {/* stat rows */}
+      <div style={{ pointerEvents: "none" }}>
+        {stats.rows.map(([label, value]) => (
+          <Row key={label} label={label} value={value} />
+        ))}
+      </div>
+
+      <div style={{ borderTop: `1px solid ${inkFaint}`, margin: "0.45rem 0" }} />
+
+      {/* tag frequency */}
+      <div
+        style={{
+          fontFamily: mono,
+          fontSize: "8px",
+          letterSpacing: "0.28em",
+          color: inkFaint,
+          marginBottom: "0.3rem",
+          textTransform: "uppercase",
+          pointerEvents: "none",
+        }}
+      >
+        by tag
+      </div>
+
+      <div>
         {stats.topTags.map(([tag, count]) => {
           const active = hoveredTag === tag
           return (
-            <div
+            <Row
               key={tag}
-              className="flex items-baseline justify-between"
-              style={{
-                padding: "0.12rem 0",
-                cursor: "crosshair",
-                opacity: 1,
-                transition: "opacity 0.15s ease",
-              }}
-              onMouseEnter={() => showXray(tag)}
-              onMouseLeave={hideXray}
-            >
-              <span
-                style={{
-                  ...tagMain,
-                  fontSize: "0.95rem",
-                  letterSpacing: "0.02em",
-                  lineHeight: 1.15,
-                  color: active ? "#ffffff" : ink,
-                  textShadow: active ? "0 0 12px rgba(255,255,255,0.65)" : "none",
-                }}
-              >
-                {"<"}{tag}{">"}
-              </span>
-              <span
-                style={{
-                  ...valueSecondary,
-                  fontFamily: mono,
-                  fontStyle: "normal",
-                  fontSize: "9px",
-                  letterSpacing: "0.14em",
-                  color: active ? inkDim : inkFaint,
-                }}
-              >
-                {count}
-              </span>
-            </div>
+              label={`<${tag}>`}
+              value={count}
+              faint={!active}
+              active={active}
+              onEnter={() => showXray(tag)}
+              onLeave={hideXray}
+            />
           )
         })}
       </div>
 
+      {/* xray metadata panel */}
       {hoveredTag && matchMetadata.length > 0 && (
         <div
           style={{
-            marginTop: "0.45rem",
-            paddingTop: "0.45rem",
+            marginTop: "0.4rem",
+            paddingTop: "0.4rem",
             borderTop: `1px solid ${inkFaint}`,
-            maxHeight: "150px",
+            maxHeight: "130px",
             overflowY: "auto",
             pointerEvents: "none",
           }}
@@ -335,27 +459,28 @@ export default function DomStatsPanel() {
           <div
             style={{
               fontFamily: mono,
-              fontSize: "9px",
-              letterSpacing: "0.28em",
+              fontSize: "8px",
+              letterSpacing: "0.24em",
               color: inkFaint,
-              marginBottom: "0.35rem",
+              marginBottom: "0.3rem",
+              textTransform: "uppercase",
             }}
           >
-            METADATA · &lt;{hoveredTag}&gt;
+            {"<"}{hoveredTag}{">"} instances
           </div>
           {matchMetadata.slice(0, 16).map((item, i) => (
-            <div key={`${item.selector}-${i}`} style={{ marginBottom: "0.35rem" }}>
+            <div key={`${item.selector}-${i}`} style={{ marginBottom: "0.3rem" }}>
               <div
                 style={{
                   fontFamily: mono,
-                  fontSize: "9.5px",
+                  fontSize: "9px",
                   color: ink,
                   letterSpacing: "0.02em",
                   lineHeight: 1.3,
                 }}
               >
                 {item.selector}
-                <span style={{ color: inkDim }}> · {item.size}</span>
+                <span style={{ color: inkDim }}> {item.size}</span>
               </div>
               <div
                 style={{
@@ -363,7 +488,7 @@ export default function DomStatsPanel() {
                   fontSize: "8px",
                   color: inkFaint,
                   letterSpacing: "0.02em",
-                  lineHeight: 1.35,
+                  lineHeight: 1.3,
                   marginTop: "1px",
                 }}
               >
@@ -373,50 +498,6 @@ export default function DomStatsPanel() {
           ))}
         </div>
       )}
-
-      <div style={{ borderTop: `1px solid ${inkFaint}`, margin: "0.55rem 0 0.4rem", pointerEvents: "none" }} />
-
-      <div
-        style={{
-          fontFamily: mono,
-          fontSize: "9px",
-          letterSpacing: "0.28em",
-          color: inkFaint,
-          marginBottom: "0.35rem",
-          pointerEvents: "none",
-        }}
-      >
-        DOCUMENT
-      </div>
-
-      <div className="flex items-baseline gap-2" style={{ marginBottom: "0.25rem", pointerEvents: "none" }}>
-        <span style={{ ...tagMain, fontSize: "10px", letterSpacing: "0.14em", color: inkDim, textTransform: "uppercase" }}>
-          elements
-        </span>
-        <span style={{ ...valueSecondary, fontSize: "0.85rem", lineHeight: 1 }}>
-          {stats.elements}
-        </span>
-      </div>
-
-      {stats.rows.map(([label, value]) => (
-        <div key={label} className="flex items-baseline" style={{ gap: "0.45rem", padding: "0.1rem 0", pointerEvents: "none" }}>
-          <span
-            style={{
-              ...tagMain,
-              fontSize: "9px",
-              letterSpacing: "0.12em",
-              color: inkDim,
-              textTransform: "uppercase",
-            }}
-          >
-            {label}
-          </span>
-          <span style={{ flex: 1, borderBottom: "1px dotted rgba(255,255,255,0.08)", transform: "translateY(-2px)" }} />
-          <span style={{ ...valueSecondary, fontSize: "0.8rem", lineHeight: 1.1 }}>
-            {value}
-          </span>
-        </div>
-      ))}
     </aside>
   )
 }
