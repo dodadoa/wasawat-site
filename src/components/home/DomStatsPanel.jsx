@@ -448,8 +448,15 @@ export default function DomStatsPanel() {
       {hoveredTag && matchMetadata.length > 0 && (
         <div
           style={{
-            marginTop: "0.4rem",
-            paddingTop: "0.4rem",
+            position: "absolute",
+            top: "100%",
+            left: "-2px",
+            right: 0,
+            padding: "0.4rem 1.1rem 0.8rem",
+            background: "rgba(0,0,0,0.82)",
+            backdropFilter: "blur(6px) saturate(120%)",
+            WebkitBackdropFilter: "blur(6px) saturate(120%)",
+            borderLeft: "2px solid rgba(255,255,255,0.55)",
             borderTop: `1px solid ${inkFaint}`,
             maxHeight: "130px",
             overflowY: "auto",
