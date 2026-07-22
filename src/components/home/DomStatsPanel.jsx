@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { glassBrutal, DitherRamp } from "./panelChrome.jsx"
 
 const OVERLAY_ID = "dom-stats-xray-overlay"
 const mono = "'JetBrains Mono', monospace"
 const ink = "#ffffff"
-const inkDim = "rgba(255,255,255,0.55)"
-const inkFaint = "rgba(255,255,255,0.2)"
+const inkDim = "rgba(255,255,255,0.8)"
+const inkFaint = "rgba(255,255,255,0.55)"
 
 // Bayer 8×8 matrix, values 0..63
 const BAYER8 = [
@@ -206,8 +207,9 @@ function paintXrayBoxes(overlay, tag, panelEl) {
       letterSpacing: "0.02em",
       lineHeight: 1.35,
       color: "#ffffff",
-      background: "rgba(0,0,0,0.9)",
-      border: "1px solid rgba(255,255,255,0.3)",
+      background: "linear-gradient(160deg, rgba(70,70,70,0.95), rgba(0,0,0,0.95))",
+      border: "1px solid rgba(255,255,255,0.4)",
+      boxShadow: "3px 3px 0 rgba(0,0,0,0.9), 3px 3px 0 1px rgba(255,255,255,0.3)",
       padding: "3px 6px",
       maxWidth: "min(300px, 42vw)",
       pointerEvents: "none",
@@ -292,6 +294,7 @@ function Row({ label, value, faint = false, active = false, onEnter, onLeave }) 
 }
 
 export default function DomStatsPanel() {
+  const [open, setOpen] = useState(true)
   const [stats, setStats] = useState(null)
   const [hoveredTag, setHoveredTag] = useState(null)
   const [matchMetadata, setMatchMetadata] = useState([])
@@ -314,10 +317,16 @@ export default function DomStatsPanel() {
   }, [])
 
   useEffect(() => {
+    if (!open) return
     setStats(collectStats())
     const id = setInterval(() => setStats(collectStats()), 1000)
     return () => clearInterval(id)
-  }, [])
+  }, [open])
+
+  const toggle = () => {
+    if (open) hideXray()
+    setOpen((o) => !o)
+  }
 
   useEffect(() => {
     const update = () => {
@@ -347,47 +356,52 @@ export default function DomStatsPanel() {
         left: "2rem",
         top: "50%",
         transform: "translateY(-50%)",
-        width: "clamp(200px, 17vw, 260px)",
-        padding: "1rem 1.1rem 1rem",
-        background: "rgba(0,0,0,0.82)",
-        backdropFilter: "blur(6px) saturate(120%)",
-        WebkitBackdropFilter: "blur(6px) saturate(120%)",
-        borderLeft: "2px solid rgba(255,255,255,0.55)",
-        borderRadius: 0,
+        width: "clamp(168px, 13vw, 210px)",
+        padding: "0.65rem 0.8rem 0.7rem",
+        ...glassBrutal,
         pointerEvents: "auto",
         zIndex: 16777272,
       }}
       aria-label="Document statistics"
     >
-      {/* header: plain, like a file name */}
-      <div
+      {/* header: plain, like a file name — click to toggle */}
+      <button
+        type="button"
+        onClick={toggle}
+        aria-expanded={open}
         style={{
           fontFamily: mono,
           fontSize: "9px",
           letterSpacing: "0.32em",
           color: inkFaint,
-          marginBottom: "0.5rem",
-          pointerEvents: "none",
+          marginBottom: open ? "0.45rem" : 0,
           textTransform: "uppercase",
           display: "flex",
           justifyContent: "space-between",
+          width: "100%",
+          background: "none",
+          border: "none",
+          padding: 0,
+          cursor: "pointer",
         }}
       >
         <span>document.stats</span>
-        <span style={{ color: inkFaint }}>1s</span>
-      </div>
+        <span style={{ color: inkFaint, letterSpacing: "0.05em" }}>{open ? "[–]" : "[+]"}</span>
+      </button>
 
+      {open && (
+      <>
       {/* element count — big dithered hero */}
       <div
         style={{
           display: "flex",
           alignItems: "baseline",
           gap: "0.5rem",
-          marginBottom: "0.5rem",
+          marginBottom: "0.4rem",
           pointerEvents: "none",
         }}
       >
-        <DitherNumber value={stats.elements} fontSize={28} bold levels={2} />
+        <DitherNumber value={stats.elements} fontSize={20} bold levels={2} />
         <span
           style={{
             fontFamily: mono,
@@ -401,7 +415,7 @@ export default function DomStatsPanel() {
         </span>
       </div>
 
-      <div style={{ borderTop: `1px solid ${inkFaint}`, marginBottom: "0.4rem" }} />
+      <DitherRamp style={{ marginBottom: "0.35rem" }} />
 
       {/* stat rows */}
       <div style={{ pointerEvents: "none" }}>
@@ -410,7 +424,7 @@ export default function DomStatsPanel() {
         ))}
       </div>
 
-      <div style={{ borderTop: `1px solid ${inkFaint}`, margin: "0.45rem 0" }} />
+      <DitherRamp style={{ margin: "0.4rem 0" }} />
 
       {/* tag frequency */}
       <div
@@ -452,11 +466,8 @@ export default function DomStatsPanel() {
             top: "100%",
             left: "-2px",
             right: 0,
-            padding: "0.4rem 1.1rem 0.8rem",
-            background: "rgba(0,0,0,0.82)",
-            backdropFilter: "blur(6px) saturate(120%)",
-            WebkitBackdropFilter: "blur(6px) saturate(120%)",
-            borderLeft: "2px solid rgba(255,255,255,0.55)",
+            padding: "0.4rem 0.8rem 0.7rem",
+            ...glassBrutal,
             borderTop: `1px solid ${inkFaint}`,
             maxHeight: "130px",
             overflowY: "auto",
@@ -504,6 +515,8 @@ export default function DomStatsPanel() {
             </div>
           ))}
         </div>
+      )}
+      </>
       )}
     </aside>
   )

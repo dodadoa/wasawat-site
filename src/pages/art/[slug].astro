@@ -41,7 +41,26 @@ if (!artwork || !Content) {
 <Layout title={artwork.title}>
   <div class="relative z-10 font-mono p-8 pb-20 max-w-4xl">
     <a href="/art" class="text-[13px] uppercase tracking-widest" style="color: var(--text-muted);">← Archives</a>
-    <h1 class="font-bold text-2xl lg:text-3xl mt-6 mb-2" style="color: var(--text);">{artwork.title}</h1>
-    <Content />
+    <h1 class="font-bold text-xl lg:text-2xl mt-6 mb-2" style="color: var(--text);">{artwork.title}</h1>
+    <div class="art-detail-body">
+      <Content />
+    </div>
   </div>
 </Layout>
+
+<style is:global>
+  .art-detail-body {
+    font-size: 15px;
+  }
+  .art-detail-body p {
+    line-height: 1.8;
+  }
+  .art-detail-body h2 {
+    font-size: 1.1rem;
+    margin-top: 1.8rem;
+    margin-bottom: 0.6rem;
+  }
+  .art-detail-body figcaption {
+    font-size: 13px;
+  }
+</style>

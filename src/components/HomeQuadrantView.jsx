@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { genreLayers, XY_SCALE, Z_SCALE, Z_AXIS_LABELS, QUADRANT_LABELS } from "../data/homeQuadrant3d.js"
 import HalftoneDitherEffects from "./home/HalftoneDitherEffects.jsx"
 import DomStatsPanel from "./home/DomStatsPanel.jsx"
+import RequestLogPanel from "./home/RequestLogPanel.jsx"
 
 const S = XY_SCALE  // world units per axis half-length
 
@@ -153,70 +154,125 @@ function Scene({ genreFilter }) {
   )
 }
 
-// ─── 2d chronology fallback ───────────────────────────────────────────────────
+// ─── 2d chronology: top-down list of all works ────────────────────────────────
 
-function toPercent(v, invert = false) {
-  const pad = 16
-  const t = (v + 1) / 2
-  const p = invert ? 1 - t : t
-  return pad + p * (100 - pad * 2)
+const LINE_X = 92 // px from the column's left edge to the timeline
+
+function ChronologyWork({ work }) {
+  return (
+    <div className="relative flex items-center" style={{ marginBottom: "2.2rem" }}>
+      {/* year */}
+      <span
+        className="text-right"
+        style={{
+          width: `${LINE_X - 20}px`,
+          paddingRight: "20px",
+          fontFamily: "'Cinzel', serif",
+          fontSize: "10px",
+          letterSpacing: "0.12em",
+          color: "#888",
+          flexShrink: 0,
+        }}
+      >
+        {work.date ? work.date.slice(0, 4) : "—"}
+      </span>
+
+      {/* dot on the line */}
+      <span
+        className="rounded-full"
+        style={{
+          position: "absolute",
+          left: `${LINE_X}px`,
+          width: "8px",
+          height: "8px",
+          transform: "translateX(-50%)",
+          background: "#fff",
+        }}
+      />
+
+      {/* work card */}
+      <div style={{ marginLeft: "28px" }}>
+        {work.slug ? (
+          <a
+            href={`/art/${work.slug}`}
+            className="block"
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "16px",
+              fontStyle: "italic",
+              letterSpacing: "0.04em",
+              color: "#fff",
+              background: "#000",
+              border: "1px solid #444",
+              padding: "5px 16px",
+              textDecoration: "none",
+              boxShadow: "0 0 60px 8px rgba(255,255,255,0.55)",
+            }}
+          >
+            {work.label}
+          </a>
+        ) : (
+          <span
+            className="block"
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "16px",
+              letterSpacing: "0.04em",
+              color: "#ababab",
+              background: "#000",
+              border: "1px solid #333",
+              padding: "5px 16px",
+              boxShadow: "0 0 60px 8px rgba(255,255,255,0.35)",
+            }}
+          >
+            {work.label}
+          </span>
+        )}
+      </div>
+    </div>
+  )
 }
 
 function ChronologyView({ layer }) {
+  // categories come from the layer's `sections` config (src/data/genres/index.js)
+  const sections = layer.sections ?? [{ id: layer.id, title: null, works: layer.works }]
+
   return (
-    <div className="absolute inset-0">
-      <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: "none" }} preserveAspectRatio="none">
-        <line x1="0" y1="50%" x2="100%" y2="50%" stroke="#ffffff" strokeWidth="1" />
-      </svg>
-      <span className="absolute"
-        style={{ fontFamily: "'Cinzel', serif", fontSize: "11px", letterSpacing: "0.12em", color: "#ffffff", left: "4%", top: "50%", transform: "translateY(-50%)" }}>
-        Older
-      </span>
-      <span className="absolute"
-        style={{ fontFamily: "'Cinzel', serif", fontSize: "11px", letterSpacing: "0.12em", color: "#ffffff", right: "4%", top: "50%", transform: "translateY(-50%)" }}>
-        Newer
-      </span>
-      {layer.works.map((work) => (
+    <div className="absolute inset-0 overflow-y-auto">
+      <div
+        className="relative mx-auto"
+        style={{ width: "min(600px, 92%)", padding: "4rem 0 5rem" }}
+      >
+        {/* timeline */}
         <div
-          key={work.slug ?? work.label}
-          className="absolute"
-          style={{ left: `${toPercent(work.x)}%`, top: "50%", transform: "translate(-50%, -50%)" }}
-        >
-          <div className="w-2 h-2 rounded-full mx-auto mb-1" style={{ background: "#fff" }} />
-          {work.slug ? (
-            <a
-              href={`/art/${work.slug}`}
-              className="block whitespace-nowrap text-center"
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "15px",
-                fontStyle: "italic",
-                letterSpacing: "0.04em",
-                color: "#fff",
-                background: "#000",
-                border: "1px solid #444",
-                padding: "4px 14px",
-                textDecoration: "none",
-                boxShadow: "0 0 60px 8px rgba(255,255,255,0.55)",
-              }}
-            >
-              {work.label}
-              {work.date && (
-                <span className="block mt-1" style={{ fontFamily: "'Cinzel', serif", fontSize: "10px", letterSpacing: "0.12em", color: "#888", fontStyle: "normal" }}>
-                  {work.date.slice(0, 4)}
-                </span>
-              )}
-            </a>
-          ) : (
-            <span
-              className="block whitespace-nowrap text-center"
-              style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "15px", letterSpacing: "0.04em", color: "#ababab", background: "#000", border: "1px solid #333", padding: "4px 14px" }}
-            >
-              {work.label}
-            </span>
-          )}
-        </div>
-      ))}
+          className="absolute pointer-events-none"
+          style={{ left: `${LINE_X}px`, top: "3.5rem", bottom: "2.5rem", width: "1px", background: "#ffffff" }}
+        />
+
+        {sections.map((section) => (
+          <section key={section.id}>
+            {section.title && (
+              <h2
+                style={{
+                  margin: `0 0 1.6rem ${LINE_X + 28}px`,
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: "13px",
+                  fontWeight: 400,
+                  letterSpacing: "0.28em",
+                  color: "#777",
+                  textTransform: "uppercase",
+                }}
+              >
+                {section.title}
+              </h2>
+            )}
+            {section.works.map((work) => (
+              <ChronologyWork key={work.slug ?? work.label} work={work} />
+            ))}
+            <div style={{ height: "1.6rem" }} />
+          </section>
+        ))}
+      </div>
     </div>
   )
 }
@@ -278,6 +334,9 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
       {/* DOM statistics — floats over the dithered left side */}
       {!isSingleChronology && <DomStatsPanel />}
 
+      {/* network request log — recorded live, docked at the bottom */}
+      {!isSingleChronology && <RequestLogPanel />}
+
       {/* genre filter — floats over canvas */}
       {showGenreNav && !isSingleChronology && (
         <nav
@@ -300,7 +359,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
                 onClick={() => setGenreFilter(active && item.id !== null ? null : item.id)}
                 style={{
                   fontFamily: "'Cinzel', serif",
-                  color: active ? "#fff" : "#3a3a3a",
+                  color: active ? "#fff" : "#999999",
                   fontSize: active
                     ? "clamp(1.1rem, 2.2vw, 1.5rem)"
                     : "clamp(0.8rem, 1.4vw, 1rem)",
@@ -309,14 +368,20 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
                   lineHeight: 1.4,
                   padding: "0.3rem 0",
                   cursor: "pointer",
-                  background: "none",
+                  backgroundColor: "transparent",
+                  backgroundImage: active
+                    ? "linear-gradient(180deg, #ffffff 30%, #6a6a6a)"
+                    : "none",
+                  WebkitBackgroundClip: active ? "text" : "border-box",
+                  backgroundClip: active ? "text" : "border-box",
+                  WebkitTextFillColor: active ? "transparent" : "currentcolor",
                   border: "none",
                   textAlign: "right",
                   whiteSpace: "nowrap",
                   transition: "color 0.2s ease, font-size 0.35s ease",
                 }}
-                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#888" }}
-                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "#3a3a3a" }}
+                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#cccccc" }}
+                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "#999999" }}
               >
                 {item.title}
               </button>
@@ -333,7 +398,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
             fontFamily: "'Cinzel', serif",
             fontSize: "10px",
             letterSpacing: "0.14em",
-            color: "#2e2e2e",
+            color: "#888888",
           }}
         >
           drag to orbit · scroll to zoom

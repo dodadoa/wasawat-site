@@ -1,11 +1,27 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 const linkClass =
   "hover:no-underline uppercase text-[13px] tracking-widest flex flex-col align-middle cursor-pointer"
 const linkStyle = { color: "var(--text-muted)" }
 
+function readPathSuffix() {
+  const pathname = window.location.pathname.replace(/\/$/, "") || "/"
+  if (pathname === "/") return ""
+  return pathname
+}
+
 const Navigator = () => {
   const [openHamburger, setOpenhamburger] = useState(false)
+  const [pathSuffix, setPathSuffix] = useState(() =>
+    typeof window !== "undefined" ? readPathSuffix() : "",
+  )
+
+  useEffect(() => {
+    const update = () => setPathSuffix(readPathSuffix())
+    update()
+    window.addEventListener("popstate", update)
+    return () => window.removeEventListener("popstate", update)
+  }, [])
 
   return (
     <nav
@@ -19,6 +35,9 @@ const Navigator = () => {
           style={{ color: "var(--text)" }}
         >
           ~/giang
+          {pathSuffix && (
+            <span style={{ color: "var(--text-muted)" }}>{pathSuffix}</span>
+          )}
         </a>
       </div>
       <div className="lg:hidden">
