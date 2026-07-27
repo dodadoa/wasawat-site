@@ -2,7 +2,7 @@ import { Html } from "@react-three/drei"
 import { genreLayers, QUADRANT_LABELS, XY_SCALE } from "../../data/homeQuadrant3d.js"
 
 const labelStyle = {
-  fontFamily: '"JetBrains Mono", monospace',
+  fontFamily: '"DepartureMono", monospace',
   fontSize: "12px",
   letterSpacing: "0.1em",
   textTransform: "uppercase",
@@ -51,10 +51,10 @@ function WorkMarker({ work, active }) {
       <Html center distanceFactor={10} zIndexRange={[active ? 200 : 50, 0]}>
         {work.slug ? (
           <a href={`/art/${work.slug}`} style={{ ...labelStyle, opacity: active ? 1 : 0.55 }}>
-            {work.label}
+            {work.planeLabel ?? work.label}
           </a>
         ) : (
-          <span style={{ ...labelStyle, opacity: active ? 1 : 0.55 }}>{work.label}</span>
+          <span style={{ ...labelStyle, opacity: active ? 1 : 0.55 }}>{work.planeLabel ?? work.label}</span>
         )}
       </Html>
     </group>

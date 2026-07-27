@@ -3,18 +3,20 @@ import Layout from "../../layouts/layout.astro"
 import { artworkPages } from "../../data/artArchive.js"
 import FromScratchLiveCoding from "../../subpages/art/FromScratchLiveCoding.astro"
 import GimmeTheLight from "../../subpages/art/GimmeTheLight.astro"
-import VinAVParaCartography from "../../subpages/art/VinAVParaCartography.astro"
 import Unfest2025 from "../../subpages/art/Unfest2025.astro"
 import BYOB from "../../subpages/art/BYOB.astro"
 import EternalGainEternalPain from "../../subpages/art/EternalGainEternalPain.astro"
 import HereNowAbsoluteElsewhere from "../../subpages/art/HereNowAbsoluteElsewhere.astro"
 import SelfCensoredStepSequencer from "../../subpages/art/SelfCensoredStepSequencer.astro"
 import AsIfYouWouldStillBeHere from "../../subpages/art/AsIfYouWouldStillBeHere.astro"
+import DoTheNPCsHearTheSimulatedWind from "../../subpages/art/DoTheNPCsHearTheSimulatedWind.astro"
+import NeonatusNeotokyo from "../../subpages/art/NeonatusNeotokyo.astro"
 
 const components = {
+  "do-the-npcs-hear-the-simulated-wind": DoTheNPCsHearTheSimulatedWind,
+  "neonatus-neotokyo": NeonatusNeotokyo,
   "from-scratch-live-coding": FromScratchLiveCoding,
   "gimme-the-light": GimmeTheLight,
-  "vina-v-para-cartography": VinAVParaCartography,
   unfest2025: Unfest2025,
   byob: BYOB,
   "eternal-gain-eternal-pain": EternalGainEternalPain,
@@ -30,18 +32,23 @@ export function getStaticPaths() {
 export const prerender = true
 
 const { slug } = Astro.params
+
+if (slug === "vina-v-para-cartography") {
+  return Astro.redirect("/art/from-scratch-live-coding#vina-v")
+}
+
 const artwork = slug ? artworkPages[slug] : undefined
 const Content = slug ? components[slug] : undefined
 
 if (!artwork || !Content) {
-  return Astro.redirect("/art")
+  return Astro.redirect("/index")
 }
 ---
 
 <Layout title={artwork.title}>
-  <div class="relative z-10 font-mono p-8 pb-20 max-w-4xl">
-    <a href="/art" class="text-[13px] uppercase tracking-widest" style="color: var(--text-muted);">← Archives</a>
-    <h1 class="font-bold text-xl lg:text-2xl mt-6 mb-2" style="color: var(--text);">{artwork.title}</h1>
+  <div class="relative z-10 p-8 pb-20 max-w-4xl">
+    <a href="/index" class="text-[13px] uppercase tracking-widest" style="color: var(--text-muted);">← Index</a>
+    <h1 class="font-bold text-xl lg:text-2xl mt-6 mb-3" style="color: var(--text);">{artwork.title}</h1>
     <div class="art-detail-body">
       <Content />
     </div>
@@ -50,17 +57,52 @@ if (!artwork || !Content) {
 
 <style is:global>
   .art-detail-body {
-    font-size: 15px;
+    font-family: "DepartureMono", monospace;
+    font-size: 12px;
+    line-height: 1.5;
   }
-  .art-detail-body p {
-    line-height: 1.8;
+  .art-detail-body p,
+  .art-detail-body li {
+    line-height: 1.5;
   }
-  .art-detail-body h2 {
-    font-size: 1.1rem;
-    margin-top: 1.8rem;
-    margin-bottom: 0.6rem;
+  /* topic / credits / tagline — subheader */
+  .art-detail-body p.text-sm.opacity-80 {
+    font-size: 14px;
+    line-height: 1.45;
   }
-  .art-detail-body figcaption {
-    font-size: 13px;
+  /* section headers */
+  .art-detail-body h2,
+  .art-detail-body .text-xl {
+    font-family: "403Mesapholic", monospace;
+    font-size: 20px;
+    font-weight: 400;
+    margin-top: 1.6rem;
+    margin-bottom: 0.5rem;
+  }
+  /* meta: captions, credits footer, references label */
+  .art-detail-body figcaption,
+  .art-detail-body p.text-sm.opacity-70,
+  .art-detail-body p.text-sm:not(.opacity-80),
+  .art-detail-body div.text-sm {
+    font-size: 11px;
+    line-height: 1.45;
+  }
+  .art-detail-body ul.text-sm {
+    font-size: 12px;
+  }
+  .art-detail-body code {
+    font-size: 11px;
+  }
+  .art-detail-body video {
+    width: 100%;
+    max-width: min(480px, 85%);
+    height: auto;
+    display: block;
+  }
+  .art-detail-body .art-diagram img {
+    width: 100%;
+    max-width: min(420px, 80%);
+    height: auto;
+    display: block;
   }
 </style>

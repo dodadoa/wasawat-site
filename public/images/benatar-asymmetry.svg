@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 420" role="img" aria-labelledby="benatar-title benatar-desc">
+  <title id="benatar-title">Benatar axiological asymmetry</title>
+  <desc id="benatar-desc">Matrix comparing pain and pleasure when a person exists versus when they never exist.</desc>
+
+  <rect x="1" y="1" width="918" height="418" fill="none" stroke="#d4d4d4" stroke-width="1.5"/>
+  <text x="460" y="42" fill="#f2f2f2" font-family="Georgia, 'Times New Roman', serif" font-size="24" text-anchor="middle">Benatar&apos;s axiological asymmetry</text>
+  <text x="460" y="68" fill="#bdbdbd" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="13" text-anchor="middle">David Benatar, Better Never to Have Been (2006)</text>
+
+  <rect x="40" y="96" width="400" height="44" fill="none" stroke="#8b8b8b" stroke-width="1"/>
+  <rect x="440" y="96" width="440" height="44" fill="none" stroke="#8b8b8b" stroke-width="1"/>
+  <text x="240" y="124" fill="#f2f2f2" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="15" text-anchor="middle">Scenario A - X exists</text>
+  <text x="660" y="124" fill="#f2f2f2" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="15" text-anchor="middle">Scenario B - X never exists</text>
+
+  <rect x="40" y="140" width="400" height="110" fill="none" stroke="#666" stroke-width="1"/>
+  <rect x="440" y="140" width="440" height="110" fill="none" stroke="#666" stroke-width="1"/>
+  <text x="60" y="176" fill="#f2f2f2" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="14">1. Presence of pain</text>
+  <text x="60" y="206" fill="#bdbdbd" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="13">evaluated as bad</text>
+  <text x="460" y="176" fill="#f2f2f2" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="14">3. Absence of pain</text>
+  <text x="460" y="206" fill="#f2f2f2" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="13">evaluated as good - even without a subject</text>
+
+  <rect x="40" y="250" width="400" height="110" fill="none" stroke="#666" stroke-width="1"/>
+  <rect x="440" y="250" width="440" height="110" fill="none" stroke="#666" stroke-width="1"/>
+  <text x="60" y="286" fill="#f2f2f2" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="14">2. Presence of pleasure</text>
+  <text x="60" y="316" fill="#bdbdbd" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="13">evaluated as good</text>
+  <text x="460" y="286" fill="#f2f2f2" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="14">4. Absence of pleasure</text>
+  <text x="460" y="316" fill="#f2f2f2" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="13">not bad - unless someone is deprived</text>
+
+  <line x1="440" y1="140" x2="440" y2="360" stroke="#d4d4d4" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="460" y="392" fill="#9a9a9a" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="12">asymmetry between (3) and (4)</text>
+</svg>

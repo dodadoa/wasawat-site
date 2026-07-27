@@ -4,7 +4,14 @@ import HomeQuadrantView from "../components/HomeQuadrantView.jsx"
 ---
 
 <Layout title="Wasawat Somno" description="Developer/Artist" preview="/images/pages/index.png">
-  <HomeQuadrantView client:load />
+  <HomeQuadrantView client:only="react">
+    <div
+      slot="fallback"
+      id="home-quadrant"
+      class="fixed left-0 right-0 bottom-0 bg-white"
+      style="top: 2.5rem; height: calc(100vh - 2.5rem); width: 100%;"
+    />
+  </HomeQuadrantView>
 </Layout>
 
 <style is:global>

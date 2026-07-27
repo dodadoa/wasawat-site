@@ -1,13 +1,41 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { glassBrutal, DitherRamp } from "./panelChrome.jsx"
+import { ACCENTS, REQUEST_TYPE_TEXT_COLORS, TEXT, TEXT_ACCENTS, rgba, tagAccent, tagTextAccent } from "../../data/homeColors.js"
+import { glassPlain, DitherRamp } from "./panelChrome.jsx"
 
 const OVERLAY_ID = "dom-stats-xray-overlay"
-const mono = "'JetBrains Mono', monospace"
-const ink = "#ffffff"
-const inkDim = "rgba(255,255,255,0.8)"
-const inkFaint = "rgba(255,255,255,0.55)"
+const mono = "'DepartureMono', monospace"
+const ink = TEXT.primary
+const inkDim = TEXT.secondary
+const inkFaint = TEXT.tertiary
+const MAX_LOG_ENTRIES = 80
 
-// Bayer 8×8 matrix, values 0..63
+function shortUrl(name) {
+  try {
+    const u = new URL(name, window.location.href)
+    const path = `${u.pathname}${u.search}`
+    return u.origin === window.location.origin ? path : `${u.host}${path}`
+  } catch {
+    return name
+  }
+}
+
+function fmtBytes(bytes) {
+  if (!bytes) return "0B"
+  if (bytes < 1024) return `${bytes}B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}K`
+  return `${(bytes / 1024 / 1024).toFixed(2)}M`
+}
+
+function toLogRow(entry) {
+  return {
+    at: entry.startTime,
+    type: entry.entryType === "navigation" ? "doc" : (entry.initiatorType || "other"),
+    url: shortUrl(entry.name),
+    size: entry.transferSize ?? 0,
+    duration: entry.duration,
+  }
+}
+
 const BAYER8 = [
    0, 32,  8, 40,  2, 34, 10, 42,
   48, 16, 56, 24, 50, 18, 58, 26,
@@ -19,8 +47,7 @@ const BAYER8 = [
   63, 31, 55, 23, 61, 29, 53, 21,
 ]
 
-// Renders a number/string via canvas with Bayer 8×8 ordered dithering
-function DitherNumber({ value, fontSize = 13, bold = false, levels = 4 }) {
+function DitherNumber({ value, fontSize = 13, bold = false, levels = 4, tint }) {
   const canvasRef = useRef(null)
 
   useEffect(() => {
@@ -44,11 +71,18 @@ function DitherNumber({ value, fontSize = 13, bold = false, levels = 4 }) {
 
     ctx.clearRect(0, 0, w, h)
     ctx.font = fontDecl
-    ctx.fillStyle = "#ffffff"
+    ctx.fillStyle = tint ?? "#000000"
     ctx.textBaseline = "middle"
     ctx.fillText(text, 3 * dpr, h / 2)
 
-    // Dither the alpha channel with Bayer 8×8
+    const [tr, tg, tb] = tint
+      ? [
+          parseInt(tint.slice(1, 3), 16),
+          parseInt(tint.slice(3, 5), 16),
+          parseInt(tint.slice(5, 7), 16),
+        ]
+      : [0, 0, 0]
+
     const imageData = ctx.getImageData(0, 0, w, h)
     const data = imageData.data
 
@@ -59,15 +93,15 @@ function DitherNumber({ value, fontSize = 13, bold = false, levels = 4 }) {
         const a = data[i + 3] / 255
         const qa = Math.min(1, Math.max(0, a + threshold / levels))
         const out = qa > 0.5 ? 255 : 0
-        data[i] = 255
-        data[i + 1] = 255
-        data[i + 2] = 255
+        data[i] = tr
+        data[i + 1] = tg
+        data[i + 2] = tb
         data[i + 3] = out
       }
     }
 
     ctx.putImageData(imageData, 0, 0)
-  }, [value, fontSize, bold, levels])
+  }, [value, fontSize, bold, levels, tint])
 
   return (
     <canvas
@@ -78,23 +112,9 @@ function DitherNumber({ value, fontSize = 13, bold = false, levels = 4 }) {
 }
 
 function collectStats() {
-  let nodes = 0
-  let textNodes = 0
-  let maxDepth = 0
-  const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_ALL)
-  for (let node = walker.currentNode; node; node = walker.nextNode()) {
-    nodes++
-    if (node.nodeType === Node.TEXT_NODE) textNodes++
-    let depth = 0
-    for (let p = node.parentNode; p; p = p.parentNode) depth++
-    if (depth > maxDepth) maxDepth = depth
-  }
-
   const all = document.querySelectorAll("*")
-  let attributes = 0
   const tagCounts = {}
   for (const el of all) {
-    attributes += el.attributes.length
     const tag = el.tagName.toLowerCase()
     tagCounts[tag] = (tagCounts[tag] || 0) + 1
   }
@@ -102,20 +122,7 @@ function collectStats() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
 
-  return {
-    elements: all.length,
-    rows: [
-      ["nodes", nodes],
-      ["text nodes", textNodes],
-      ["depth", maxDepth],
-      ["attributes", attributes],
-      ["links", document.links.length],
-      ["images", document.images.length],
-      ["canvases", document.querySelectorAll("canvas").length],
-      ["scripts", document.scripts.length],
-    ],
-    topTags,
-  }
+  return { topTags }
 }
 
 function clearXray() {
@@ -176,7 +183,7 @@ function collectMatchMetadata(tag, panelEl) {
     .sort((a, b) => b.rect.width * b.rect.height - a.rect.width * a.rect.height)
 }
 
-function paintXrayBoxes(overlay, tag, panelEl) {
+function paintXrayBoxes(overlay, tag, panelEl, accent) {
   overlay.replaceChildren()
   const elements = collectMatchMetadata(tag, panelEl)
   for (const { rect, selector, size, details } of elements) {
@@ -187,9 +194,9 @@ function paintXrayBoxes(overlay, tag, panelEl) {
       top: `${rect.top}px`,
       width: `${rect.width}px`,
       height: `${rect.height}px`,
-      border: "1px solid rgba(255,255,255,0.45)",
-      background: "rgba(255,255,255,0.04)",
-      boxShadow: "0 0 10px rgba(255,255,255,0.15)",
+      border: `1px solid ${rgba(accent, 0.45)}`,
+      background: rgba(accent, 0.05),
+      boxShadow: `0 0 12px ${rgba(accent, 0.12)}`,
       boxSizing: "border-box",
       pointerEvents: "none",
     })
@@ -206,10 +213,10 @@ function paintXrayBoxes(overlay, tag, panelEl) {
       fontSize: "8.5px",
       letterSpacing: "0.02em",
       lineHeight: 1.35,
-      color: "#ffffff",
-      background: "linear-gradient(160deg, rgba(70,70,70,0.95), rgba(0,0,0,0.95))",
-      border: "1px solid rgba(255,255,255,0.4)",
-      boxShadow: "3px 3px 0 rgba(0,0,0,0.9), 3px 3px 0 1px rgba(255,255,255,0.3)",
+      color: "#0a0a0a",
+      background: `linear-gradient(160deg, rgba(255,255,255,0.97), ${rgba(accent, 0.06)})`,
+      border: `1px solid ${rgba(accent, 0.28)}`,
+      boxShadow: `3px 3px 0 ${rgba(accent, 0.08)}, 3px 3px 0 1px rgba(0,0,0,0.03)`,
       padding: "3px 6px",
       maxWidth: "min(300px, 42vw)",
       pointerEvents: "none",
@@ -218,7 +225,7 @@ function paintXrayBoxes(overlay, tag, panelEl) {
 
     const title = document.createElement("div")
     title.textContent = `${selector} · ${size}`
-    title.style.color = "#ffffff"
+    title.style.color = TEXT.primary
     title.style.whiteSpace = "nowrap"
     title.style.overflow = "hidden"
     title.style.textOverflow = "ellipsis"
@@ -226,7 +233,7 @@ function paintXrayBoxes(overlay, tag, panelEl) {
 
     const meta = document.createElement("div")
     meta.textContent = details.join(" · ")
-    meta.style.color = "rgba(255,255,255,0.55)"
+    meta.style.color = TEXT.tertiary
     meta.style.marginTop = "2px"
     meta.style.wordBreak = "break-all"
     card.appendChild(meta)
@@ -252,8 +259,14 @@ function ensureXrayOverlay() {
   return overlay
 }
 
-// Dotted leader fill between label and value
-function Row({ label, value, faint = false, active = false, onEnter, onLeave }) {
+function Row({ label, value, faint = false, active = false, accentColor, onEnter, onLeave }) {
+  const labelColor = active
+    ? (accentColor ?? ink)
+    : (faint ? inkFaint : inkDim)
+  const leaderColor = active && accentColor
+    ? rgba(accentColor, 0.45)
+    : inkFaint
+
   return (
     <div
       style={{
@@ -271,7 +284,7 @@ function Row({ label, value, faint = false, active = false, onEnter, onLeave }) 
           fontFamily: mono,
           fontSize: "9px",
           letterSpacing: "0.08em",
-          color: active ? ink : (faint ? inkFaint : inkDim),
+          color: labelColor,
           textTransform: "uppercase",
           whiteSpace: "nowrap",
           transition: "color 0.12s",
@@ -282,13 +295,18 @@ function Row({ label, value, faint = false, active = false, onEnter, onLeave }) 
       <span
         style={{
           flex: 1,
-          borderBottom: `1px dotted ${inkFaint}`,
+          borderBottom: `1px dotted ${leaderColor}`,
           margin: "0 4px",
           transform: "translateY(-3px)",
           minWidth: "8px",
         }}
       />
-      <DitherNumber value={value} fontSize={10} levels={active ? 2 : 4} />
+      <DitherNumber
+        value={value}
+        fontSize={10}
+        levels={active ? 2 : 4}
+        tint={active ? accentColor : undefined}
+      />
     </div>
   )
 }
@@ -296,17 +314,22 @@ function Row({ label, value, faint = false, active = false, onEnter, onLeave }) 
 export default function DomStatsPanel() {
   const [open, setOpen] = useState(true)
   const [stats, setStats] = useState(null)
+  const [logRows, setLogRows] = useState([])
+  const [logTotals, setLogTotals] = useState({ count: 0, bytes: 0 })
   const [hoveredTag, setHoveredTag] = useState(null)
   const [matchMetadata, setMatchMetadata] = useState([])
   const panelRef = useRef(null)
+  const logListRef = useRef(null)
   const hoveredTagRef = useRef(null)
+  const hoveredAccentRef = useRef(ACCENTS.pink)
 
-  const showXray = useCallback((tag) => {
+  const showXray = useCallback((tag, accent) => {
     hoveredTagRef.current = tag
+    hoveredAccentRef.current = accent
     setHoveredTag(tag)
     setMatchMetadata(collectMatchMetadata(tag, panelRef.current))
     const overlay = ensureXrayOverlay()
-    paintXrayBoxes(overlay, tag, panelRef.current)
+    paintXrayBoxes(overlay, tag, panelRef.current, accent)
   }, [])
 
   const hideXray = useCallback(() => {
@@ -329,12 +352,32 @@ export default function DomStatsPanel() {
   }
 
   useEffect(() => {
+    const observer = new PerformanceObserver((list) => {
+      const next = list.getEntries().map(toLogRow)
+      if (next.length === 0) return
+      setLogRows((prev) => [...prev, ...next].slice(-MAX_LOG_ENTRIES))
+      setLogTotals((prev) => ({
+        count: prev.count + next.length,
+        bytes: prev.bytes + next.reduce((sum, row) => sum + row.size, 0),
+      }))
+    })
+    observer.observe({ type: "navigation", buffered: true })
+    observer.observe({ type: "resource", buffered: true })
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const list = logListRef.current
+    if (list && open) list.scrollTop = list.scrollHeight
+  }, [logRows, open])
+
+  useEffect(() => {
     const update = () => {
       const tag = hoveredTagRef.current
       if (!tag) return
       setMatchMetadata(collectMatchMetadata(tag, panelRef.current))
       const overlay = document.getElementById(OVERLAY_ID)
-      if (overlay) paintXrayBoxes(overlay, tag, panelRef.current)
+      if (overlay) paintXrayBoxes(overlay, tag, panelRef.current, hoveredAccentRef.current)
     }
     window.addEventListener("scroll", update, true)
     window.addEventListener("resize", update)
@@ -346,6 +389,43 @@ export default function DomStatsPanel() {
 
   useEffect(() => () => clearXray(), [])
 
+  const panelShell = {
+    position: "absolute",
+    left: "2rem",
+    top: "50%",
+    transform: "translateY(-50%)",
+    zIndex: 16777272,
+    pointerEvents: "auto",
+  }
+
+  const toggleBtnStyle = {
+    fontFamily: mono,
+    fontSize: "9px",
+    letterSpacing: "0.32em",
+    color: inkFaint,
+    textTransform: "uppercase",
+    background: "none",
+    border: "none",
+    padding: "0.65rem 0.8rem",
+    cursor: "pointer",
+    ...glassPlain,
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        aria-expanded={false}
+        aria-label="Show HUD panel"
+        className="absolute"
+        style={{ ...panelShell, ...toggleBtnStyle }}
+      >
+        hud [+]
+      </button>
+    )
+  }
+
   if (!stats) return null
 
   return (
@@ -353,18 +433,22 @@ export default function DomStatsPanel() {
       ref={panelRef}
       className="absolute"
       style={{
-        left: "2rem",
-        top: "50%",
-        transform: "translateY(-50%)",
-        width: "clamp(168px, 13vw, 210px)",
+        ...panelShell,
+        width: "clamp(240px, 18vw, 320px)",
+        maxHeight: "calc(100vh - 6rem)",
+        overflowY: "auto",
         padding: "0.65rem 0.8rem 0.7rem",
-        ...glassBrutal,
-        pointerEvents: "auto",
-        zIndex: 16777272,
+        ...glassPlain,
       }}
-      aria-label="Document statistics"
+      aria-label="Document statistics and network log"
     >
-      {/* header: plain, like a file name — click to toggle */}
+      <style>{`
+        @keyframes request-log-blink {
+          0%, 55% { opacity: 1; }
+          56%, 100% { opacity: 0.15; }
+        }
+      `}</style>
+
       <button
         type="button"
         onClick={toggle}
@@ -374,7 +458,7 @@ export default function DomStatsPanel() {
           fontSize: "9px",
           letterSpacing: "0.32em",
           color: inkFaint,
-          marginBottom: open ? "0.45rem" : 0,
+          marginBottom: "0.45rem",
           textTransform: "uppercase",
           display: "flex",
           justifyContent: "space-between",
@@ -385,48 +469,24 @@ export default function DomStatsPanel() {
           cursor: "pointer",
         }}
       >
-        <span>document.stats</span>
-        <span style={{ color: inkFaint, letterSpacing: "0.05em" }}>{open ? "[–]" : "[+]"}</span>
+        <span>hud</span>
+        <span style={{ color: inkFaint, letterSpacing: "0.05em" }}>[–]</span>
       </button>
 
-      {open && (
-      <>
-      {/* element count — big dithered hero */}
       <div
         style={{
-          display: "flex",
-          alignItems: "baseline",
-          gap: "0.5rem",
-          marginBottom: "0.4rem",
+          fontFamily: mono,
+          fontSize: "12px",
+          letterSpacing: "0.28em",
+          color: inkFaint,
+          marginBottom: "0.3rem",
+          textTransform: "uppercase",
           pointerEvents: "none",
         }}
       >
-        <DitherNumber value={stats.elements} fontSize={20} bold levels={2} />
-        <span
-          style={{
-            fontFamily: mono,
-            fontSize: "8px",
-            letterSpacing: "0.2em",
-            color: inkDim,
-            textTransform: "uppercase",
-          }}
-        >
-          elements
-        </span>
+        document.stats
       </div>
 
-      <DitherRamp style={{ marginBottom: "0.35rem" }} />
-
-      {/* stat rows */}
-      <div style={{ pointerEvents: "none" }}>
-        {stats.rows.map(([label, value]) => (
-          <Row key={label} label={label} value={value} />
-        ))}
-      </div>
-
-      <DitherRamp style={{ margin: "0.4rem 0" }} />
-
-      {/* tag frequency */}
       <div
         style={{
           fontFamily: mono,
@@ -442,7 +502,9 @@ export default function DomStatsPanel() {
       </div>
 
       <div>
-        {stats.topTags.map(([tag, count]) => {
+        {stats.topTags.map(([tag, count], i) => {
+          const accent = tagAccent(tag, i)
+          const textAccent = tagTextAccent(tag, i)
           const active = hoveredTag === tag
           return (
             <Row
@@ -451,24 +513,80 @@ export default function DomStatsPanel() {
               value={count}
               faint={!active}
               active={active}
-              onEnter={() => showXray(tag)}
+              accentColor={textAccent}
+              onEnter={() => showXray(tag, accent)}
               onLeave={hideXray}
             />
           )
         })}
       </div>
 
-      {/* xray metadata panel */}
+      <DitherRamp
+        style={{ margin: "0.55rem 0 0.4rem" }}
+        tint={`linear-gradient(90deg, ${ACCENTS.violet}, ${ACCENTS.magenta}, transparent)`}
+      />
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          fontFamily: mono,
+          fontSize: "8px",
+          letterSpacing: "0.28em",
+          color: inkFaint,
+          textTransform: "uppercase",
+          marginBottom: "0.3rem",
+        }}
+      >
+        <span>network.log</span>
+        <span style={{ letterSpacing: "0.08em", display: "flex", gap: "0.7em", alignItems: "baseline" }}>
+          <span style={{ color: inkDim }}>{logTotals.count} req · {fmtBytes(logTotals.bytes)}</span>
+          <span style={{ color: TEXT_ACCENTS.pink, animation: "request-log-blink 1.2s steps(1) infinite" }}>● rec</span>
+        </span>
+      </div>
+
+      <div ref={logListRef} style={{ maxHeight: "96px", overflowY: "auto" }}>
+        {logRows.map((row, i) => {
+          const typeColor = REQUEST_TYPE_TEXT_COLORS[row.type] ?? REQUEST_TYPE_TEXT_COLORS.other
+          return (
+            <div
+              key={`${row.url}-${row.at}-${i}`}
+              style={{
+                display: "flex",
+                gap: "6px",
+                alignItems: "baseline",
+                fontFamily: mono,
+                fontSize: "8.5px",
+                letterSpacing: "0.02em",
+                lineHeight: 1.7,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span style={{ color: inkFaint, width: "44px", flexShrink: 0, textAlign: "right" }}>
+                +{(row.at / 1000).toFixed(2)}s
+              </span>
+              <span style={{ color: typeColor, width: "40px", flexShrink: 0, fontWeight: 500 }}>{row.type}</span>
+              <span style={{ color: inkDim, flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>
+                {row.url}
+              </span>
+              <span style={{ color: inkDim, width: "36px", flexShrink: 0, textAlign: "right" }}>
+                {fmtBytes(row.size)}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
       {hoveredTag && matchMetadata.length > 0 && (
         <div
           style={{
             position: "absolute",
             top: "100%",
-            left: "-2px",
+            left: 0,
             right: 0,
             padding: "0.4rem 0.8rem 0.7rem",
-            ...glassBrutal,
-            borderTop: `1px solid ${inkFaint}`,
+            ...glassPlain,
             maxHeight: "130px",
             overflowY: "auto",
             pointerEvents: "none",
@@ -515,8 +633,6 @@ export default function DomStatsPanel() {
             </div>
           ))}
         </div>
-      )}
-      </>
       )}
     </aside>
   )

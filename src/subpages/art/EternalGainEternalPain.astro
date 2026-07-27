@@ -1,40 +1,68 @@
 ---
 import { linkInstagramMentions } from "../../utils/instagramMentions";
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
+import BenatarMatrix from "../../components/art/BenatarMatrix.jsx";
 
-const text1 = linkInstagramMentions("(2025, Thailand, Print on fabric, metal frame, custom software (openworm's c302 project), mixed media.)<br />re:complex<br />at @goetheinstitut.thailand<br />7-13 November 2025<br />guest curator: @alcoholidaysss");
-const text2 = linkInstagramMentions("<strong>Project Installation consultation:</strong> @toeeyt");
-const text3 = linkInstagramMentions("<strong>3d mockup:</strong> @msyves");
-const text4 = linkInstagramMentions("<strong>Project consultation:</strong> @roma_or_am_i");
-const text5 = linkInstagramMentions("<strong>Installation:</strong><br />Wutthiphong Chaiwong<br />Nuttawut Kaiwansin<br />@sawasdeenut");
-const text6 = linkInstagramMentions("<strong>Special Thanks:</strong><br />@nowheredweller<br />@nanut.t<br />Johannes Hossfeld<br />Kullaya Wapinanon<br />@gracenaholic<br />@nawinnuthong");
+const text2 = linkInstagramMentions("@toeeyt");
+const text3 = linkInstagramMentions("@msyves");
+const text4 = linkInstagramMentions("@roma_or_am_i");
+const text5 = linkInstagramMentions("Wutthiphong Chaiwong<br />Nuttawut Kaiwansin<br />@sawasdeenut");
+const text6 = linkInstagramMentions("@nowheredweller<br />@nanut.t<br />Johannes Hossfeld<br />Kullaya Wapinanon<br />@gracenaholic<br />@nawinnuthong");
+
+const metaVenue = linkInstagramMentions("@goetheinstitut.thailand");
+const metaCurator = linkInstagramMentions("@alcoholidaysss");
 ---
 
 <div class="mt-4 max-w-3xl">
-  <p class="mb-2 text-sm opacity-80" set:html={text1}></p>
-  
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2025" },
+    { label: "Country", value: "Thailand" },
+    { label: "Medium", value: "Print on fabric, metal frame, custom software (openworm's c302 project), mixed media" },
+    { label: "Exhibition", value: "re:complex" },
+    { label: "Venue", value: metaVenue, html: true },
+    { label: "Dates", value: "7–13 November 2025" },
+    { label: "Guest curator", value: metaCurator, html: true },
+  ]} />
+
   <p class="mb-4 mt-4">
     The simulations of four parallel worlds of the nematode Caenorhabditis elegans' neural pathway—an organism (roundworm) whose whole neural map data has been collected and simulated. They are displayed with each quadrant. Each quadrant presents a different condition based on the quadrant's description: induced pain, induced pleasure, or complete absence of the worm.
   </p>
-  
+
   <p class="mb-4">
     The installation also stands as a sculptural totem (coffee table or altar), a monument to the continuity of human civilization, questioning the inevitability of its persistence. It asks: Should we continue to reproduce and perpetuate our lineage, or accept extinction as the natural end of our cycle?
   </p>
-  
+
   <p class="mb-4">
     Eternal Gain, Eternal Pain is an ethical speculation on the morality of procreation and antinatalism, inspired by David Benatar's diagram of pain–pleasure asymmetry. I use the OpenWorm's c302 project to simulate Caenorhabditis elegans because it draws from real biological data, creating a near one-to-one mapping between the living organism and its digital counterpart. Both function through electricity — one organic, one computational — blurring the boundary between life and simulation.
   </p>
-  
+
   <p class="mb-4">
     Beside the simulation, a coffee table with an embossed ouroboros evokes humanity's cycle of creation and consumption, a quiet symbol of endurance and self-devouring continuity. Eternal Gain, Eternal Pain questions whether our drive to create — in biology or in code — arises from empathy or compulsion, and whether the refusal to create might be the final act of compassion.
   </p>
-  
+
+  <figure class="my-8">
+    <BenatarMatrix client:only="react" />
+    <figcaption class="mt-2 text-sm opacity-70">
+      Adapted from David Benatar, <em>Better Never to Have Been</em> (2006). See <a href="https://en.wikipedia.org/wiki/Benatar%27s_asymmetry_argument" target="_blank" rel="noopener noreferrer">Wikipedia</a>.
+    </figcaption>
+  </figure>
+
+  <figure class="my-8">
+    <a
+      href="https://www.instagram.com/p/DQ1qmdckzvY/?img_index=1"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="hover:underline"
+    >
+      Eternal Gain, Eternal Pain — work documentation (Instagram)
+    </a>
+  </figure>
+
   <div class="mt-6 pt-4 border-t border-gray-700">
-    <p class="text-sm mb-2" set:html={text2}></p>
-    <p class="text-sm mb-2" set:html={text3}></p>
-    <p class="text-sm mb-2" set:html={text4}></p>
-    <p class="text-sm mb-4" set:html={text5}></p>
-    
-    <p class="text-sm" set:html={text6}></p>
+    <p class="text-sm mb-2"><strong>Project Installation consultation:</strong> <span set:html={text2} /></p>
+    <p class="text-sm mb-2"><strong>3d mockup:</strong> <span set:html={text3} /></p>
+    <p class="text-sm mb-2"><strong>Project consultation:</strong> <span set:html={text4} /></p>
+    <p class="text-sm mb-4"><strong>Installation:</strong><br /><span set:html={text5} /></p>
+    <p class="text-sm"><strong>Special Thanks:</strong><br /><span set:html={text6} /></p>
   </div>
 </div>
-

@@ -1,112 +1,207 @@
-import { Canvas, useFrame } from "@react-three/fiber"
-import { OrbitControls, Html, Line } from "@react-three/drei"
-import { useEffect, useRef, useState } from "react"
-import { genreLayers, XY_SCALE, Z_SCALE, Z_AXIS_LABELS, QUADRANT_LABELS } from "../data/homeQuadrant3d.js"
-import HalftoneDitherEffects from "./home/HalftoneDitherEffects.jsx"
+import { Canvas } from "@react-three/fiber"
+import { OrbitControls, Html, Line, Grid } from "@react-three/drei"
+import { memo, useMemo, useState } from "react"
+import { genreLayers, XY_SCALE, Z_AXIS_LABELS, QUADRANT_LABELS } from "../data/homeQuadrant3d.js"
+import { AXIS_COLORS, AXIS_TEXT_COLORS, ACCENTS, TEXT, TEXT_ACCENTS, genreColor, genreGradient, genreTextColor, rgba } from "../data/homeColors.js"
+import { workQuadrantMeta } from "../utils/quadrantWorkMeta.js"
+import { glassNode } from "./home/panelChrome.jsx"
 import DomStatsPanel from "./home/DomStatsPanel.jsx"
-import RequestLogPanel from "./home/RequestLogPanel.jsx"
 
-const S = XY_SCALE  // world units per axis half-length
-
-const GENRE_COLORS = {
-  installations: "#ffffff",
-  netart: "#aaaaaa",
-  performance: "#666666",
-}
+const S = XY_SCALE
+const mono = "'DepartureMono', monospace"
+const displayMono = "'403Mesapholic', monospace"
 
 // ─── axis end label ───────────────────────────────────────────────────────────
 
-function AxisLabel({ position, text }) {
+const AxisLabel = memo(function AxisLabel({ position, text, color = TEXT.primary }) {
   return (
     <Html position={position} center style={{ pointerEvents: "none" }}>
       <span style={{
-        fontFamily: "'Cinzel', serif",
-        fontSize: "11px",
+        fontFamily: "'403Mesapholic', monospace",
+        fontSize: "14px",
         fontWeight: 400,
         letterSpacing: "0.12em",
-        color: "#ffffff",
+        color,
         whiteSpace: "nowrap",
       }}>
         {text}
       </span>
     </Html>
   )
-}
+})
+
+const QuadrantLegend = memo(function QuadrantLegend({ x, y, label }) {
+  return (
+    <Html position={[x * S, y * S, 0]} center style={{ pointerEvents: "none" }}>
+      <span style={{
+        fontFamily: "'403Mesapholic', monospace",
+        fontSize: "11px",
+        fontWeight: 400,
+        letterSpacing: "0.06em",
+        color: TEXT.tertiary,
+        whiteSpace: "pre-line",
+        textAlign: "center",
+        lineHeight: 1.35,
+        maxWidth: "148px",
+      }}>
+        {label}
+      </span>
+    </Html>
+  )
+})
 
 // ─── single work node ─────────────────────────────────────────────────────────
 
-function WorkNode({ work, genreId, dimmed }) {
-  const color = dimmed ? "#222" : (GENRE_COLORS[genreId] ?? "#fff")
+function WorkHoverCard({ work, accent }) {
+  const meta = workQuadrantMeta(work)
+
+  return (
+    <div
+      style={{
+        textAlign: "left",
+        padding: work.image ? "8px" : "10px 14px",
+        minWidth: "200px",
+        maxWidth: "280px",
+        ...glassNode(accent),
+      }}
+    >
+      {work.image && (
+        <img
+          src={work.image}
+          alt=""
+          loading="lazy"
+          style={{
+            display: "block",
+            width: "100%",
+            height: "84px",
+            objectFit: "cover",
+            marginBottom: "8px",
+          }}
+        />
+      )}
+      <div
+        style={{
+          fontFamily: mono,
+          fontSize: "10px",
+          letterSpacing: "0.06em",
+          color: TEXT.secondary,
+          lineHeight: 1.5,
+        }}
+      >
+        <div style={{ color: TEXT.primary, marginBottom: "6px", fontSize: "11px", lineHeight: 1.4 }}>
+          {meta.cornerLabel}
+        </div>
+        <div>{meta.xAxis} · {meta.yAxis} · {meta.zAxis}</div>
+        <div style={{ color: TEXT.primary, marginTop: "4px" }}>
+          x {meta.coords.x} · y {meta.coords.y} · z {meta.coords.z}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const WorkNode = memo(function WorkNode({ work, genreId, dimmed }) {
+  const [hovered, setHovered] = useState(false)
+  const accent = genreColor(genreId)
+  const color = dimmed ? "#999999" : accent
   const pos = [work.x * S, work.y * S, (work.z ?? 0) * S]
+  const showDetail = hovered && !dimmed
+  const planeLabel = work.planeLabel ?? work.label
 
   return (
     <group position={pos}>
-      <mesh>
-        <sphereGeometry args={[0.07, 16, 16]} />
+      <mesh raycast={() => null}>
+        <sphereGeometry args={[0.07, 8, 8]} />
         <meshBasicMaterial color={color} />
       </mesh>
 
       {!dimmed && (
         <Html
           center
-          distanceFactor={14}
-          style={{ pointerEvents: work.slug ? "auto" : "none" }}
+          style={{ pointerEvents: "none", zIndex: hovered ? 9999 : undefined }}
           occlude={false}
         >
-          <div style={{ textAlign: "center" }}>
+          <div
+            style={{ position: "relative", display: "inline-block", textAlign: "center", pointerEvents: "auto" }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+          >
             {work.slug ? (
               <a
                 href={`/art/${work.slug}`}
                 style={{
                   display: "block",
-                  fontFamily: "'Cormorant Garamond', serif",
+                  fontFamily: "'403Mesapholic', monospace",
                   fontSize: "15px",
                   fontWeight: 400,
                   fontStyle: "italic",
                   letterSpacing: "0.04em",
-                  color: "#fff",
-                  background: "#000",
-                  border: "1px solid #444",
+                  color: "#0a0a0a",
                   padding: "5px 14px",
                   textDecoration: "none",
+                  width: "max-content",
+                  maxWidth: "min(92vw, 640px)",
                   whiteSpace: "nowrap",
-                  boxShadow: "0 0 60px 8px rgba(255,255,255,0.55)",
+                  lineHeight: 1.35,
+                  ...glassNode(accent),
                 }}
               >
-                {work.label}
+                {planeLabel}
               </a>
             ) : (
               <span
                 style={{
                   display: "block",
-                  fontFamily: "'Cormorant Garamond', serif",
+                  fontFamily: "'403Mesapholic', monospace",
                   fontSize: "15px",
                   fontWeight: 300,
                   letterSpacing: "0.04em",
-                  color: "#ababab",
-                  background: "#000",
-                  border: "1px solid #333",
+                  color: "#2a2a2a",
                   padding: "5px 14px",
+                  width: "max-content",
+                  maxWidth: "min(92vw, 640px)",
                   whiteSpace: "nowrap",
-                  boxShadow: "0 0 60px 8px rgba(255,255,255,0.35)",
+                  lineHeight: 1.35,
+                  ...glassNode(null),
                 }}
               >
-                {work.label}
+                {planeLabel}
               </span>
+            )}
+            {showDetail && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  paddingTop: "4px",
+                  width: "max-content",
+                  zIndex: 20,
+                  pointerEvents: "auto",
+                }}
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+              >
+                <WorkHoverCard work={work} accent={accent} />
+              </div>
             )}
           </div>
         </Html>
       )}
     </group>
   )
-}
+})
 
 // ─── the 3d scene ─────────────────────────────────────────────────────────────
 
 function Scene({ genreFilter }) {
-  const works = genreLayers
-    .filter((l) => l.id !== "all")
-    .flatMap((layer) => layer.works.map((w) => ({ ...w, genreId: layer.id })))
+  const works = useMemo(
+    () => genreLayers
+      .filter((l) => l.id !== "all")
+      .flatMap((layer) => layer.works.map((w) => ({ ...w, genreId: layer.id }))),
+    [],
+  )
 
   return (
     <>
@@ -120,26 +215,65 @@ function Scene({ genreFilter }) {
         makeDefault
       />
 
-      {/* x axis: conceptual ↔ non-conceptual */}
-      <Line points={[[-S, 0, 0], [S, 0, 0]]} color="#ffffff" lineWidth={1} />
-      <AxisLabel position={[-S - 0.6, 0, 0]} text="conceptual" />
-      <AxisLabel position={[S + 0.6, 0, 0]} text="non-conceptual" />
+      {/* x axis: investigative ↔ speculative */}
+      <Line points={[[-S, 0, 0], [S, 0, 0]]} color={AXIS_COLORS.x} lineWidth={1} />
+      <AxisLabel position={[-S - 0.6, 0, 0]} text="investigative" color={AXIS_TEXT_COLORS.x} />
+      <AxisLabel position={[S + 0.6, 0, 0]} text="speculative" color={AXIS_TEXT_COLORS.x} />
 
-      {/* y axis: system ↔ non-system */}
-      <Line points={[[0, -S, 0], [0, S, 0]]} color="#ffffff" lineWidth={1} />
-      <AxisLabel position={[0, S + 0.6, 0]} text="non-system" />
-      <AxisLabel position={[0, -S - 0.6, 0]} text="system" />
+      {/* y axis: AI ↔ human */}
+      <Line points={[[0, -S, 0], [0, S, 0]]} color={AXIS_COLORS.y} lineWidth={1} />
+      <AxisLabel position={[0, S + 0.6, 0]} text="human" color={AXIS_TEXT_COLORS.y} />
+      <AxisLabel position={[0, -S - 0.6, 0]} text="AI" color={AXIS_TEXT_COLORS.y} />
 
-      {/* z axis: durational ↔ still */}
-      <Line points={[[0, 0, -S], [0, 0, S]]} color="#ffffff" lineWidth={1} />
-      <AxisLabel position={[0, 0, S + 0.6]} text={Z_AXIS_LABELS.pos} />
-      <AxisLabel position={[0, 0, -S - 0.6]} text={Z_AXIS_LABELS.neg} />
+      {/* z axis: future ↔ past */}
+      <Line points={[[0, 0, -S], [0, 0, S]]} color={AXIS_COLORS.z} lineWidth={1} />
+      <AxisLabel position={[0, 0, S + 0.6]} text={Z_AXIS_LABELS.pos} color={AXIS_TEXT_COLORS.z} />
+      <AxisLabel position={[0, 0, -S - 0.6]} text={Z_AXIS_LABELS.neg} color={AXIS_TEXT_COLORS.z} />
 
       {/* origin dot */}
       <mesh>
         <sphereGeometry args={[0.04, 8, 8]} />
-        <meshBasicMaterial color="#333" />
+        <meshBasicMaterial color={ACCENTS.coral} />
       </mesh>
+
+      {/* reference grids — XZ (horizontal), XY (front), YZ (side) */}
+      <Grid
+        args={[S * 2, S * 2]}
+        cellSize={S / 4}
+        cellThickness={0.4}
+        cellColor="#cccaf2"
+        sectionSize={S * 2}
+        sectionThickness={0}
+        fadeDistance={S * 4}
+        fadeStrength={2.5}
+        infiniteGrid={false}
+      />
+      <Grid
+        position={[0, 0, 0]}
+        rotation={[Math.PI / 2, 0, 0]}
+        args={[S * 2, S * 2]}
+        cellSize={S / 4}
+        cellThickness={0.4}
+        cellColor="#f2c8d8"
+        sectionSize={S * 2}
+        sectionThickness={0}
+        fadeDistance={S * 4}
+        fadeStrength={2.5}
+        infiniteGrid={false}
+      />
+      <Grid
+        position={[0, 0, 0]}
+        rotation={[0, 0, Math.PI / 2]}
+        args={[S * 2, S * 2]}
+        cellSize={S / 4}
+        cellThickness={0.4}
+        cellColor="#d8ccf2"
+        sectionSize={S * 2}
+        sectionThickness={0}
+        fadeDistance={S * 4}
+        fadeStrength={2.5}
+        infiniteGrid={false}
+      />
 
       {/* works */}
       {works.map((work) => (
@@ -158,7 +292,8 @@ function Scene({ genreFilter }) {
 
 const LINE_X = 92 // px from the column's left edge to the timeline
 
-function ChronologyWork({ work }) {
+function ChronologyWork({ work, genreId }) {
+  const accent = genreColor(genreId)
   return (
     <div className="relative flex items-center" style={{ marginBottom: "2.2rem" }}>
       {/* year */}
@@ -167,10 +302,10 @@ function ChronologyWork({ work }) {
         style={{
           width: `${LINE_X - 20}px`,
           paddingRight: "20px",
-          fontFamily: "'Cinzel', serif",
+          fontFamily: "'403Mesapholic', monospace",
           fontSize: "10px",
           letterSpacing: "0.12em",
-          color: "#888",
+          color: genreTextColor(genreId),
           flexShrink: 0,
         }}
       >
@@ -186,7 +321,8 @@ function ChronologyWork({ work }) {
           width: "8px",
           height: "8px",
           transform: "translateX(-50%)",
-          background: "#fff",
+          background: accent,
+          boxShadow: `0 0 12px ${rgba(accent, 0.45)}`,
         }}
       />
 
@@ -197,16 +333,16 @@ function ChronologyWork({ work }) {
             href={`/art/${work.slug}`}
             className="block"
             style={{
-              fontFamily: "'Cormorant Garamond', serif",
+              fontFamily: "'403Mesapholic', monospace",
               fontSize: "16px",
               fontStyle: "italic",
               letterSpacing: "0.04em",
-              color: "#fff",
-              background: "#000",
-              border: "1px solid #444",
+              color: "#0a0a0a",
+              background: "#ffffff",
+              border: `1px solid ${rgba(accent, 0.35)}`,
               padding: "5px 16px",
               textDecoration: "none",
-              boxShadow: "0 0 60px 8px rgba(255,255,255,0.55)",
+              boxShadow: `0 0 40px 8px ${rgba(accent, 0.14)}`,
             }}
           >
             {work.label}
@@ -215,14 +351,14 @@ function ChronologyWork({ work }) {
           <span
             className="block"
             style={{
-              fontFamily: "'Cormorant Garamond', serif",
+              fontFamily: "'403Mesapholic', monospace",
               fontSize: "16px",
               letterSpacing: "0.04em",
-              color: "#ababab",
-              background: "#000",
-              border: "1px solid #333",
+              color: TEXT.secondary,
+              background: "#f5f5f5",
+              border: "1px solid #e0e0e0",
               padding: "5px 16px",
-              boxShadow: "0 0 60px 8px rgba(255,255,255,0.35)",
+              boxShadow: "0 0 30px 6px rgba(0,0,0,0.05)",
             }}
           >
             {work.label}
@@ -235,7 +371,9 @@ function ChronologyWork({ work }) {
 
 function ChronologyView({ layer }) {
   // categories come from the layer's `sections` config (src/data/genres/index.js)
-  const sections = layer.sections ?? [{ id: layer.id, title: null, works: layer.works }]
+  const sections = layer.sections ?? [
+    { id: layer.id, title: null, groups: [{ works: layer.works }] },
+  ]
 
   return (
     <div className="absolute inset-0 overflow-y-auto">
@@ -246,32 +384,67 @@ function ChronologyView({ layer }) {
         {/* timeline */}
         <div
           className="absolute pointer-events-none"
-          style={{ left: `${LINE_X}px`, top: "3.5rem", bottom: "2.5rem", width: "1px", background: "#ffffff" }}
+          style={{
+            left: `${LINE_X}px`,
+            top: "3.5rem",
+            bottom: "2.5rem",
+            width: "2px",
+            background: `linear-gradient(180deg, ${ACCENTS.pink}, ${ACCENTS.violet}, ${ACCENTS.magenta})`,
+            opacity: 0.55,
+          }}
         />
 
-        {sections.map((section) => (
-          <section key={section.id}>
-            {section.title && (
-              <h2
-                style={{
-                  margin: `0 0 1.6rem ${LINE_X + 28}px`,
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: "13px",
-                  fontWeight: 400,
-                  letterSpacing: "0.28em",
-                  color: "#777",
-                  textTransform: "uppercase",
-                }}
-              >
-                {section.title}
-              </h2>
-            )}
-            {section.works.map((work) => (
-              <ChronologyWork key={work.slug ?? work.label} work={work} />
-            ))}
-            <div style={{ height: "1.6rem" }} />
-          </section>
-        ))}
+        {sections.map((section) => {
+          const groups =
+            section.groups ?? [{ title: undefined, works: section.works ?? [] }]
+
+          return (
+            <section key={section.id}>
+              {section.title && (
+                <h2
+                  style={{
+                    margin: `0 0 1.6rem ${LINE_X + 28}px`,
+                    fontFamily: "'403Mesapholic', monospace",
+                    fontSize: "13px",
+                    fontWeight: 400,
+                    letterSpacing: "0.28em",
+                    color: genreTextColor(section.id),
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {section.title}
+                </h2>
+              )}
+              {groups.map((group, gi) => (
+                <div key={group.title ?? `group-${gi}`}>
+                  {group.title && (
+                    <h3
+                      style={{
+                        margin: `0 0 1.2rem ${LINE_X + 28}px`,
+                        fontFamily: "'403Mesapholic', monospace",
+                        fontSize: "11px",
+                        fontWeight: 400,
+                        letterSpacing: "0.22em",
+                        color: TEXT.tertiary,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {group.title}
+                    </h3>
+                  )}
+                  {group.works.map((work, wi) => (
+                    <ChronologyWork
+                      key={work.slug ?? `${work.label}-${wi}`}
+                      work={work}
+                      genreId={section.id}
+                    />
+                  ))}
+                </div>
+              ))}
+              <div style={{ height: "1.6rem" }} />
+            </section>
+          )
+        })}
       </div>
     </div>
   )
@@ -281,27 +454,6 @@ function ChronologyView({ layer }) {
 
 export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = layers.length > 1 }) {
   const [genreFilter, setGenreFilter] = useState(null)
-  const containerRef = useRef(null)
-  const navRef = useRef(null)
-  // screen-x fraction where the shader stops, so the menu area stays clean
-  const [effectEdge, setEffectEdge] = useState(1)
-
-  useEffect(() => {
-    const container = containerRef.current
-    const measure = () => {
-      const nav = navRef.current
-      if (!container || !nav) {
-        setEffectEdge(1)
-        return
-      }
-      setEffectEdge(nav.offsetLeft / container.clientWidth)
-    }
-    measure()
-    if (!container) return
-    const observer = new ResizeObserver(measure)
-    observer.observe(container)
-    return () => observer.disconnect()
-  }, [])
 
   const isSingleChronology =
     layers.length === 1 && layers[0].layout === "chronology"
@@ -311,8 +463,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
   return (
     <div
       id="home-quadrant"
-      ref={containerRef}
-      className="fixed left-0 right-0 bottom-0 bg-black"
+      className="fixed left-0 right-0 bottom-0 bg-white"
       style={{ top: "2.5rem", height: "calc(100vh - 2.5rem)", width: "100%" }}
     >
       {isSingleChronology ? (
@@ -321,45 +472,39 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
         <Canvas
           camera={{ position: [9, 6, 13], fov: 48 }}
           gl={{ antialias: true, alpha: false }}
-          style={{ background: "#000" }}
+          style={{ background: "#fff" }}
         >
-          {/* midtone clear color: the halftone/dither passes only texture
-              midtones — after them this renders as a near-black dot field */}
-          <color attach="background" args={["#5e5e5e"]} />
+          <color attach="background" args={["#ffffff"]} />
           <Scene genreFilter={genreFilter} />
-          <HalftoneDitherEffects edge={effectEdge} />
         </Canvas>
       )}
 
-      {/* DOM statistics — floats over the dithered left side */}
       {!isSingleChronology && <DomStatsPanel />}
-
-      {/* network request log — recorded live, docked at the bottom */}
-      {!isSingleChronology && <RequestLogPanel />}
 
       {/* genre filter — floats over canvas */}
       {showGenreNav && !isSingleChronology && (
         <nav
-          ref={navRef}
           className="absolute top-0 right-0 bottom-0 flex flex-col justify-center gap-2 pr-8"
           style={{
             minWidth: "clamp(120px, 18vw, 220px)",
             paddingLeft: "clamp(2rem, 5vw, 4rem)",
-            borderLeft: "1px solid #1c1c1c",
+            borderLeft: `1px solid ${rgba(ACCENTS.violet, 0.22)}`,
             pointerEvents: "auto",
           }}
           aria-label="Genre filter"
         >
           {[{ id: null, title: "All" }, ...genreButtons].map((item) => {
             const active = genreFilter === item.id || (item.id === null && !genreFilter)
+            const activeAccent = item.id ? genreColor(item.id) : ACCENTS.violet
+            const hoverAccent = item.id ? genreTextColor(item.id) : TEXT.secondary
             return (
               <button
                 key={item.id ?? "all"}
                 type="button"
                 onClick={() => setGenreFilter(active && item.id !== null ? null : item.id)}
                 style={{
-                  fontFamily: "'Cinzel', serif",
-                  color: active ? "#fff" : "#999999",
+                  fontFamily: "'403Mesapholic', monospace",
+                  color: active ? TEXT.primary : TEXT.secondary,
                   fontSize: active
                     ? "clamp(1.1rem, 2.2vw, 1.5rem)"
                     : "clamp(0.8rem, 1.4vw, 1rem)",
@@ -367,21 +512,19 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
                   letterSpacing: "0.08em",
                   lineHeight: 1.4,
                   padding: "0.3rem 0",
+                  paddingBottom: active ? "calc(0.3rem - 3px)" : "0.3rem",
                   cursor: "pointer",
                   backgroundColor: "transparent",
-                  backgroundImage: active
-                    ? "linear-gradient(180deg, #ffffff 30%, #6a6a6a)"
-                    : "none",
-                  WebkitBackgroundClip: active ? "text" : "border-box",
-                  backgroundClip: active ? "text" : "border-box",
-                  WebkitTextFillColor: active ? "transparent" : "currentcolor",
-                  border: "none",
+                  borderTop: "none",
+                  borderLeft: "none",
+                  borderRight: "none",
+                  borderBottom: active ? `3px solid ${activeAccent}` : "none",
                   textAlign: "right",
                   whiteSpace: "nowrap",
                   transition: "color 0.2s ease, font-size 0.35s ease",
                 }}
-                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#cccccc" }}
-                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "#999999" }}
+                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = hoverAccent }}
+                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = TEXT.secondary }}
               >
                 {item.title}
               </button>
@@ -395,13 +538,16 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
         <div
           className="absolute bottom-3 left-4 pointer-events-none"
           style={{
-            fontFamily: "'Cinzel', serif",
+            fontFamily: "'403Mesapholic', monospace",
             fontSize: "10px",
             letterSpacing: "0.14em",
-            color: "#888888",
+            color: TEXT.tertiary,
           }}
         >
-          drag to orbit · scroll to zoom
+          <span style={{ color: TEXT_ACCENTS.pink, fontWeight: 500 }}>drag</span>
+          {" "}to orbit ·{" "}
+          <span style={{ color: TEXT_ACCENTS.violet, fontWeight: 500 }}>scroll</span>
+          {" "}to zoom
         </div>
       )}
     </div>

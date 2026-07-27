@@ -1,23 +1,55 @@
 ---
 import Layout from "../../layouts/layout.astro"
-import HomeQuadrantView from "../../components/HomeQuadrantView.jsx"
-import { indexLayer } from "../../data/homeQuadrant3d.js"
+import { artSections } from "../../data/artArchive.js"
+import installations from "../../data/genres/installations.js"
+import netart from "../../data/genres/netart.js"
+import performance from "../../data/genres/performance.js"
+
+const dateBySlug = Object.fromEntries(
+  [...installations.works, ...netart.works, ...performance.works]
+    .filter((w) => w.slug && w.date)
+    .map((w) => [w.slug, w.date]),
+)
 ---
 
-<Layout title="Index — Wasawat Somno" description="Chronological index of works">
-  <HomeQuadrantView client:load layers={[indexLayer]} showGenreNav={false} />
+<Layout title="Index — Wasawat Somno" description="Index of works">
+  <div class="relative z-10 font-mono p-8 pb-20 max-w-4xl">
+    <p class="text-[12px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">[index]</p>
+    <h1 class="font-bold text-3xl lg:text-4xl mb-10" style="color: var(--text);">Index</h1>
+
+    {
+      artSections.map((section) => (
+        <section class="mb-10">
+          <h2 class="font-bold text-xl mb-4 uppercase tracking-wide" style="color: var(--text);">{section.title}</h2>
+
+          {section.groups.map((group) => (
+            <div class="mb-6 ml-4">
+              {group.title && <h3 class="text-[15px] uppercase tracking-widest mb-2 font-normal" style="color: var(--text-muted);">{group.title}</h3>}
+              <ul class="list-disc ml-4 text-[13px] leading-relaxed" style="color: var(--text-muted);">
+                {group.items.map((item) => {
+                  const date = item.slug ? dateBySlug[item.slug] : undefined
+                  return (
+                    <li class="mt-1.5">
+                      {item.slug ? (
+                        <a href={`/art/${item.slug}`} class="hover:underline">
+                          {item.label}
+                        </a>
+                      ) : (
+                        <span>{item.label}</span>
+                      )}
+                      {date && (
+                        <span class="ml-2 text-[11px] uppercase tracking-widest" style="color: var(--text-dim);">
+                          {date.slice(0, 4)}
+                        </span>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          ))}
+        </section>
+      ))
+    }
+  </div>
 </Layout>
-
-<style is:global>
-  body:has(#home-quadrant) {
-    overflow: hidden;
-  }
-
-  body:has(#home-quadrant) main {
-    margin: 0 !important;
-    padding: 0;
-    width: 100%;
-    height: calc(100vh - 4rem);
-    overflow: hidden;
-  }
-</style>

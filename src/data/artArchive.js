@@ -10,6 +10,10 @@ export const artSections = [
       {
         items: [
           {
+            label: "Do The NPCs Hear The Simulated Wind",
+            slug: "do-the-npcs-hear-the-simulated-wind",
+          },
+          {
             label:
               "Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)",
             slug: "eternal-gain-eternal-pain",
@@ -29,10 +33,9 @@ export const artSections = [
             slug: "from-scratch-live-coding",
           },
           {
-            label: "Gimme the light, and you shall receive the praise",
+            label: "Gimme the light, and you shall receive the praise (2025)",
             slug: "gimme-the-light",
           },
-          { label: "VinA/V #02: Para-Cartography", slug: "vina-v-para-cartography" },
           {
             label: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025",
             slug: "unfest2025",
@@ -66,7 +69,7 @@ export const artSections = [
       {
         title: "Collaboration",
         items: [
-          { label: "Neotokyo/Neonatus with Nanut" },
+          { label: "Neonatus/Neotokyo", slug: "neonatus-neotokyo" },
           { label: "Tentacular Teriterria" },
         ],
       },
@@ -124,9 +127,10 @@ export const artSections = [
 
 /** @type {Record<string, { title: string }>} */
 export const artworkPages = {
+  "do-the-npcs-hear-the-simulated-wind": { title: "Do The NPCs Hear The Simulated Wind" },
+  "neonatus-neotokyo": { title: "Neonatus/Neotokyo" },
   "from-scratch-live-coding": { title: "From Scratch Live Coding From Scratch" },
-  "gimme-the-light": { title: "Gimme the light, and you shall receive the praise" },
-  "vina-v-para-cartography": { title: "VinA/V #02: Para-Cartography" },
+  "gimme-the-light": { title: "Gimme the light, and you shall receive the praise (2025)" },
   unfest2025: { title: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025" },
   byob: { title: "BYOB" },
   "eternal-gain-eternal-pain": {

@@ -1,33 +1,85 @@
 ---
 import { linkInstagramMentions } from "../../utils/instagramMentions";
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
 
-const text1 = linkInstagramMentions("In 'evals', a live-coding performance at @bangkok_kunsthalle on July 4th 2025<br />Organized by @synap.home.lab in collaboration with @corneacochlearclub and @bangkok_kunsthalle");
+const metaVenue = linkInstagramMentions("@bangkok_kunsthalle");
+const metaPresented = linkInstagramMentions("@synap.home.lab and Noise House");
+const metaCollab = linkInstagramMentions("@corneacochlearclub and @bangkok_kunsthalle");
+const metaFeaturing = linkInstagramMentions("@jodeyiam (Vietnam)");
+
+const vinaVIntro = linkInstagramMentions("WrappedByte (TH) (@wrappedbyte) x Jo Ngo (VIE) (@jodeyiam) presents \"From Scratch: Wandering in the Street.\"<br />as a part of the \"From Scratch Live Coding From Scratch\" series.");
+const vinaVCredits = linkInstagramMentions("<strong>special thanks:</strong><br />@lebactan<br />@jodeyiam<br />@renickbell<br />@vietnam_media_lab<br />@rmitvnscd");
 const text2 = linkInstagramMentions("<strong>Sound Engineer</strong><br />@skykys._<br />@nowheredweller");
 const text3 = linkInstagramMentions("<strong>Special thanks</strong><br />@renickbell<br />@synap.home.lab");
 const text4 = linkInstagramMentions("<strong>Photo by</strong><br />@puttisinn (@puttisinc)");
 ---
 
 <div class="mt-4 max-w-3xl">
-  <p class="mb-2 text-sm opacity-80" set:html={text1}></p>
-  
-  <p class="mb-4 mt-4">
+  <ArtworkMeta fields={[
+    { label: "Date", value: "4 July 2025" },
+    { label: "Venue", value: metaVenue, html: true },
+    { label: "Presented by", value: metaPresented, html: true },
+    { label: "In collaboration", value: metaCollab, html: true },
+  ]} />
+
+  <p class="mb-4">
     I start by scratching sound into the microphone and then manipulating it with code (using TidalCycles). Layer by layer, more sounds are scratched, combined, and transformed, all unfolding improvisationally on the fly.
   </p>
-  
+
   <p class="mb-4">
     Semi-serious in spirit, the piece starts with a blank editor and gradually grows into a full audiovisual performance. It plays with the idea of "from scratch"—both beginning from nothing and the literal act of scratching to create sound.
   </p>
-  
+
   <p class="mb-4">
     In this layered wordplay, "from scratch" becomes less a rule and more a way of noticing how improvisation, sound, and code take shape in real time. As gestures, patterns, and textures build up, the piece shows how things can drift into place on their own—how meaning appears unexpectedly, how small actions grow into structure, and how the performance slowly finds its own direction simply through the act of making.
   </p>
-  
+
+  <div class="my-10 space-y-10">
+    <figure>
+      <video controls class="w-full" preload="metadata">
+        <source src="/video/sss1.mp4" type="video/mp4" />
+      </video>
+      <figcaption class="mt-2 text-sm opacity-70">From Scratch</figcaption>
+    </figure>
+
+    <figure>
+      <video controls class="w-full" preload="metadata">
+        <source src="/video/sss2.mp4" type="video/mp4" />
+      </video>
+      <figcaption class="mt-2 text-sm opacity-70">Live Coding</figcaption>
+    </figure>
+
+    <figure>
+      <video controls class="w-full" preload="metadata">
+        <source src="/video/sss3.mp4" type="video/mp4" />
+      </video>
+      <figcaption class="mt-2 text-sm opacity-70">From Scratch</figcaption>
+    </figure>
+  </div>
+
+  <section id="vina-v" class="my-12 pt-8" style="border-top: 1px solid var(--border-subtle);">
+    <h2 class="font-light text-xl mb-3">VinA/V #02: Para-Cartography</h2>
+    <ArtworkMeta fields={[
+      { label: "Date", value: "6 July 2025" },
+      { label: "Venue", value: "Nina Next Space, HCMC, Vietnam" },
+      { label: "Featuring", value: metaFeaturing, html: true },
+    ]} />
+    <p class="mb-4" set:html={vinaVIntro}></p>
+    <p class="mb-4">
+      The performance begins from a blank editor screen and gradually builds into a full audiovisual piece. It plays on the phrase "from scratch," meaning to start from nothing, to scratch objects into existence, and to DJ scratch sounds live. Like wandering a street at night, the audience suddenly notices objects emerging from the dark. Each is created through code and sound, appearing both visually and sonically. The work explores improvisation and the creative process, showing how meaning and atmosphere can develop unexpectedly from silence and emptiness, one scratch at a time.
+    </p>
+    <p class="mb-4">
+      This time I used different sandpapers to scratch on the brick and the chair. I also used my nail to scratch on the mic and the chair as well.
+    </p>
+    <p class="mb-4 text-sm opacity-80">
+      P.S. Last pic marks the end of the tour, as I would need new sandpaper for the next show
+    </p>
+    <p class="text-sm" set:html={vinaVCredits}></p>
+  </section>
+
   <div class="mt-6 pt-4 border-t border-gray-700">
     <p class="text-sm mb-2" set:html={text2}></p>
-    
     <p class="text-sm mb-2" set:html={text3}></p>
-    
     <p class="text-sm" set:html={text4}></p>
   </div>
 </div>
-

@@ -11,7 +11,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["Inter", ...defaultTheme.fontFamily.sans],
-        mono: ["JetBrains Mono"],
+        mono: ["DepartureMono", ...defaultTheme.fontFamily.mono],
       },
     },
     colors: {

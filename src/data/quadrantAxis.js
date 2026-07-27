@@ -3,8 +3,8 @@ export const XY_SCALE = 5.5
 
 /**
  * Corner phrase labels for the quadrant diagram.
- * x: conceptual (-1) ↔ non-conceptual (+1)
- * y: system (-1) ↔ non-system (+1)
+ * x: investigative (-1) ↔ speculative (+1)
+ * y: AI (-1) ↔ human (+1)
  * @type {{ x: number, y: number, label: string }[]}
  */
 export const QUADRANT_LABELS = [

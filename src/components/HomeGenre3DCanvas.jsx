@@ -47,8 +47,8 @@ export default function HomeGenre3DCanvas({ activeLayer }) {
       >
         <p className="text-center text-sm">
           3D view unavailable.{" "}
-          <a href="/art" style={{ color: "#ffffff" }}>
-            Go to archives →
+          <a href="/index" style={{ color: "#ffffff" }}>
+            Go to index →
           </a>
         </p>
       </div>

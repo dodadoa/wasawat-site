@@ -5,31 +5,17 @@ let _instanceCount = 0
 const WORKS = [
   {
     id: "gimme-the-light",
-    label: "Gimme the light",
+    label: "Gimme the light, and you shall receive the praise (2025)",
     x: -0.78,
     y: 0.74,
     slug: "/art/gimme-the-light",
   },
   {
     id: "from-scratch",
-    label: "From Scratch",
+    label: "From Scratch Live Coding From Scratch",
     x: -0.48,
     y: 0.82,
     slug: "/art/from-scratch-live-coding",
-  },
-  {
-    id: "unfest",
-    label: "Unfest2025",
-    x: -0.36,
-    y: 0.55,
-    slug: "/art/unfest2025",
-  },
-  {
-    id: "vina-v",
-    label: "VinA/V #02",
-    x: -0.22,
-    y: 0.68,
-    slug: "/art/vina-v-para-cartography",
   },
   {
     id: "byob",
@@ -61,7 +47,7 @@ const WORKS = [
   },
   {
     id: "as-if",
-    label: "As if you would still be here",
+    label: "As if you would still be here, if I keep thinking about you.",
     x: -0.62,
     y: -0.64,
     slug: "/art/as-if-you-would-still-be-here",

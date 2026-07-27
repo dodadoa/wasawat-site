@@ -1,17 +1,17 @@
 ---
 import { linkInstagramMentions } from "../../utils/instagramMentions"
-
-const collaboration = linkInstagramMentions("In collaboration with P.A.T.C.H.")
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
 ---
 
 <div class="mt-4 max-w-3xl">
-  <p class="mb-2 text-sm opacity-80" set:html={collaboration}></p>
-  <p class="mb-2 text-sm opacity-80">
-    for <em>Close Inspection From Afar</em><br />
-    at ETAK BKK<br />
-    (12th – 26th July 2025; realtime system, custom software, mixed media, 3 channels, LLM; variable
-    duration)
-  </p>
+  <ArtworkMeta fields={[
+    { label: "Dates", value: "12–26 July 2025" },
+    { label: "Venue", value: "ETAK BKK" },
+    { label: "Exhibition", value: "Close Inspection From Afar" },
+    { label: "Collaboration", value: "P.A.T.C.H." },
+    { label: "Medium", value: "Realtime system, custom software, mixed media, 3 channels, LLM" },
+    { label: "Duration", value: "Variable" },
+  ]} />
 
   <figure class="my-8">
     <img
@@ -23,7 +23,7 @@ const collaboration = linkInstagramMentions("In collaboration with P.A.T.C.H.")
     <figcaption class="mt-2 text-sm opacity-70">Installation view, ETAK BKK</figcaption>
   </figure>
 
-  <p class="mb-4 mt-4">
+  <p class="mb-4">
     This project uses the three-body problem as a metaphor for global relationships. Three celestial
     bodies represent countries: when they move too close it suggests conflict, when they drift apart it
     suggests relative stability or peace. The core intention is to produce realtime speculative fiction
@@ -51,7 +51,7 @@ const collaboration = linkInstagramMentions("In collaboration with P.A.T.C.H.")
     <figcaption class="mt-2 text-sm opacity-70">Archive documentation</figcaption>
   </figure>
 
-  <figure class="my-8">
+  <figure class="my-8 art-diagram">
     <img
       src="/images/Here-Now-Diagrams.jpg"
       alt="Conceptual diagram of the three celestial bodies system, exhibits, and here-now light cone"

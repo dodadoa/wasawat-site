@@ -1,0 +1,64 @@
+---
+import { linkInstagramMentions } from "../../utils/instagramMentions";
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
+
+const metaFor = linkInstagramMentions("@stack_xyz");
+const credits1 = linkInstagramMentions("<strong>Project Consultant:</strong> @pasuthh<br />Aluminum profile structure designed by @putpat13o");
+const credits2 = linkInstagramMentions("<strong>Big thanks for folks that let me borrow their PCs</strong><br />@pasuthh<br />@msyves<br />@roma_or_am_i");
+const credits3 = linkInstagramMentions("<strong>Special Thank:</strong><br />@toeeyt<br />@tentaclesgallery<br />@alcoholidaysss<br />@uuunbbb<br />@poc9.s<br />@sthienwiwat");
+const credits4 = linkInstagramMentions("<strong>Photos by</strong> @frameofchaos");
+const credits5 = linkInstagramMentions("Organised by @stack_xyz and @team_stimulant , in collaboration with @goetheinstitut.thailand , with support from @thaifilmarchive , Office of the Prime Minister, Creative Economy Agency (CEA), Virtual Media Lab, immertech, and REAL Bangkok.");
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2026" },
+    { label: "Country", value: "Thailand" },
+    { label: "Duration", value: "20 mins" },
+    { label: "Setup", value: "4PCs, Aluminum profiles structure" },
+    { label: "Date", value: "4 July 2026" },
+    { label: "Venue", value: "Virtual Media Lab, 4th Floor, TCDC Bangkok (The Grand Postal Building)" },
+    { label: "For", value: metaFor, html: true },
+    { label: "Exhibition", value: "PATCH NOTES THAT REFUSE A SETTLED WORLD" },
+  ]} />
+
+  <p class="mb-4">
+    What happens when games become sites of archaeological listening? As preservation initiatives like
+    <a href="https://archive.org" target="_blank" rel="noopener noreferrer">Internet Archive</a>
+    work to save digital culture, this investigation addresses the acoustic worlds embedded in games—procedurally
+    generated soundscapes, layered atmospheres, hidden environmental recordings—that risk being lost over time,
+    harder to archive as new techniques like ray-tracing reshape how virtual worlds are rendered.
+  </p>
+
+  <p class="mb-4">
+    If we field record to capture the soundscapes of the real world, shouldn't we do the same for digital simulation sites?
+  </p>
+
+  <p class="mb-4">
+    This practice treats game worlds as sonic landscapes worth excavating. Not playing. Listening. Revealing the world-building beneath the surface.
+  </p>
+
+  <p class="mb-4">
+    Do The NPCs Hear the Simulated Wind: four stations, raw sound to composed music.
+  </p>
+
+  <hr class="my-6" style="border-color: var(--border-subtle);" />
+
+  <p class="mb-4 text-sm opacity-80">
+    P.S. I tried to play 4 games at the same time and also tried to control/manipulate the sounds and visuals.
+  </p>
+
+  <p class="mb-4 text-sm opacity-80">
+    P.S.2 You can try virtual field recording by yourself by entering an open world game, then go to setting and mute the music sound leaving only ambient and game sound.
+  </p>
+
+  <hr class="my-6" style="border-color: var(--border-subtle);" />
+
+  <div class="mt-6 pt-4 border-t border-gray-700">
+    <p class="text-sm mb-2" set:html={credits1}></p>
+    <p class="text-sm mb-2" set:html={credits2}></p>
+    <p class="text-sm mb-2" set:html={credits3}></p>
+    <p class="text-sm mb-2" set:html={credits4}></p>
+    <p class="text-sm" set:html={credits5}></p>
+  </div>
+</div>

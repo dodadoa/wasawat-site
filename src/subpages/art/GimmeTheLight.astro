@@ -1,9 +1,9 @@
 ---
 import { linkInstagramMentions } from "../../utils/instagramMentions"
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
 
-const credits = linkInstagramMentions(
-  "At @bartemp.bkk for @nonnonnon_bangkok<br />Mutant Club, 3rd Oct."
-)
+const metaVenue = linkInstagramMentions("@bartemp.bkk")
+const metaFor = linkInstagramMentions("@nonnonnon_bangkok")
 const thanks1 = linkInstagramMentions("Thank you so much @maehappyair @nonnonnon_bangkok")
 const thanks2 = linkInstagramMentions(
   "<strong>Special thank</strong> @krung_khet for helping me setup the sound and test the website"
@@ -12,7 +12,13 @@ const thanks3 = linkInstagramMentions("<strong>Special thank</strong> @pin_natth
 ---
 
 <div class="mt-4 max-w-3xl">
-  <p class="mb-2 text-sm opacity-80" set:html={credits}></p>
+  <ArtworkMeta fields={[
+    { label: "Date", value: "3 October 2024" },
+    { label: "Venue", value: metaVenue, html: true },
+    { label: "For", value: metaFor, html: true },
+    { label: "Event", value: "Mutant Club" },
+  ]} />
+
   <p class="mb-6 text-sm opacity-80">Post-screen strategy for low-tech rooms</p>
 
   <p class="mb-4">
@@ -71,11 +77,6 @@ const thanks3 = linkInstagramMentions("<strong>Special thank</strong> @pin_natth
     >
       Gimme the light performance (Instagram)
     </a>
-  </figure>
-
-  <figure class="my-8">
-    <img src="/images/qr.png" alt="QR code to join Gimme the light" class="w-48" loading="lazy" />
-    <figcaption class="mt-2 text-sm opacity-70">Scan to join</figcaption>
   </figure>
 
   <div class="mt-6 pt-4 border-t border-neutral-800">
