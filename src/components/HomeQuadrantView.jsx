@@ -18,7 +18,7 @@ const AxisLabel = memo(function AxisLabel({ position, text, color = TEXT.primary
     <Html position={position} center style={{ pointerEvents: "none" }}>
       <span style={{
         fontFamily: "'403Mesapholic', monospace",
-        fontSize: "14px",
+        fontSize: "calc(14px * var(--ui-scale, 1))",
         fontWeight: 400,
         letterSpacing: "0.12em",
         color,
@@ -35,7 +35,7 @@ const QuadrantLegend = memo(function QuadrantLegend({ x, y, label }) {
     <Html position={[x * S, y * S, 0]} center style={{ pointerEvents: "none" }}>
       <span style={{
         fontFamily: "'403Mesapholic', monospace",
-        fontSize: "11px",
+        fontSize: "calc(11px * var(--ui-scale, 1))",
         fontWeight: 400,
         letterSpacing: "0.06em",
         color: TEXT.tertiary,
@@ -79,18 +79,21 @@ function WorkHoverCard({ work, accent }) {
           }}
         />
       )}
+      <style>{`
+        .quadrant-hover-meta { font-size: 10px; }
+        @media (min-width: 1600px) {
+          .quadrant-hover-meta { font-size: 10.2px; }
+        }
+      `}</style>
       <div
+        className="quadrant-hover-meta"
         style={{
           fontFamily: mono,
-          fontSize: "10px",
           letterSpacing: "0.06em",
           color: TEXT.secondary,
           lineHeight: 1.5,
         }}
       >
-        <div style={{ color: TEXT.primary, marginBottom: "6px", fontSize: "11px", lineHeight: 1.4 }}>
-          {meta.cornerLabel}
-        </div>
         <div>{meta.xAxis} · {meta.yAxis} · {meta.zAxis}</div>
         <div style={{ color: TEXT.primary, marginTop: "4px" }}>
           x {meta.coords.x} · y {meta.coords.y} · z {meta.coords.z}
@@ -132,7 +135,7 @@ const WorkNode = memo(function WorkNode({ work, genreId, dimmed }) {
                 style={{
                   display: "block",
                   fontFamily: "'403Mesapholic', monospace",
-                  fontSize: "15px",
+                  fontSize: "calc(15px * var(--ui-scale, 1))",
                   fontWeight: 400,
                   fontStyle: "italic",
                   letterSpacing: "0.04em",
@@ -153,7 +156,7 @@ const WorkNode = memo(function WorkNode({ work, genreId, dimmed }) {
                 style={{
                   display: "block",
                   fontFamily: "'403Mesapholic', monospace",
-                  fontSize: "15px",
+                  fontSize: "calc(15px * var(--ui-scale, 1))",
                   fontWeight: 300,
                   letterSpacing: "0.04em",
                   color: "#2a2a2a",
@@ -303,7 +306,7 @@ function ChronologyWork({ work, genreId }) {
           width: `${LINE_X - 20}px`,
           paddingRight: "20px",
           fontFamily: "'403Mesapholic', monospace",
-          fontSize: "10px",
+          fontSize: "calc(10px * var(--ui-scale, 1))",
           letterSpacing: "0.12em",
           color: genreTextColor(genreId),
           flexShrink: 0,
@@ -334,7 +337,7 @@ function ChronologyWork({ work, genreId }) {
             className="block"
             style={{
               fontFamily: "'403Mesapholic', monospace",
-              fontSize: "16px",
+              fontSize: "calc(16px * var(--ui-scale, 1))",
               fontStyle: "italic",
               letterSpacing: "0.04em",
               color: "#0a0a0a",
@@ -352,7 +355,7 @@ function ChronologyWork({ work, genreId }) {
             className="block"
             style={{
               fontFamily: "'403Mesapholic', monospace",
-              fontSize: "16px",
+              fontSize: "calc(16px * var(--ui-scale, 1))",
               letterSpacing: "0.04em",
               color: TEXT.secondary,
               background: "#f5f5f5",
@@ -405,7 +408,7 @@ function ChronologyView({ layer }) {
                   style={{
                     margin: `0 0 1.6rem ${LINE_X + 28}px`,
                     fontFamily: "'403Mesapholic', monospace",
-                    fontSize: "13px",
+                    fontSize: "calc(13px * var(--ui-scale, 1))",
                     fontWeight: 400,
                     letterSpacing: "0.28em",
                     color: genreTextColor(section.id),
@@ -422,7 +425,7 @@ function ChronologyView({ layer }) {
                       style={{
                         margin: `0 0 1.2rem ${LINE_X + 28}px`,
                         fontFamily: "'403Mesapholic', monospace",
-                        fontSize: "11px",
+                        fontSize: "calc(11px * var(--ui-scale, 1))",
                         fontWeight: 400,
                         letterSpacing: "0.22em",
                         color: TEXT.tertiary,
@@ -466,15 +469,51 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
       className="fixed left-0 right-0 bottom-0 bg-white"
       style={{ top: "2.5rem", height: "calc(100vh - 2.5rem)", width: "100%" }}
     >
+      {/* backdrop text behind the 3d canvas — big screens only */}
+      {!isSingleChronology && (
+        <div
+          aria-hidden="true"
+          className="quadrant-backdrop absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+          style={{ overflow: "hidden" }}
+        >
+          <style>{`
+            @media (max-width: 1599px) {
+              .quadrant-backdrop { display: none; }
+            }
+          `}</style>
+          <span
+            style={{
+              fontFamily: "'403Mesapholic', monospace",
+              fontSize: "clamp(4rem, 12vw, 13rem)",
+              fontWeight: 400,
+              letterSpacing: "0.06em",
+              lineHeight: 0.95,
+              textAlign: "center",
+              textTransform: "uppercase",
+              whiteSpace: "pre-line",
+              opacity: 0.5,
+              color: "transparent",
+              background: "linear-gradient(175deg, #f4f4f4 0%, #d8d8d8 30%, #efefef 48%, #c9c9c9 55%, #e6e6e6 75%, #d2d2d2 100%)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              filter: "drop-shadow(-1px -1px 0 rgba(255, 255, 255, 0.9)) drop-shadow(1px 2px 1px rgba(10, 10, 10, 0.18))",
+              textRendering: "geometricPrecision",
+              WebkitFontSmoothing: "antialiased",
+            }}
+          >
+            {"selected\nwork"}
+          </span>
+        </div>
+      )}
+
       {isSingleChronology ? (
         <ChronologyView layer={layers[0]} />
       ) : (
         <Canvas
           camera={{ position: [9, 6, 13], fov: 48 }}
-          gl={{ antialias: true, alpha: false }}
-          style={{ background: "#fff" }}
+          gl={{ antialias: true, alpha: true }}
+          style={{ background: "transparent", position: "relative", zIndex: 1 }}
         >
-          <color attach="background" args={["#ffffff"]} />
           <Scene genreFilter={genreFilter} />
         </Canvas>
       )}
@@ -490,6 +529,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
             paddingLeft: "clamp(2rem, 5vw, 4rem)",
             borderLeft: `1px solid ${rgba(ACCENTS.violet, 0.22)}`,
             pointerEvents: "auto",
+            zIndex: 2,
           }}
           aria-label="Genre filter"
         >
@@ -539,7 +579,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
           className="absolute bottom-3 left-4 pointer-events-none"
           style={{
             fontFamily: "'403Mesapholic', monospace",
-            fontSize: "10px",
+            fontSize: "calc(10px * var(--ui-scale, 1))",
             letterSpacing: "0.14em",
             color: TEXT.tertiary,
           }}

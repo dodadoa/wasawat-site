@@ -9,6 +9,19 @@ const inkDim = TEXT.secondary
 const inkFaint = TEXT.tertiary
 const MAX_LOG_ENTRIES = 80
 
+// Matches --ui-scale in layout.astro; canvas text can't use CSS calc()
+function useUiScale() {
+  const [scale, setScale] = useState(1)
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1600px)")
+    const update = () => setScale(mq.matches ? 1.2 : 1)
+    update()
+    mq.addEventListener("change", update)
+    return () => mq.removeEventListener("change", update)
+  }, [])
+  return scale
+}
+
 function shortUrl(name) {
   try {
     const u = new URL(name, window.location.href)
@@ -47,8 +60,10 @@ const BAYER8 = [
   63, 31, 55, 23, 61, 29, 53, 21,
 ]
 
-function DitherNumber({ value, fontSize = 13, bold = false, levels = 4, tint }) {
+function DitherNumber({ value, fontSize: baseFontSize = 13, bold = false, levels = 4, tint }) {
   const canvasRef = useRef(null)
+  const uiScale = useUiScale()
+  const fontSize = Math.round(baseFontSize * uiScale)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -210,7 +225,7 @@ function paintXrayBoxes(overlay, tag, panelEl, accent) {
       top: placeAbove ? `${rect.top - 4}px` : `${rect.bottom + 4}px`,
       transform: placeAbove ? "translateY(-100%)" : "none",
       fontFamily: mono,
-      fontSize: "8.5px",
+      fontSize: "calc(8.5px * var(--ui-scale, 1))",
       letterSpacing: "0.02em",
       lineHeight: 1.35,
       color: "#0a0a0a",
@@ -282,7 +297,7 @@ function Row({ label, value, faint = false, active = false, accentColor, onEnter
       <span
         style={{
           fontFamily: mono,
-          fontSize: "9px",
+          fontSize: "calc(9px * var(--ui-scale, 1))",
           letterSpacing: "0.08em",
           color: labelColor,
           textTransform: "uppercase",
@@ -400,7 +415,7 @@ export default function DomStatsPanel() {
 
   const toggleBtnStyle = {
     fontFamily: mono,
-    fontSize: "9px",
+    fontSize: "calc(9px * var(--ui-scale, 1))",
     letterSpacing: "0.32em",
     color: inkFaint,
     textTransform: "uppercase",
@@ -455,7 +470,7 @@ export default function DomStatsPanel() {
         aria-expanded={open}
         style={{
           fontFamily: mono,
-          fontSize: "9px",
+          fontSize: "calc(9px * var(--ui-scale, 1))",
           letterSpacing: "0.32em",
           color: inkFaint,
           marginBottom: "0.45rem",
@@ -476,7 +491,7 @@ export default function DomStatsPanel() {
       <div
         style={{
           fontFamily: mono,
-          fontSize: "12px",
+          fontSize: "calc(12px * var(--ui-scale, 1))",
           letterSpacing: "0.28em",
           color: inkFaint,
           marginBottom: "0.3rem",
@@ -490,7 +505,7 @@ export default function DomStatsPanel() {
       <div
         style={{
           fontFamily: mono,
-          fontSize: "8px",
+          fontSize: "calc(8px * var(--ui-scale, 1))",
           letterSpacing: "0.28em",
           color: inkFaint,
           marginBottom: "0.3rem",
@@ -532,7 +547,7 @@ export default function DomStatsPanel() {
           justifyContent: "space-between",
           alignItems: "baseline",
           fontFamily: mono,
-          fontSize: "8px",
+          fontSize: "calc(8px * var(--ui-scale, 1))",
           letterSpacing: "0.28em",
           color: inkFaint,
           textTransform: "uppercase",
@@ -557,7 +572,7 @@ export default function DomStatsPanel() {
                 gap: "6px",
                 alignItems: "baseline",
                 fontFamily: mono,
-                fontSize: "8.5px",
+                fontSize: "calc(8.5px * var(--ui-scale, 1))",
                 letterSpacing: "0.02em",
                 lineHeight: 1.7,
                 whiteSpace: "nowrap",
@@ -595,7 +610,7 @@ export default function DomStatsPanel() {
           <div
             style={{
               fontFamily: mono,
-              fontSize: "8px",
+              fontSize: "calc(8px * var(--ui-scale, 1))",
               letterSpacing: "0.24em",
               color: inkFaint,
               marginBottom: "0.3rem",
@@ -609,7 +624,7 @@ export default function DomStatsPanel() {
               <div
                 style={{
                   fontFamily: mono,
-                  fontSize: "9px",
+                  fontSize: "calc(9px * var(--ui-scale, 1))",
                   color: ink,
                   letterSpacing: "0.02em",
                   lineHeight: 1.3,
@@ -621,7 +636,7 @@ export default function DomStatsPanel() {
               <div
                 style={{
                   fontFamily: mono,
-                  fontSize: "8px",
+                  fontSize: "calc(8px * var(--ui-scale, 1))",
                   color: inkFaint,
                   letterSpacing: "0.02em",
                   lineHeight: 1.3,

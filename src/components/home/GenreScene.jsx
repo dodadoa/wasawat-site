@@ -3,7 +3,7 @@ import { genreLayers, QUADRANT_LABELS, XY_SCALE } from "../../data/homeQuadrant3
 
 const labelStyle = {
   fontFamily: '"DepartureMono", monospace',
-  fontSize: "12px",
+  fontSize: "calc(12px * var(--ui-scale, 1))",
   letterSpacing: "0.1em",
   textTransform: "uppercase",
   color: "#e0e0e0",
@@ -24,13 +24,13 @@ const dimLabel = {
   pointerEvents: "none",
   whiteSpace: "pre-line",
   textAlign: "center",
-  fontSize: "11px",
+  fontSize: "calc(11px * var(--ui-scale, 1))",
 }
 
 const axisStyle = {
   ...dimLabel,
   color: "#cccccc",
-  fontSize: "12px",
+  fontSize: "calc(12px * var(--ui-scale, 1))",
   letterSpacing: "0.2em",
 }
 

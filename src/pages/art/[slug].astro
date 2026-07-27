@@ -47,7 +47,7 @@ if (!artwork || !Content) {
 
 <Layout title={artwork.title}>
   <div class="relative z-10 p-8 pb-20 max-w-4xl">
-    <a href="/index" class="text-[13px] uppercase tracking-widest" style="color: var(--text-muted);">← Index</a>
+    <a href="/index" class="uppercase tracking-widest" style="color: var(--text-muted); font-size: calc(13px * var(--ui-scale, 1));">← Index</a>
     <h1 class="font-bold text-xl lg:text-2xl mt-6 mb-3" style="color: var(--text);">{artwork.title}</h1>
     <div class="art-detail-body">
       <Content />
@@ -58,7 +58,7 @@ if (!artwork || !Content) {
 <style is:global>
   .art-detail-body {
     font-family: "DepartureMono", monospace;
-    font-size: 12px;
+    font-size: calc(12px * var(--ui-scale, 1));
     line-height: 1.5;
   }
   .art-detail-body p,
@@ -67,14 +67,14 @@ if (!artwork || !Content) {
   }
   /* topic / credits / tagline — subheader */
   .art-detail-body p.text-sm.opacity-80 {
-    font-size: 14px;
+    font-size: calc(14px * var(--ui-scale, 1));
     line-height: 1.45;
   }
   /* section headers */
   .art-detail-body h2,
   .art-detail-body .text-xl {
     font-family: "403Mesapholic", monospace;
-    font-size: 20px;
+    font-size: calc(20px * var(--ui-scale, 1));
     font-weight: 400;
     margin-top: 1.6rem;
     margin-bottom: 0.5rem;
@@ -84,14 +84,14 @@ if (!artwork || !Content) {
   .art-detail-body p.text-sm.opacity-70,
   .art-detail-body p.text-sm:not(.opacity-80),
   .art-detail-body div.text-sm {
-    font-size: 11px;
+    font-size: calc(11px * var(--ui-scale, 1));
     line-height: 1.45;
   }
   .art-detail-body ul.text-sm {
-    font-size: 12px;
+    font-size: calc(12px * var(--ui-scale, 1));
   }
   .art-detail-body code {
-    font-size: 11px;
+    font-size: calc(11px * var(--ui-scale, 1));
   }
   .art-detail-body video {
     width: 100%;
