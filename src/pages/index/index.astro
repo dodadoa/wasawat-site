@@ -10,6 +10,18 @@ const dateBySlug = Object.fromEntries(
     .filter((w) => w.slug && w.date)
     .map((w) => [w.slug, w.date]),
 )
+
+/** Stable sort: items with a slug (linked/selected pages) float to the top of each group */
+function sortItems(items) {
+  return items
+    .map((item, i) => ({ item, i }))
+    .sort((a, b) => {
+      const aHas = a.item.slug ? 0 : 1
+      const bHas = b.item.slug ? 0 : 1
+      return aHas - bHas || a.i - b.i
+    })
+    .map(({ item }) => item)
+}
 ---
 
 <Layout title="Index — Wasawat Somno" description="Index of works">
@@ -24,9 +36,8 @@ const dateBySlug = Object.fromEntries(
 
           {section.groups.map((group) => (
             <div class="mb-6 ml-4">
-              {group.title && <h3 class="text-[15px] uppercase tracking-widest mb-2 font-normal" style="color: var(--text-muted);">{group.title}</h3>}
               <ul class="list-disc ml-4 text-[13px] leading-relaxed" style="color: var(--text-muted);">
-                {group.items.map((item) => {
+                {sortItems(group.items).map((item) => {
                   const date = item.slug ? dateBySlug[item.slug] : undefined
                   return (
                     <li class="mt-1.5">

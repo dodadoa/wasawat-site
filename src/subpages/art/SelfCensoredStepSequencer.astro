@@ -8,23 +8,24 @@ const inspiration = linkInstagramMentions("Inspired by Anu (@karnpapon) and rece
   <p class="mb-6 text-sm opacity-80">What cannot be said becomes the beat</p>
 
   <p class="mb-4">
-    I made a Chrome extension called Self-censored Step Sequencer. It turns redacted text into rhythm.
-    In the age of blacked-out documents, what you cannot say becomes the beat. This extension turns
-    silence into music.
+    A Chrome extension that turns redacted text into rhythm. Select a text area, highlight words or
+    blacked-out fragments, set BPM and press play — the sequencer steps word-by-word, redacted words
+    glow and trigger drum hits. Two sound modes (local WebSocket→OSC engine, or built-in browser
+    presets) and two layouts (overlay / sidebar).
   </p>
 
-  <p class="mb-4 text-sm opacity-80" set:html={inspiration}></p>
+  <p class="mb-6 text-sm opacity-80" set:html={inspiration}></p>
 
   <figure class="my-8">
     <img
       src="/images/self-censored-step-sequencer-chrome-extension.jpg"
       alt="Self-censored Step Sequencer Chrome extension screenshot"
-      class="w-full"
+      style="width: 100%; max-width: 340px; height: auto; display: block;"
       loading="lazy"
     />
   </figure>
 
-  <div class="my-10 space-y-10">
+  <div class="my-8 space-y-8">
     <figure>
       <video controls class="w-full" preload="metadata">
         <source src="/video/sss1.mp4" type="video/mp4" />
@@ -46,42 +47,6 @@ const inspiration = linkInstagramMentions("Inspired by Anu (@karnpapon) and rece
       <figcaption class="mt-2 text-sm opacity-70">Layouts (overlay / sidebar)</figcaption>
     </figure>
   </div>
-
-  <h2 class="font-light text-xl mb-3 mt-8">Tool-making context</h2>
-
-  <p class="mb-4">
-    I started from what TouchDesigner was not good at for this use case, then shifted the problem into
-    a browser extension workflow. The sequencing direction came after seeing a friend's piece that used
-    RegEx as the sequencing mechanism.
-  </p>
-
-  <h2 class="font-light text-xl mb-3 mt-8">How it works</h2>
-
-  <p class="mb-4">
-    Open a webpage and click the extension, select a text area, then highlight words or redacted
-    fragments. Press play and set BPM — the sequencer steps word-by-word, and redacted words glow while
-    triggering drum hits.
-  </p>
-
-  <h2 class="font-light text-xl mb-3 mt-8">Modes</h2>
-
-  <ul class="list-disc ml-4 mb-4">
-    <li class="mt-2">
-      <strong>Local engine (WebSocket + OSC)</strong> — WebSocket events bridged to OSC via
-      <code class="text-sm">bridge.js</code> in the repo; best for live and custom routing.
-    </li>
-    <li class="mt-2">
-      <strong>Browser playback presets</strong> — Kick, snare, hi-hat, open hat, laser; fast setup with
-      no local engine required.
-    </li>
-  </ul>
-
-  <h2 class="font-light text-xl mb-3 mt-8">Layouts</h2>
-
-  <p class="mb-4">
-    Overlay and sidebar presentation arrangements. Overlay is used in the first and second modes;
-    sidebar is used in the third.
-  </p>
 
   <div class="mt-6 pt-4 border-t border-neutral-800 text-sm space-y-2">
     <p>
@@ -107,9 +72,6 @@ const inspiration = linkInstagramMentions("Inspired by Anu (@karnpapon) and rece
       >
         github.com/dodadoa/redacted-dm
       </a>
-    </p>
-    <p class="opacity-80">
-      If you encounter bugs, please report them or send a pull request. Thank you.
     </p>
   </div>
 </div>

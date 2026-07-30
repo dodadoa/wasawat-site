@@ -1,6 +1,6 @@
 import { QUADRANT_LABELS } from "../data/quadrantAxis.js"
 
-const Z_LABELS = { pos: "past", neg: "future" }
+const Z_LABELS = { pos: "Human", neg: "Machine" }
 
 /** @param {number} x @param {number} y */
 export function quadrantFromXY(x, y) {
@@ -27,7 +27,7 @@ export function workQuadrantMeta(work) {
   return {
     cornerLabel: corner.label.replace(/\n/g, " "),
     xAxis: x < 0 ? "investigative" : "speculative",
-    yAxis: y < 0 ? "AI" : "human",
+    yAxis: y < 0 ? "Looking to the Past" : "Looking to the Future",
     zAxis: zAxisLabel(z),
     coords: {
       x: x.toFixed(2),

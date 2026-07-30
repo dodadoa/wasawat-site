@@ -15,6 +15,7 @@ const text4 = linkInstagramMentions("<strong>Photo by</strong><br />@puttisinn (
 ---
 
 <div class="mt-4 max-w-3xl">
+  <h2 class="mt-2 mb-3" style="font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text);">Bangkok Kunsthalle</h2>
   <ArtworkMeta fields={[
     { label: "Date", value: "4 July 2025" },
     { label: "Venue", value: metaVenue, html: true },
@@ -34,31 +35,8 @@ const text4 = linkInstagramMentions("<strong>Photo by</strong><br />@puttisinn (
     In this layered wordplay, "from scratch" becomes less a rule and more a way of noticing how improvisation, sound, and code take shape in real time. As gestures, patterns, and textures build up, the piece shows how things can drift into place on their own—how meaning appears unexpectedly, how small actions grow into structure, and how the performance slowly finds its own direction simply through the act of making.
   </p>
 
-  <div class="my-10 space-y-10">
-    <figure>
-      <video controls class="w-full" preload="metadata">
-        <source src="/video/sss1.mp4" type="video/mp4" />
-      </video>
-      <figcaption class="mt-2 text-sm opacity-70">From Scratch</figcaption>
-    </figure>
-
-    <figure>
-      <video controls class="w-full" preload="metadata">
-        <source src="/video/sss2.mp4" type="video/mp4" />
-      </video>
-      <figcaption class="mt-2 text-sm opacity-70">Live Coding</figcaption>
-    </figure>
-
-    <figure>
-      <video controls class="w-full" preload="metadata">
-        <source src="/video/sss3.mp4" type="video/mp4" />
-      </video>
-      <figcaption class="mt-2 text-sm opacity-70">From Scratch</figcaption>
-    </figure>
-  </div>
-
   <section id="vina-v" class="my-12 pt-8" style="border-top: 1px solid var(--border-subtle);">
-    <h2 class="font-light text-xl mb-3">VinA/V #02: Para-Cartography</h2>
+    <h2 class="mt-2 mb-3" style="font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text);">VinA/V #02: Para-Cartography</h2>
     <ArtworkMeta fields={[
       { label: "Date", value: "6 July 2025" },
       { label: "Venue", value: "Nina Next Space, HCMC, Vietnam" },
@@ -77,9 +55,9 @@ const text4 = linkInstagramMentions("<strong>Photo by</strong><br />@puttisinn (
     <p class="text-sm" set:html={vinaVCredits}></p>
   </section>
 
-  <div class="mt-6 pt-4 border-t border-gray-700">
-    <p class="text-sm mb-2" set:html={text2}></p>
-    <p class="text-sm mb-2" set:html={text3}></p>
+  <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; gap: 2rem;">
+    <p class="text-sm" set:html={text2}></p>
+    <p class="text-sm" set:html={text3}></p>
     <p class="text-sm" set:html={text4}></p>
   </div>
 </div>

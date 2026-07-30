@@ -24,7 +24,7 @@ export const artSections = [
     ],
   },
   {
-    title: "AudioVisual",
+    title: "Performance",
     groups: [
       {
         items: [
@@ -44,6 +44,8 @@ export const artSections = [
             label: "As if you would still be here, if I keep thinking about you.",
             slug: "as-if-you-would-still-be-here",
           },
+          { label: "Self-censored Step Sequencer", slug: "self-censored-step-sequencer" },
+          { label: "BYOB", slug: "byob" },
         ],
       },
       {
@@ -61,32 +63,6 @@ export const artSections = [
           },
         ],
       },
-    ],
-  },
-  {
-    title: "TechArt",
-    groups: [
-      {
-        title: "Collaboration",
-        items: [
-          { label: "Neonatus/Neotokyo", slug: "neonatus-neotokyo" },
-          { label: "Tentacular Teriterria" },
-        ],
-      },
-      {
-        title: "Technical Consultant/Assistant/Advisor",
-        items: [
-          { label: "Nawin Nuthong" },
-          { label: "JAM" },
-          { label: "Tewprai" },
-          { label: "Omer Wasim" },
-        ],
-      },
-    ],
-  },
-  {
-    title: "Audio",
-    groups: [
       {
         title: "Algorave [WrappedByte]",
         items: [
@@ -110,16 +86,25 @@ export const artSections = [
           },
         ],
       },
-      {
-        items: [{ label: "Self-censored Step Sequencer", slug: "self-censored-step-sequencer" }],
-      },
     ],
   },
   {
-    title: "Visual",
+    title: "Collaboration",
     groups: [
       {
-        items: [{ label: "BYOB", slug: "byob" }],
+        items: [
+          { label: "Neonatus/Neotokyo", slug: "neonatus-neotokyo" },
+          { label: "Tentacular Teriterria" },
+        ],
+      },
+      {
+        title: "Technical Consultant/Assistant/Advisor",
+        items: [
+          { label: "Nawin Nuthong" },
+          { label: "JAM" },
+          { label: "Tewprai" },
+          { label: "Omer Wasim" },
+        ],
       },
     ],
   },

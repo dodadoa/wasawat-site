@@ -4,7 +4,7 @@ export const XY_SCALE = 5.5
 /**
  * Corner phrase labels for the quadrant diagram.
  * x: investigative (-1) ↔ speculative (+1)
- * y: AI (-1) ↔ human (+1)
+ * y: looking to the past (-1) ↔ looking to the future (+1)
  * @type {{ x: number, y: number, label: string }[]}
  */
 export const QUADRANT_LABELS = [

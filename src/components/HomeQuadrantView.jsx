@@ -59,26 +59,12 @@ function WorkHoverCard({ work, accent }) {
     <div
       style={{
         textAlign: "left",
-        padding: work.image ? "8px" : "10px 14px",
+        padding: "10px 14px",
         minWidth: "200px",
         maxWidth: "280px",
         ...glassNode(accent),
       }}
     >
-      {work.image && (
-        <img
-          src={work.image}
-          alt=""
-          loading="lazy"
-          style={{
-            display: "block",
-            width: "100%",
-            height: "84px",
-            objectFit: "cover",
-            marginBottom: "8px",
-          }}
-        />
-      )}
       <style>{`
         .quadrant-hover-meta { font-size: 10px; }
         @media (min-width: 1600px) {
@@ -125,10 +111,26 @@ const WorkNode = memo(function WorkNode({ work, genreId, dimmed }) {
           occlude={false}
         >
           <div
-            style={{ position: "relative", display: "inline-block", textAlign: "center", pointerEvents: "auto" }}
+            style={{ position: "relative", display: "inline-flex", flexDirection: "column", alignItems: "center", textAlign: "center", pointerEvents: "auto" }}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
           >
+            {work.image && (
+              <img
+                src={work.image}
+                alt=""
+                loading="lazy"
+                style={{
+                  display: "block",
+                  width: "88px",
+                  height: "60px",
+                  objectFit: "cover",
+                  marginBottom: "4px",
+                  ...glassNode(accent),
+                  padding: 0,
+                }}
+              />
+            )}
             {work.slug ? (
               <a
                 href={`/art/${work.slug}`}
@@ -220,13 +222,13 @@ function Scene({ genreFilter }) {
 
       {/* x axis: investigative ↔ speculative */}
       <Line points={[[-S, 0, 0], [S, 0, 0]]} color={AXIS_COLORS.x} lineWidth={1} />
-      <AxisLabel position={[-S - 0.6, 0, 0]} text="investigative" color={AXIS_TEXT_COLORS.x} />
-      <AxisLabel position={[S + 0.6, 0, 0]} text="speculative" color={AXIS_TEXT_COLORS.x} />
+      <AxisLabel position={[-S - 0.6, 0, 0]} text="Investigative" color={AXIS_TEXT_COLORS.x} />
+      <AxisLabel position={[S + 0.6, 0, 0]} text="Speculative" color={AXIS_TEXT_COLORS.x} />
 
-      {/* y axis: AI ↔ human */}
+      {/* y axis: looking to the future ↔ looking to the past */}
       <Line points={[[0, -S, 0], [0, S, 0]]} color={AXIS_COLORS.y} lineWidth={1} />
-      <AxisLabel position={[0, S + 0.6, 0]} text="human" color={AXIS_TEXT_COLORS.y} />
-      <AxisLabel position={[0, -S - 0.6, 0]} text="AI" color={AXIS_TEXT_COLORS.y} />
+      <AxisLabel position={[0, S + 0.6, 0]} text="Looking to the Future" color={AXIS_TEXT_COLORS.y} />
+      <AxisLabel position={[0, -S - 0.6, 0]} text="Looking to the Past" color={AXIS_TEXT_COLORS.y} />
 
       {/* z axis: future ↔ past */}
       <Line points={[[0, 0, -S], [0, 0, S]]} color={AXIS_COLORS.z} lineWidth={1} />

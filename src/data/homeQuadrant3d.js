@@ -13,8 +13,8 @@ export { XY_SCALE, QUADRANT_LABELS }
 /** World-space scale for the z axis (same as x/y for a cube space) */
 export const Z_SCALE = XY_SCALE
 
-/** Labels for the z axis ends: future (-1) ↔ past (+1) */
-export const Z_AXIS_LABELS = { pos: "past", neg: "future" }
+/** Labels for the z axis ends: machine (-1) ↔ human (+1) */
+export const Z_AXIS_LABELS = { pos: "Human", neg: "Machine" }
 
 /** @type {GenreLayer[]} */
 export const genreLayers = [all, installations, netart, performance]
