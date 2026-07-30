@@ -4,11 +4,11 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
 
 const metaVenue = linkInstagramMentions("@bartemp.bkk")
 const metaFor = linkInstagramMentions("@nonnonnon_bangkok")
-const thanks1 = linkInstagramMentions("Thank you so much @maehappyair @nonnonnon_bangkok")
+const thanks1 = linkInstagramMentions("<strong>Thank you so much</strong><br />@maehappyair<br />@nonnonnon_bangkok<br />All audiences (and folks who help gimme some lights)")
 const thanks2 = linkInstagramMentions(
-  "<strong>Special thank</strong> @krung_khet for helping me setup the sound and test the website"
+  "<strong>Special thank</strong><br />@krung_khet — sound setup and website testing"
 )
-const thanks3 = linkInstagramMentions("<strong>Special thank</strong> @pin_natthamon for the clips")
+const thanks3 = linkInstagramMentions("<strong>Clips by</strong><br />@pin_natthamon")
 ---
 
 <div class="mt-4 max-w-3xl">
@@ -19,7 +19,7 @@ const thanks3 = linkInstagramMentions("<strong>Special thank</strong> @pin_natth
     { label: "Event", value: "Mutant Club" },
   ]} />
 
-  <p class="mb-6 text-sm opacity-80">Post-screen strategy for low-tech rooms</p>
+  <p class="mb-6 text-sm opacity-80" style="font-family: '403Mesapholic', monospace;">Post-screen strategy for low-tech rooms</p>
 
   <p class="mb-4">
     This piece grows directly from a practical question: what if the venue has no projector, and
@@ -46,7 +46,7 @@ const thanks3 = linkInstagramMentions("<strong>Special thank</strong> @pin_natth
     <img
       src="/images/las-vegas-sphere.jpg"
       alt="Las Vegas Sphere, a large LED dome venue in the US"
-      class="w-full"
+      class="w-1/2"
       loading="lazy"
     />
     <figcaption class="mt-2 text-sm opacity-70">
@@ -79,10 +79,9 @@ const thanks3 = linkInstagramMentions("<strong>Special thank</strong> @pin_natth
     </a>
   </figure>
 
-  <div class="mt-6 pt-4 border-t border-neutral-800">
-    <p class="text-sm mb-2" set:html={thanks1}></p>
-    <p class="text-sm mb-2">Thank you all audiences (and folks who help gimme some lights)</p>
-    <p class="text-sm mb-2" set:html={thanks2}></p>
+  <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; gap: 2rem;">
+    <p class="text-sm" set:html={thanks1}></p>
+    <p class="text-sm" set:html={thanks2}></p>
     <p class="text-sm" set:html={thanks3}></p>
   </div>
 </div>

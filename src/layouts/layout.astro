@@ -178,28 +178,11 @@ const { title, preview, description } = Astro.props
       }
 
       .ig-mention {
-        position: relative;
+        text-decoration: none;
       }
 
-      .ig-mention::after {
-        content: attr(data-ig);
-        position: absolute;
-        bottom: calc(100% + 4px);
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--text);
-        color: var(--bg);
-        font-family: "DepartureMono", monospace;
-        font-size: 11px;
-        white-space: nowrap;
-        padding: 2px 6px;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.1s;
-      }
-
-      .ig-mention:hover::after {
-        opacity: 1;
+      .ig-mention:hover {
+        text-decoration: underline;
       }
     </style>
   <script>

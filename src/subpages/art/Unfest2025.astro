@@ -6,8 +6,8 @@ const metaWith = linkInstagramMentions("@pasuthh");
 const metaPartOf = linkInstagramMentions("@corneacochlearclub for @unfest26 (@unformatstudio)");
 const metaLighting = linkInstagramMentions("@korborvor_visual_label");
 
-const text3 = linkInstagramMentions("photos by @pxwxriz<br />@unformatstudio");
-const text4 = linkInstagramMentions("<strong>special thanks</strong><br />@nowheredweller<br />@lebactan<br />@renickbell<br />@pipechch<br />@kobored<br />@anv_50hz<br />@varut_o<br />@kijjaz<br />@unformatstudio<br />@pppppppeeeeeeaaaaarrrryyype");
+const text3 = linkInstagramMentions("<strong>Photos by</strong><br />@pxwxriz<br />@unformatstudio");
+const text4 = linkInstagramMentions("<strong>Special thanks</strong><br />@nowheredweller<br />@lebactan<br />@renickbell<br />@pipechch<br />@kobored<br />@anv_50hz<br />@varut_o<br />@kijjaz<br />@unformatstudio<br />@pppppppeeeeeeaaaaarrrryyype");
 ---
 
 <div class="mt-4 max-w-3xl">
@@ -22,8 +22,8 @@ const text4 = linkInstagramMentions("<strong>special thanks</strong><br />@nowhe
     I use TidalCycles, while Pasuth works with Unreal Engine and Resolume. This performance is also my first time experimenting more deeply with cinematic sound, and it marks the beginning of my exploration into sound design.
   </p>
 
-  <div class="mt-6 pt-4 border-t border-gray-700">
-    <p class="text-sm mb-4" set:html={text3}></p>
+  <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; gap: 2rem;">
+    <p class="text-sm" set:html={text3}></p>
     <p class="text-sm" set:html={text4}></p>
   </div>
 </div>

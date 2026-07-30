@@ -99,6 +99,33 @@ if (!artwork || !Content) {
     height: auto;
     display: block;
   }
+  /* academic footnotes (P.S. notes) */
+  .art-footnotes {
+    position: relative;
+    margin-top: 2.2rem;
+    padding-top: 0.7rem;
+  }
+  .art-footnotes::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 72px;
+    border-top: 1px solid var(--text-dim);
+  }
+  .art-footnotes p {
+    font-size: calc(10.5px * var(--ui-scale, 1));
+    line-height: 1.55;
+    color: var(--text-dim);
+    padding-left: 1.4em;
+    text-indent: -1.4em;
+    margin: 0 0 0.35rem;
+    max-width: 60ch;
+  }
+  .art-footnotes sup {
+    font-size: 0.75em;
+    margin-right: 0.45em;
+  }
   .art-detail-body .art-diagram img {
     width: 100%;
     max-width: min(420px, 80%);

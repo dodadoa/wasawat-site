@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "astro-dev",
-      "runtimeExecutable": "/opt/homebrew/bin/pnpm",
+      "runtimeExecutable": "pnpm",
       "runtimeArgs": ["dev"],
       "port": 4321,
       "autoPort": true

@@ -54,7 +54,7 @@ function SoftButton({ onClick, disabled, children, accent = "#8b8be9" }) {
   const { ref, onMouseDown, onMouseUp, onMouseLeave } = useSoftPress()
   const idRef = useRef(`felt-${++_feltId}`)
   const filterId = idRef.current
-  const disabledColor = "#555"
+  const disabledColor = "#aaa"
   const color = disabled ? disabledColor : accent
   const r = parseInt(accent.slice(1,3),16)/255
   const g = parseInt(accent.slice(3,5),16)/255
@@ -72,7 +72,7 @@ function SoftButton({ onClick, disabled, children, accent = "#8b8be9" }) {
         fontFamily: mono,
         fontSize: "11px",
         letterSpacing: "0.12em",
-        color: disabled ? disabledColor : "#f0f0f0",
+        color: disabled ? disabledColor : "#1a1a1a",
         background: "none",
         border: "none",
         padding: 0,
@@ -88,7 +88,7 @@ function SoftButton({ onClick, disabled, children, accent = "#8b8be9" }) {
           alignItems: "center",
           justifyContent: "center",
           padding: "6px 14px",
-          background: "#1a1a1a",
+          background: "#ffffff",
           border: `1px solid ${color}`,
           borderRadius: "4px",
           transformOrigin: "center bottom",
@@ -184,13 +184,13 @@ export default function BenatarMatrix() {
     <div style={{ fontFamily: mono, maxWidth: "600px", margin: "2rem 0" }}>
 
       {/* matrix */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "#2a2a2a", border: "1px solid #2a2a2a", marginBottom: "1px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "#dddddd", border: "1px solid #dddddd", marginBottom: "1px" }}>
 
         {/* column headers */}
-        <div style={{ background: "#1a1a1a", padding: "8px 12px", fontSize: "11px", letterSpacing: "0.14em", color: "#888", textTransform: "uppercase" }}>
+        <div style={{ background: "#ffffff", padding: "8px 12px", fontSize: "11px", letterSpacing: "0.14em", color: "#777", textTransform: "uppercase" }}>
           Scenario A · exists
         </div>
-        <div style={{ background: "#1a1a1a", padding: "8px 12px", fontSize: "11px", letterSpacing: "0.14em", color: "#888", textTransform: "uppercase" }}>
+        <div style={{ background: "#ffffff", padding: "8px 12px", fontSize: "11px", letterSpacing: "0.14em", color: "#777", textTransform: "uppercase" }}>
           Scenario B · never exists
         </div>
 
@@ -209,7 +209,7 @@ export default function BenatarMatrix() {
                 onMouseLeave={() => setHoveredId(null)}
                 style={{
                   padding: "16px 14px",
-                  background: active ? "#141414" : "#0e0e0e",
+                  background: active ? "#ffffff" : "#f6f6f6",
                   cursor: "default",
                   transition: "background 0.2s, opacity 0.3s",
                   opacity: active ? 1 : 0.3,
@@ -218,10 +218,10 @@ export default function BenatarMatrix() {
                   outlineOffset: "-2px",
                 }}
               >
-                <div style={{ fontSize: "10px", letterSpacing: "0.22em", color: "#aaa", marginBottom: "6px", textTransform: "uppercase" }}>
+                <div style={{ fontSize: "10px", letterSpacing: "0.22em", color: "#999", marginBottom: "6px", textTransform: "uppercase" }}>
                   ({id})
                 </div>
-                <div style={{ fontSize: "13px", color: "#d0d0d0", marginBottom: "8px", lineHeight: 1.35 }}>
+                <div style={{ fontSize: "13px", color: "#222", marginBottom: "8px", lineHeight: 1.35 }}>
                   {cell.label}
                 </div>
                 <div style={{
@@ -229,7 +229,7 @@ export default function BenatarMatrix() {
                   fontFamily: display,
                   fontSize: "11px",
                   letterSpacing: "0.1em",
-                  color: active ? cell.color : "#aaa",
+                  color: active ? cell.color : "#999",
                   borderBottom: active ? `1px solid ${cell.color}` : "1px solid transparent",
                   paddingBottom: "1px",
                   transition: "color 0.2s",
@@ -243,9 +243,9 @@ export default function BenatarMatrix() {
                     left: 0,
                     width: "220px",
                     height: "72px",
-                    background: "#2a2a2a",
-                    color: "#f0f0f0",
-                    border: "1px solid #444",
+                    background: "#ffffff",
+                    color: "#1a1a1a",
+                    border: "1px solid #ccc",
                     fontSize: "11px",
                     lineHeight: 1.6,
                     padding: "8px 10px",
@@ -279,11 +279,11 @@ export default function BenatarMatrix() {
       )}
 
       {/* step text */}
-      <div style={{ padding: "14px 0 12px", borderTop: "1px solid #2a2a2a", marginTop: "12px" }}>
-        <div style={{ fontFamily: display, fontSize: "13px", letterSpacing: "0.06em", color: "#e0e0e0", marginBottom: "7px" }}>
+      <div style={{ padding: "14px 0 12px", borderTop: "1px solid #ddd", marginTop: "12px" }}>
+        <div style={{ fontFamily: display, fontSize: "13px", letterSpacing: "0.06em", color: "#1a1a1a", marginBottom: "7px" }}>
           {current.title}
         </div>
-        <div style={{ fontSize: "13px", color: "#999", lineHeight: 1.65 }}>
+        <div style={{ fontSize: "13px", color: "#555", lineHeight: 1.65 }}>
           {current.body}
         </div>
       </div>
@@ -307,7 +307,7 @@ export default function BenatarMatrix() {
                 width: "6px",
                 height: "6px",
                 borderRadius: "50%",
-                background: i === step ? "#8b8be9" : "#333",
+                background: i === step ? "#8b8be9" : "#ccc",
                 border: "none",
                 padding: 0,
                 cursor: "pointer",

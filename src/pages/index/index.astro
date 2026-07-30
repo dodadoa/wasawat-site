@@ -5,10 +5,14 @@ import installations from "../../data/genres/installations.js"
 import netart from "../../data/genres/netart.js"
 import performance from "../../data/genres/performance.js"
 
+const allWorks = [...installations.works, ...netart.works, ...performance.works]
+
 const dateBySlug = Object.fromEntries(
-  [...installations.works, ...netart.works, ...performance.works]
-    .filter((w) => w.slug && w.date)
-    .map((w) => [w.slug, w.date]),
+  allWorks.filter((w) => w.slug && w.date).map((w) => [w.slug, w.date]),
+)
+
+const imageBySlug = Object.fromEntries(
+  allWorks.filter((w) => w.slug && w.image).map((w) => [w.slug, w.image]),
 )
 
 /** Stable sort: items with a slug (linked/selected pages) float to the top of each group */
@@ -31,34 +35,58 @@ function sortItems(items) {
 
     {
       artSections.map((section) => (
-        <section class="mb-10">
+        <section class="mb-12">
           <h2 class="font-bold text-xl mb-4 uppercase tracking-wide" style="color: var(--text);">{section.title}</h2>
 
-          {section.groups.map((group) => (
-            <div class="mb-6 ml-4">
-              <ul class="list-disc ml-4 text-[13px] leading-relaxed" style="color: var(--text-muted);">
-                {sortItems(group.items).map((item) => {
+          <table class="w-full text-[13px] border-collapse">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <th class="text-left font-normal py-2 pr-4" style="width: 56px;"></th>
+                <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Title</th>
+                <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Group</th>
+                <th class="text-right font-normal uppercase tracking-widest py-2" style="color: var(--text-dim); font-size: 11px;">Year</th>
+              </tr>
+            </thead>
+            <tbody>
+              {section.groups.map((group) =>
+                sortItems(group.items).map((item) => {
                   const date = item.slug ? dateBySlug[item.slug] : undefined
+                  const image = item.slug ? imageBySlug[item.slug] : undefined
                   return (
-                    <li class="mt-1.5">
-                      {item.slug ? (
-                        <a href={`/art/${item.slug}`} class="hover:underline">
-                          {item.label}
-                        </a>
-                      ) : (
-                        <span>{item.label}</span>
-                      )}
-                      {date && (
-                        <span class="ml-2 text-[11px] uppercase tracking-widest" style="color: var(--text-dim);">
-                          {date.slice(0, 4)}
-                        </span>
-                      )}
-                    </li>
+                    <tr style="border-bottom: 1px solid var(--border-subtle);">
+                      <td class="py-2 pr-4">
+                        {image ? (
+                          <img
+                            src={image}
+                            alt=""
+                            loading="lazy"
+                            style="width: 44px; height: 32px; object-fit: cover; display: block;"
+                          />
+                        ) : (
+                          <div style="width: 44px; height: 32px; background: var(--border-subtle);" />
+                        )}
+                      </td>
+                      <td class="py-2 pr-4" style="color: var(--text-muted);">
+                        {item.slug ? (
+                          <a href={`/art/${item.slug}`} class="hover:underline">
+                            {item.label}
+                          </a>
+                        ) : (
+                          <span>{item.label}</span>
+                        )}
+                      </td>
+                      <td class="py-2 pr-4" style="color: var(--text-dim);">
+                        {group.title ?? "—"}
+                      </td>
+                      <td class="py-2 text-right" style="color: var(--text-dim);">
+                        {date ? date.slice(0, 4) : "—"}
+                      </td>
+                    </tr>
                   )
-                })}
-              </ul>
-            </div>
-          ))}
+                }),
+              )}
+            </tbody>
+          </table>
         </section>
       ))
     }

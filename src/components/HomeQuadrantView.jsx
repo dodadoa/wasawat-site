@@ -471,18 +471,14 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
       className="fixed left-0 right-0 bottom-0 bg-white"
       style={{ top: "2.5rem", height: "calc(100vh - 2.5rem)", width: "100%" }}
     >
-      {/* backdrop text behind the 3d canvas — big screens only */}
+
+      {/* backdrop text behind the 3d canvas */}
       {!isSingleChronology && (
         <div
           aria-hidden="true"
           className="quadrant-backdrop absolute inset-0 flex items-center justify-center pointer-events-none select-none"
           style={{ overflow: "hidden" }}
         >
-          <style>{`
-            @media (max-width: 1599px) {
-              .quadrant-backdrop { display: none; }
-            }
-          `}</style>
           <span
             style={{
               fontFamily: "'403Mesapholic', monospace",

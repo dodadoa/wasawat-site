@@ -3,11 +3,11 @@ import { linkInstagramMentions } from "../../utils/instagramMentions";
 import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
 import BenatarMatrix from "../../components/art/BenatarMatrix.jsx";
 
-const text2 = linkInstagramMentions("@toeeyt");
-const text3 = linkInstagramMentions("@msyves");
-const text4 = linkInstagramMentions("@roma_or_am_i");
-const text5 = linkInstagramMentions("Wutthiphong Chaiwong<br />Nuttawut Kaiwansin<br />@sawasdeenut");
-const text6 = linkInstagramMentions("@nowheredweller<br />@nanut.t<br />Johannes Hossfeld<br />Kullaya Wapinanon<br />@gracenaholic<br />@nawinnuthong");
+const text2 = linkInstagramMentions("<strong>Project Installation consultation</strong><br />@toeeyt");
+const text3 = linkInstagramMentions("<strong>3d mockup</strong><br />@msyves");
+const text4 = linkInstagramMentions("<strong>Project consultation</strong><br />@roma_or_am_i");
+const text5 = linkInstagramMentions("<strong>Installation</strong><br />Wutthiphong Chaiwong<br />Nuttawut Kaiwansin<br />@sawasdeenut");
+const text6 = linkInstagramMentions("<strong>Special Thanks</strong><br />@nowheredweller<br />@nanut.t<br />Johannes Hossfeld<br />Kullaya Wapinanon<br />@gracenaholic<br />@nawinnuthong");
 
 const metaVenue = linkInstagramMentions("@goetheinstitut.thailand");
 const metaCurator = linkInstagramMentions("@alcoholidaysss");
@@ -58,11 +58,11 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
     </a>
   </figure>
 
-  <div class="mt-6 pt-4 border-t border-gray-700">
-    <p class="text-sm mb-2"><strong>Project Installation consultation:</strong> <span set:html={text2} /></p>
-    <p class="text-sm mb-2"><strong>3d mockup:</strong> <span set:html={text3} /></p>
-    <p class="text-sm mb-2"><strong>Project consultation:</strong> <span set:html={text4} /></p>
-    <p class="text-sm mb-4"><strong>Installation:</strong><br /><span set:html={text5} /></p>
-    <p class="text-sm"><strong>Special Thanks:</strong><br /><span set:html={text6} /></p>
+  <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; gap: 2rem;">
+    <p class="text-sm" set:html={text2}></p>
+    <p class="text-sm" set:html={text3}></p>
+    <p class="text-sm" set:html={text4}></p>
+    <p class="text-sm" set:html={text5}></p>
+    <p class="text-sm" set:html={text6}></p>
   </div>
 </div>
