@@ -15,16 +15,18 @@ const imageBySlug = Object.fromEntries(
   allWorks.filter((w) => w.slug && w.image).map((w) => [w.slug, w.image]),
 )
 
-/** Stable sort: items with a slug (linked/selected pages) float to the top of each group */
-function sortItems(items) {
-  return items
-    .map((item, i) => ({ item, i }))
-    .sort((a, b) => {
-      const aHas = a.item.slug ? 0 : 1
-      const bHas = b.item.slug ? 0 : 1
-      return aHas - bHas || a.i - b.i
-    })
-    .map(({ item }) => item)
+/** Split a section's groups into selected (has a page) and unselected rows, keeping group titles */
+function splitSection(section) {
+  const selected = []
+  const unselected = []
+  for (const group of section.groups) {
+    for (const item of group.items) {
+      const row = { item, groupTitle: group.title }
+      if (item.slug) selected.push(row)
+      else unselected.push(row)
+    }
+  }
+  return { selected, unselected }
 }
 ---
 
@@ -34,61 +36,86 @@ function sortItems(items) {
     <h1 class="font-bold text-3xl lg:text-4xl mb-10" style="color: var(--text);">Index</h1>
 
     {
-      artSections.map((section) => (
-        <section class="mb-12">
-          <h2 class="font-bold text-xl mb-4 uppercase tracking-wide" style="color: var(--text);">{section.title}</h2>
+      artSections.map((section) => {
+        const { selected, unselected } = splitSection(section)
+        return (
+          <section class="mb-14">
+            <h2 class="font-bold text-xl mb-4 uppercase tracking-wide" style="color: var(--text);">{section.title}</h2>
 
-          <table class="w-full text-[13px] border-collapse">
-            <thead>
-              <tr style="border-bottom: 1px solid var(--border-subtle);">
-                <th class="text-left font-normal py-2 pr-4" style="width: 56px;"></th>
-                <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Title</th>
-                <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Group</th>
-                <th class="text-right font-normal uppercase tracking-widest py-2" style="color: var(--text-dim); font-size: 11px;">Year</th>
-              </tr>
-            </thead>
-            <tbody>
-              {section.groups.map((group) =>
-                sortItems(group.items).map((item) => {
-                  const date = item.slug ? dateBySlug[item.slug] : undefined
-                  const image = item.slug ? imageBySlug[item.slug] : undefined
-                  return (
+            {selected.length > 0 && (
+              <>
+                <p class="text-[11px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">Selected</p>
+                <table class="w-full text-[13px] border-collapse mb-8">
+                  <thead>
                     <tr style="border-bottom: 1px solid var(--border-subtle);">
-                      <td class="py-2 pr-4">
-                        {image ? (
-                          <img
-                            src={image}
-                            alt=""
-                            loading="lazy"
-                            style="width: 44px; height: 32px; object-fit: cover; display: block;"
-                          />
-                        ) : (
-                          <div style="width: 44px; height: 32px; background: var(--border-subtle);" />
-                        )}
-                      </td>
-                      <td class="py-2 pr-4" style="color: var(--text-muted);">
-                        {item.slug ? (
-                          <a href={`/art/${item.slug}`} class="hover:underline">
-                            {item.label}
-                          </a>
-                        ) : (
-                          <span>{item.label}</span>
-                        )}
-                      </td>
-                      <td class="py-2 pr-4" style="color: var(--text-dim);">
-                        {group.title ?? "—"}
-                      </td>
-                      <td class="py-2 text-right" style="color: var(--text-dim);">
-                        {date ? date.slice(0, 4) : "—"}
-                      </td>
+                      <th class="text-left font-normal py-2 pr-4" style="width: 56px;"></th>
+                      <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Title</th>
+                      <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Group</th>
+                      <th class="text-right font-normal uppercase tracking-widest py-2" style="color: var(--text-dim); font-size: 11px;">Year</th>
                     </tr>
-                  )
-                }),
-              )}
-            </tbody>
-          </table>
-        </section>
-      ))
+                  </thead>
+                  <tbody>
+                    {selected.map(({ item, groupTitle }) => {
+                      const date = dateBySlug[item.slug]
+                      const image = imageBySlug[item.slug]
+                      return (
+                        <tr style="border-bottom: 1px solid var(--border-subtle);">
+                          <td class="py-2 pr-4">
+                            {image ? (
+                              <img
+                                src={image}
+                                alt=""
+                                loading="lazy"
+                                style="width: 44px; height: 32px; object-fit: cover; display: block;"
+                              />
+                            ) : (
+                              <div style="width: 44px; height: 32px; background: var(--border-subtle);" />
+                            )}
+                          </td>
+                          <td class="py-2 pr-4" style="color: var(--text-muted);">
+                            <a href={`/art/${item.slug}`} class="hover:underline">
+                              {item.label}
+                            </a>
+                          </td>
+                          <td class="py-2 pr-4" style="color: var(--text-dim);">
+                            {groupTitle ?? "—"}
+                          </td>
+                          <td class="py-2 text-right" style="color: var(--text-dim);">
+                            {date ? date.slice(0, 4) : "—"}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </>
+            )}
+
+            {unselected.length > 0 && (
+              <>
+                <p class="text-[11px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">Archive</p>
+                <table class="w-full text-[13px] border-collapse">
+                  <tbody>
+                    {unselected.map(({ item, groupTitle }) => (
+                      <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td class="py-2 pr-4" style="color: var(--text-muted);">
+                          {item.label}
+                        </td>
+                        <td class="py-2 pr-4" style="color: var(--text-dim); width: 180px;">
+                          {groupTitle ?? "—"}
+                        </td>
+                        <td class="py-2 text-right" style="color: var(--text-dim); width: 60px;">
+                          —
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+          </section>
+        )
+      })
     }
   </div>
 </Layout>

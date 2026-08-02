@@ -10,10 +10,6 @@ export const artSections = [
       {
         items: [
           {
-            label: "Do The NPCs Hear The Simulated Wind",
-            slug: "do-the-npcs-hear-the-simulated-wind",
-          },
-          {
             label:
               "Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)",
             slug: "eternal-gain-eternal-pain",
@@ -31,6 +27,10 @@ export const artSections = [
           {
             label: "From Scratch Live Coding From Scratch",
             slug: "from-scratch-live-coding",
+          },
+          {
+            label: "Do The NPCs Hear The Simulated Wind",
+            slug: "do-the-npcs-hear-the-simulated-wind",
           },
           {
             label: "Gimme the light, and you shall receive the praise (2025)",

@@ -35,6 +35,20 @@ const text4 = linkInstagramMentions("<strong>Photo by</strong><br />@puttisinn (
     In this layered wordplay, "from scratch" becomes less a rule and more a way of noticing how improvisation, sound, and code take shape in real time. As gestures, patterns, and textures build up, the piece shows how things can drift into place on their own—how meaning appears unexpectedly, how small actions grow into structure, and how the performance slowly finds its own direction simply through the act of making.
   </p>
 
+  <div class="my-8" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+    {Array.from({ length: 6 }, (_, i) => {
+      const n = String(i + 1).padStart(2, "0")
+      return (
+        <img
+          src={`/images/from-scratch/from-scratch-${n}.jpg`}
+          alt={`From Scratch Live Coding From Scratch — performance documentation ${n}`}
+          style="width: 100%; height: 260px; object-fit: cover; display: block;"
+          loading="lazy"
+        />
+      )
+    })}
+  </div>
+
   <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; gap: 2rem;">
     <p class="text-sm" set:html={text2}></p>
     <p class="text-sm" set:html={text3}></p>

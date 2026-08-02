@@ -332,7 +332,6 @@ export default function DomStatsPanel() {
   const [logRows, setLogRows] = useState([])
   const [logTotals, setLogTotals] = useState({ count: 0, bytes: 0 })
   const [hoveredTag, setHoveredTag] = useState(null)
-  const [matchMetadata, setMatchMetadata] = useState([])
   const panelRef = useRef(null)
   const logListRef = useRef(null)
   const hoveredTagRef = useRef(null)
@@ -342,7 +341,6 @@ export default function DomStatsPanel() {
     hoveredTagRef.current = tag
     hoveredAccentRef.current = accent
     setHoveredTag(tag)
-    setMatchMetadata(collectMatchMetadata(tag, panelRef.current))
     const overlay = ensureXrayOverlay()
     paintXrayBoxes(overlay, tag, panelRef.current, accent)
   }, [])
@@ -350,7 +348,6 @@ export default function DomStatsPanel() {
   const hideXray = useCallback(() => {
     hoveredTagRef.current = null
     setHoveredTag(null)
-    setMatchMetadata([])
     clearXray()
   }, [])
 
@@ -390,7 +387,6 @@ export default function DomStatsPanel() {
     const update = () => {
       const tag = hoveredTagRef.current
       if (!tag) return
-      setMatchMetadata(collectMatchMetadata(tag, panelRef.current))
       const overlay = document.getElementById(OVERLAY_ID)
       if (overlay) paintXrayBoxes(overlay, tag, panelRef.current, hoveredAccentRef.current)
     }
@@ -450,13 +446,17 @@ export default function DomStatsPanel() {
       style={{
         ...panelShell,
         width: "clamp(240px, 18vw, 320px)",
-        maxHeight: "calc(100vh - 6rem)",
-        overflowY: "auto",
-        padding: "0.65rem 0.8rem 0.7rem",
-        ...glassPlain,
       }}
       aria-label="Document statistics and network log"
     >
+      <div
+        style={{
+          maxHeight: "calc(100vh - 6rem)",
+          overflowY: "auto",
+          padding: "0.65rem 0.8rem 0.7rem",
+          ...glassPlain,
+        }}
+      >
       <style>{`
         @keyframes request-log-blink {
           0%, 55% { opacity: 1; }
@@ -592,63 +592,8 @@ export default function DomStatsPanel() {
           )
         })}
       </div>
+      </div>
 
-      {hoveredTag && matchMetadata.length > 0 && (
-        <div
-          style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            right: 0,
-            padding: "0.4rem 0.8rem 0.7rem",
-            ...glassPlain,
-            maxHeight: "130px",
-            overflowY: "auto",
-            pointerEvents: "none",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: mono,
-              fontSize: "calc(8px * var(--ui-scale, 1))",
-              letterSpacing: "0.24em",
-              color: inkFaint,
-              marginBottom: "0.3rem",
-              textTransform: "uppercase",
-            }}
-          >
-            {"<"}{hoveredTag}{">"} instances
-          </div>
-          {matchMetadata.slice(0, 16).map((item, i) => (
-            <div key={`${item.selector}-${i}`} style={{ marginBottom: "0.3rem" }}>
-              <div
-                style={{
-                  fontFamily: mono,
-                  fontSize: "calc(9px * var(--ui-scale, 1))",
-                  color: ink,
-                  letterSpacing: "0.02em",
-                  lineHeight: 1.3,
-                }}
-              >
-                {item.selector}
-                <span style={{ color: inkDim }}> {item.size}</span>
-              </div>
-              <div
-                style={{
-                  fontFamily: mono,
-                  fontSize: "calc(8px * var(--ui-scale, 1))",
-                  color: inkFaint,
-                  letterSpacing: "0.02em",
-                  lineHeight: 1.3,
-                  marginTop: "1px",
-                }}
-              >
-                {item.details.join(" · ")}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </aside>
   )
 }

@@ -43,6 +43,29 @@ const credits5 = linkInstagramMentions("Organised by @stack_xyz and @team_stimul
     Do The NPCs Hear the Simulated Wind: four stations, raw sound to composed music.
   </p>
 
+  <div class="my-8" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+    {Array.from({ length: 12 }, (_, i) => {
+      const n = String(i + 1).padStart(2, "0")
+      return (
+        <img
+          src={`/images/do-npcs-hear/npcs-${n}.jpg`}
+          alt={`Do The NPCs Hear The Simulated Wind — performance documentation ${n}`}
+          style="width: 100%; height: auto; display: block;"
+          loading="lazy"
+        />
+      )
+    })}
+  </div>
+
+  <figure class="my-8">
+    <img
+      src="/images/do-npcs-hear/npcs-promo.jpg"
+      alt="Do The NPCs Hear The Simulated Wind — poster"
+      style="width: 100%; max-width: 420px; height: auto; display: block;"
+      loading="lazy"
+    />
+  </figure>
+
   <div class="art-footnotes">
     <p><sup>1</sup>P.S. I tried to play 4 games at the same time and also tried to control/manipulate the sounds and visuals.</p>
     <p><sup>2</sup>P.S. You can try virtual field recording by yourself by entering an open world game, then go to setting and mute the music sound leaving only ambient and game sound.</p>
