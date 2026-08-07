@@ -21,17 +21,24 @@ export const glassPlain = {
 /** @deprecated use glassPlain — kept for any legacy callers */
 export const glassBrutal = glassPlain
 
-/** Glass surface for 3D work node labels — borderless, optional accent tint */
+/**
+ * Glass surface for 3D work node labels — borderless, optional accent tint.
+ *
+ * These live inside the auto-rotating 3D scene, so their screen position (and
+ * thus the browser's repaint of any backdrop-filter under them) is recomputed
+ * every animation frame. Keep the filter cheap (small blur radius, no
+ * saturate) — a heavy blur here is the main source of hover/rotation jank.
+ */
 export function glassNode(accent) {
   const tint = accent
-    ? `, linear-gradient(165deg, rgba(255,255,255,0.78) 0%, ${rgba(accent, 0.1)} 100%)`
-    : ", linear-gradient(165deg, rgba(255,255,255,0.88) 0%, rgba(248,248,248,0.94) 100%)"
+    ? `, linear-gradient(165deg, rgba(255,255,255,0.9) 0%, ${rgba(accent, 0.16)} 100%)`
+    : ", linear-gradient(165deg, rgba(255,255,255,0.94) 0%, rgba(248,248,248,0.97) 100%)"
 
   return {
     backgroundImage: `${ditherTile(0.035)}${tint}`,
     backgroundSize: "8px 8px, auto",
-    backdropFilter: "blur(14px) saturate(120%)",
-    WebkitBackdropFilter: "blur(14px) saturate(120%)",
+    backdropFilter: "blur(4px)",
+    WebkitBackdropFilter: "blur(4px)",
     border: "none",
     boxShadow: accent
       ? `0 0 36px 10px ${rgba(accent, 0.14)}`

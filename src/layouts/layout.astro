@@ -184,6 +184,32 @@ const { title, preview, description } = Astro.props
       .ig-mention:hover {
         text-decoration: underline;
       }
+
+      /* ── dithered thumbnail ── */
+      .dither-thumb {
+        position: relative;
+        display: inline-block;
+        overflow: hidden;
+      }
+
+      .dither-thumb img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: contrast(1.08) saturate(1.1);
+      }
+
+      /* Fine 2×2 Bayer dither overlay — dark pixels only, colour preserved */
+      .dither-thumb::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2'%3E%3Crect x='0' y='0' width='1' height='1' fill='%23000' fill-opacity='0.18'/%3E%3C/svg%3E");
+        background-size: 2px 2px;
+        mix-blend-mode: multiply;
+      }
     </style>
   <script>
     // Prevent bfcache from restoring stale Astro island hydration states,
@@ -193,6 +219,172 @@ const { title, preview, description } = Astro.props
         window.location.reload()
       }
     })
+  </script>
+
+  <style is:global>
+    /* hide native cursor on non-touch devices */
+    @media (pointer: fine) {
+      *, *::before, *::after { cursor: none !important; }
+    }
+
+    #custom-cursor {
+      position: fixed;
+      top: 0; left: 0;
+      width: 24px; height: 24px;
+      pointer-events: none;
+      z-index: 2147483647;
+      will-change: transform;
+      transform-origin: center center;
+    }
+
+    /* crosshair lines via box-shadow on a 1px center dot */
+    #custom-cursor::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 1px; height: 1px;
+      background: #0a0a0a;
+      /* horizontal arm left, right; vertical arm up, down */
+      box-shadow:
+        -10px 0 0 0 #0a0a0a,
+         10px 0 0 0 #0a0a0a,
+        0 -10px 0 0 #0a0a0a,
+        0  10px 0 0 #0a0a0a;
+    }
+
+    /* center dot */
+    #custom-cursor::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 3px; height: 3px;
+      background: #0a0a0a;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow:
+        0 0 10px 6px rgba(10,10,10,0.15),
+        0 0 28px 14px rgba(10,10,10,0.07);
+      animation: cursor-bloom 2.5s ease-in-out infinite;
+    }
+
+    @keyframes cursor-bloom {
+      0%, 100% { box-shadow: 0 0 10px 6px rgba(10,10,10,0.15), 0 0 28px 14px rgba(10,10,10,0.07); }
+      50%       { box-shadow: 0 0 18px 12px rgba(10,10,10,0.22), 0 0 50px 26px rgba(10,10,10,0.09); }
+    }
+
+    #custom-cursor.cursor--hover {
+      transform-origin: center center;
+    }
+
+    #custom-cursor.cursor--hover::after {
+      box-shadow:
+        -16px 0 0 0 #0a0a0a,
+         16px 0 0 0 #0a0a0a,
+        0 -16px 0 0 #0a0a0a,
+        0  16px 0 0 #0a0a0a;
+      transition: box-shadow 0.15s ease;
+    }
+
+    #custom-cursor.cursor--hover::before {
+      animation: cursor-bloom-hover 1s ease-in-out infinite;
+    }
+
+    @keyframes cursor-bloom-hover {
+      0%, 100% { box-shadow: 0 0 14px 10px rgba(10,10,10,0.2),  0 0 40px 20px rgba(10,10,10,0.09); }
+      50%       { box-shadow: 0 0 26px 18px rgba(10,10,10,0.28), 0 0 70px 36px rgba(10,10,10,0.1); }
+    }
+
+    /* ── thought cloud ── */
+    #cursor-thought {
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 2147483646;
+      opacity: 0;
+      transition: opacity 0.15s ease, transform 0.22s cubic-bezier(0.34,1.5,0.64,1);
+    }
+
+    #cursor-thought.visible {
+      opacity: 1;
+    }
+
+    #cursor-thought svg {
+      display: block;
+      overflow: visible;
+    }
+
+    #cursor-thought text {
+      font-family: "DepartureMono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      fill: #ffffff;
+      dominant-baseline: middle;
+      text-anchor: middle;
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
+
+  <script>
+    // minimal black cloud, no border, white text
+    const THOUGHT_SVG = `<svg id="cursor-cloud-svg" width="90" height="58" viewBox="0 0 90 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- two small bubbles -->
+      <circle cx="5"  cy="54" r="3"   fill="#0a0a0a"/>
+      <circle cx="14" cy="44" r="4.5" fill="#0a0a0a"/>
+      <!-- minimal pill cloud body -->
+      <rect x="22" y="8" width="62" height="32" rx="16" fill="#0a0a0a"/>
+      <!-- label centred in pill -->
+      <text id="cloud-label" x="53" y="24">click</text>
+    </svg>`
+
+    function setupCursor() {
+      if (!window.matchMedia("(pointer: fine)").matches) return
+
+      let el = document.getElementById("custom-cursor")
+      if (!el) {
+        el = document.createElement("div")
+        el.id = "custom-cursor"
+        document.body.appendChild(el)
+      }
+
+      let thought = document.getElementById("cursor-thought")
+      if (!thought) {
+        thought = document.createElement("div")
+        thought.id = "cursor-thought"
+        thought.style.position = "fixed"
+        thought.style.top = "0"
+        thought.style.left = "0"
+        thought.innerHTML = THOUGHT_SVG
+        document.body.appendChild(thought)
+      }
+
+      let raf = null
+
+      document.addEventListener("mousemove", (e) => {
+        if (raf) cancelAnimationFrame(raf)
+        raf = requestAnimationFrame(() => {
+          el.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`
+          thought.style.transform = `translate(${e.clientX + 16}px, ${e.clientY - 26}px)`
+        })
+      })
+
+      document.addEventListener("mouseover", (e) => {
+        const t = e.target.closest("a, button, [role=button], input, textarea, select, label, [tabindex]")
+        el.classList.toggle("cursor--hover", !!t)
+        thought.classList.toggle("visible", !!t)
+        // update text inside SVG
+        const svgLabel = document.getElementById("cloud-label")
+        if (svgLabel) {
+          const anchor = e.target.closest("a")
+          svgLabel.textContent = anchor ? (anchor.getAttribute("aria-label") || "open") : "click"
+        }
+      })
+
+    }
+
+    setupCursor()
+    document.addEventListener("astro:page-load", setupCursor)
   </script>
   </body>
 </html>

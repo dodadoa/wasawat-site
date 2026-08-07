@@ -1,0 +1,84 @@
+---
+import { linkInstagramMentions } from "../../utils/instagramMentions"
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
+
+const metaWith = linkInstagramMentions("@niwit_lertsawaengkit")
+const metaPartOf = linkInstagramMentions("QR :link at @bangkok_kunsthalle")
+
+const lineup = [
+  { role: "av performance", name: "pympit" },
+  { role: "av performance", name: "medina bazargali" },
+  { role: "av performance", name: "dandarplaya x big dan (hepna)" },
+  { role: "av lecture performance, hybrid set", name: "Giang_ws x Niwit Lertsawaengkit" },
+  { role: "live coding performance", name: "Varut_0 (kolab.bkk)" },
+  { role: "live coding performance", name: "3rd.order (kolab.bkk)" },
+]
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Date", value: "14 March 2026, 19:00" },
+    { label: "With", value: metaWith, html: true },
+    { label: "Format", value: "Live haircut, lecture-performance, hybrid set" },
+    { label: "Presented as part of", value: metaPartOf, html: true },
+  ]} />
+
+  <p class="mb-6 text-sm opacity-80" style="font-family: '403Mesapholic', monospace;">
+    In collaboration with Niwit Lertsawaengkit, with Live Haircut
+  </p>
+
+  <p class="mb-4">
+    In an age where AI concentrates power, distorts memory, deepens surveillance, and now guides
+    weapons, is it not time to enter the salon and purify the spirits?
+  </p>
+
+  <p class="mb-4">
+    Two performers enter the latent salon: a space inside AI where spirits made of fragments of
+    human culture whisper to each other. Where once humans gathered to exchange ideas, now it is
+    the (artificial?) spirits who attempt the conversation.
+  </p>
+
+  <p class="mb-4">
+    A live haircut becomes the séance opening — gestures turn to sound, sounds enter the machine,
+    while a lecture narrates alongside the ritual. Lecture and ritual arrive as one breath, until
+    words dissolve entirely into immersive sound and image, and the purification begins.
+  </p>
+
+  <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle);">
+    <p class="text-sm opacity-80 mb-2">As part of</p>
+    <h2 class="font-light text-xl mb-3">QR :link</h2>
+    <p class="mb-4">
+      An audiovisual performance program and an augmented reality exhibition exploring connection
+      through code, sound, image and language. Moving between scanning and sensing, building
+      algorithms and respecting embedded codes, processing and navigating, the event brings
+      together artists from Southeast Asia ↔ Central Asia to trace the invisible links between
+      bodies, cultures and networks.
+    </p>
+
+    <p class="text-sm opacity-80 mb-2">Line-up</p>
+    <ul class="text-sm space-y-1 mb-4">
+      {lineup.map((item) => (
+        <li>
+          <span style="color: var(--text-dim);">({item.role})</span>{" "}
+          <span style="color: var(--text-muted);">{item.name}</span>
+        </li>
+      ))}
+    </ul>
+
+    <div class="text-sm space-y-1">
+      <p>Date • time: 14.03 • 19:00</p>
+      <p>Location: Bangkok Kunsthalle</p>
+      <p>Tickets: 300 THB Ticketmelon • 350 THB at door</p>
+      <p>
+        <a
+          href="https://www.ticketmelon.com/bangkok-kunsthalle/qrlink"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline"
+        >
+          ticketmelon.com/bangkok-kunsthalle/qrlink
+        </a>
+      </p>
+    </div>
+  </div>
+</div>

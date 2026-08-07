@@ -9,6 +9,7 @@ import EternalGainEternalPain from "../../subpages/art/EternalGainEternalPain.as
 import HereNowAbsoluteElsewhere from "../../subpages/art/HereNowAbsoluteElsewhere.astro"
 import SelfCensoredStepSequencer from "../../subpages/art/SelfCensoredStepSequencer.astro"
 import AsIfYouWouldStillBeHere from "../../subpages/art/AsIfYouWouldStillBeHere.astro"
+import OperationSeance from "../../subpages/art/OperationSeance.astro"
 import DoTheNPCsHearTheSimulatedWind from "../../subpages/art/DoTheNPCsHearTheSimulatedWind.astro"
 import NeonatusNeotokyo from "../../subpages/art/NeonatusNeotokyo.astro"
 
@@ -23,6 +24,7 @@ const components = {
   "here-now-absolute-elsewhere": HereNowAbsoluteElsewhere,
   "self-censored-step-sequencer": SelfCensoredStepSequencer,
   "as-if-you-would-still-be-here": AsIfYouWouldStillBeHere,
+  "operation-seance": OperationSeance,
 }
 
 export function getStaticPaths() {
@@ -47,13 +49,77 @@ if (!artwork || !Content) {
 
 <Layout title={artwork.title}>
   <div class="relative z-10 p-8 pb-20 max-w-4xl">
-    <a href="/index" class="uppercase tracking-widest" style="color: var(--text-muted); font-size: calc(13px * var(--ui-scale, 1));">← Index</a>
+    <div class="back-index-wrap">
+      <a href="/index" class="back-index-link">
+        <span class="back-arrow" aria-hidden="true">←</span>
+        <span class="back-label">Index</span>
+      </a>
+    </div>
     <h1 class="font-bold text-xl lg:text-2xl mt-6 mb-3" style="color: var(--text);">{artwork.title}</h1>
     <div class="art-detail-body">
       <Content />
     </div>
   </div>
 </Layout>
+
+<style>
+  .back-index-wrap {
+    display: inline-flex;
+    opacity: 0;
+    transform: translateX(-10px);
+    animation: back-link-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
+    border: 1px solid var(--border-subtle);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .back-index-wrap:has(.back-index-link:hover) {
+    border-color: var(--border);
+    background: var(--bg-elevated);
+  }
+
+  .back-index-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    width: 100%;
+    color: var(--text-muted);
+    font-family: "DepartureMono", monospace;
+    font-size: calc(11px * var(--ui-scale, 1));
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.5em 0.8em;
+    border: none;
+    transition: color 0.15s ease;
+  }
+
+  .back-index-link:hover {
+    color: var(--text);
+  }
+
+  .back-index-link:hover .back-arrow {
+    transform: translateX(-3px);
+  }
+
+  .back-arrow {
+    display: inline-block;
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    font-size: 1.1em;
+    line-height: 1;
+  }
+
+  .back-arrow,
+  .back-label {
+    pointer-events: none;
+  }
+
+  @keyframes back-link-in {
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+</style>
 
 <style is:global>
   .art-detail-body {

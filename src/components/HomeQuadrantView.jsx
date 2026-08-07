@@ -116,13 +116,19 @@ function WorkHoverCard({ work, accent }) {
   )
 }
 
-const WorkNode = memo(function WorkNode({ work, genreId, dimmed }) {
+const WorkNode = memo(function WorkNode({ work, genreId, dimmed, onHoverChange }) {
   const [hovered, setHovered] = useState(false)
   const accent = genreColor(genreId)
   const color = dimmed ? "#999999" : accent
   const pos = [work.x * S, work.y * S, (work.z ?? 0) * S]
   const showDetail = hovered && !dimmed
   const planeLabel = work.planeLabel ?? work.label
+  const key = work.slug ?? work.label
+
+  const setHover = (v) => {
+    setHovered(v)
+    onHoverChange?.(key, v)
+  }
 
   return (
     <group position={pos}>
@@ -139,24 +145,23 @@ const WorkNode = memo(function WorkNode({ work, genreId, dimmed }) {
         >
           <div
             style={{ position: "relative", display: "inline-flex", flexDirection: "column", alignItems: "center", textAlign: "center", pointerEvents: "auto" }}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
           >
             {work.image && (
-              <img
-                src={work.image}
-                alt=""
-                loading="lazy"
+              <div
+                className="dither-thumb"
                 style={{
-                  display: "block",
                   width: "88px",
                   height: "60px",
-                  objectFit: "cover",
                   marginBottom: "4px",
+                  flexShrink: 0,
                   ...glassNode(accent),
                   padding: 0,
                 }}
-              />
+              >
+                <img src={work.image} alt="" loading="lazy" />
+              </div>
             )}
             {work.slug ? (
               <a
@@ -212,8 +217,8 @@ const WorkNode = memo(function WorkNode({ work, genreId, dimmed }) {
                   zIndex: 20,
                   pointerEvents: "auto",
                 }}
-                onMouseEnter={() => setHovered(true)}
-                onMouseLeave={() => setHovered(false)}
+                onMouseEnter={() => setHover(true)}
+                onMouseLeave={() => setHover(false)}
               >
                 <WorkHoverCard work={work} accent={accent} />
               </div>
@@ -229,11 +234,18 @@ const WorkNode = memo(function WorkNode({ work, genreId, dimmed }) {
 
 function Scene({ genreFilter }) {
   const works = useMemo(() => collectWorks(), [])
+  // Pause auto-rotate while a work node is hovered — otherwise every hovered
+  // label/thumbnail (backdrop-blurred, screen-projected each frame) has to be
+  // repositioned and repainted continuously, which reads as hover lag.
+  const [hoveredKey, setHoveredKey] = useState(null)
+  const handleHoverChange = (key, isHovered) => {
+    setHoveredKey((prev) => (isHovered ? key : prev === key ? null : prev))
+  }
 
   return (
     <>
       <OrbitControls
-        autoRotate
+        autoRotate={!hoveredKey}
         autoRotateSpeed={0.35}
         enableDamping
         dampingFactor={0.05}
@@ -309,6 +321,7 @@ function Scene({ genreFilter }) {
           work={work}
           genreId={work.genreId}
           dimmed={!!genreFilter && work.genreId !== genreFilter}
+          onHoverChange={handleHoverChange}
         />
       ))}
     </>
@@ -701,6 +714,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
         <Canvas
           camera={{ position: [9, 6, 13], fov: 48 }}
           gl={{ antialias: true, alpha: true }}
+          dpr={[1, 1.5]}
           style={{ background: "transparent", position: "relative", zIndex: 1 }}
         >
           <Scene genreFilter={genreFilter} />
