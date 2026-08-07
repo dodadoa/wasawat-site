@@ -638,19 +638,20 @@ function ChronologyView({ layer }) {
 export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = layers.length > 1 }) {
   const [genreFilter, setGenreFilter] = useState(null)
   const isMobile = useIsMobile()
-  const [viewOverride, setViewOverride] = useState(null) // null = auto by viewport
-  const viewMode = viewOverride ?? (isMobile ? "2d" : "3d")
+  // table toggle only available on mobile; desktop always 3d
+  const [mobileView, setMobileView] = useState("table") // "table" | "3d"
+  const viewMode = isMobile ? mobileView : "3d"
 
   const isSingleChronology =
     layers.length === 1 && layers[0].layout === "chronology"
 
   const genreButtons = genreLayers.filter((l) => l.id !== "all")
   const showDiagram = !isSingleChronology
-  const showToggle = showDiagram
+  const showToggle = showDiagram && isMobile
   const showDomStats = showDiagram && !isMobile
 
   const toggleView = () => {
-    setViewOverride(viewMode === "2d" ? "3d" : "2d")
+    setMobileView((v) => v === "table" ? "3d" : "table")
   }
 
   return (
@@ -661,7 +662,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
     >
 
       {/* backdrop text behind the 3d canvas */}
-      {showDiagram && viewMode === "3d" && (
+      {showDiagram && viewMode === "3d" && !isMobile && (
         <div
           aria-hidden="true"
           className="quadrant-backdrop absolute inset-0 flex items-center justify-center pointer-events-none select-none"
@@ -694,7 +695,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
 
       {isSingleChronology ? (
         <ChronologyView layer={layers[0]} />
-      ) : viewMode === "2d" ? (
+      ) : viewMode === "table" ? (
         <Quadrant2DView genreFilter={genreFilter} />
       ) : (
         <Canvas
@@ -730,7 +731,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
             ...glassPlain,
           }}
         >
-          {viewMode === "2d" ? "view · 3d" : "view · 2d"}
+          {viewMode === "table" ? "view · 3d" : "view · table"}
         </button>
       )}
 
