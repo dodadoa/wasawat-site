@@ -5,9 +5,10 @@
 /** @type {ArtSection[]} */
 export const artSections = [
   {
-    title: "Installations",
+    title: "Artwork",
     groups: [
       {
+        title: "Installation",
         items: [
           {
             label:
@@ -15,6 +16,12 @@ export const artSections = [
             slug: "eternal-gain-eternal-pain",
           },
           { label: "Here-now; absolute-elsewhere.", slug: "here-now-absolute-elsewhere" },
+        ],
+      },
+      {
+        title: "Netart",
+        items: [
+          { label: "Self-censored Step Sequencer", slug: "self-censored-step-sequencer" },
         ],
       },
     ],
@@ -44,7 +51,11 @@ export const artSections = [
             label: "As if you would still be here, if I keep thinking about you.",
             slug: "as-if-you-would-still-be-here",
           },
-          { label: "Self-censored Step Sequencer", slug: "self-censored-step-sequencer" },
+          {
+            label: "OperationSéance: Purifying the AI Spirits in Latent Space Salon",
+            slug: "operation-seance",
+            unlisted: true,
+          },
           { label: "BYOB", slug: "byob" },
         ],
       },
@@ -125,5 +136,8 @@ export const artworkPages = {
   "self-censored-step-sequencer": { title: "Self-censored Step Sequencer" },
   "as-if-you-would-still-be-here": {
     title: "As if you would still be here, if I keep thinking about you.",
+  },
+  "operation-seance": {
+    title: "OperationSéance: Purifying the AI Spirits in Latent Space Salon",
   },
 }

@@ -15,14 +15,19 @@ const imageBySlug = Object.fromEntries(
   allWorks.filter((w) => w.slug && w.image).map((w) => [w.slug, w.image]),
 )
 
-/** Split a section's groups into selected (has a page) and unselected rows, keeping group titles */
+/**
+ * Split a section's groups into selected (has a page, featured) and unselected
+ * rows, keeping group titles. An item can have a `slug` (and be clickable)
+ * without being "selected" yet — mark it `unlisted: true` to keep it in the
+ * Archive table while still linking to its page.
+ */
 function splitSection(section) {
   const selected = []
   const unselected = []
   for (const group of section.groups) {
     for (const item of group.items) {
       const row = { item, groupTitle: group.title }
-      if (item.slug) selected.push(row)
+      if (item.slug && !item.unlisted) selected.push(row)
       else unselected.push(row)
     }
   }
@@ -62,12 +67,13 @@ function splitSection(section) {
                         <tr style="border-bottom: 1px solid var(--border-subtle);">
                           <td class="py-2 pr-4">
                             {image ? (
-                              <img
-                                src={image}
-                                alt=""
-                                loading="lazy"
-                                style="width: 44px; height: 32px; object-fit: cover; display: block;"
-                              />
+                              <div class="dither-thumb" style="width: 44px; height: 32px; flex-shrink: 0;">
+                                <img
+                                  src={image}
+                                  alt=""
+                                  loading="lazy"
+                                />
+                              </div>
                             ) : (
                               <div style="width: 44px; height: 32px; background: var(--border-subtle);" />
                             )}
@@ -99,7 +105,13 @@ function splitSection(section) {
                     {unselected.map(({ item, groupTitle }) => (
                       <tr style="border-bottom: 1px solid var(--border-subtle);">
                         <td class="py-2 pr-4" style="color: var(--text-muted);">
-                          {item.label}
+                          {item.slug ? (
+                            <a href={`/art/${item.slug}`} class="hover:underline">
+                              {item.label}
+                            </a>
+                          ) : (
+                            item.label
+                          )}
                         </td>
                         <td class="py-2 pr-4" style="color: var(--text-dim); width: 180px;">
                           {groupTitle ?? "—"}
