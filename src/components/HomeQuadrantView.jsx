@@ -1,15 +1,42 @@
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, Html, Line, Grid } from "@react-three/drei"
-import { memo, useMemo, useState } from "react"
+import { memo, useEffect, useMemo, useState } from "react"
 import { genreLayers, XY_SCALE, Z_AXIS_LABELS, QUADRANT_LABELS } from "../data/homeQuadrant3d.js"
 import { AXIS_COLORS, AXIS_TEXT_COLORS, ACCENTS, TEXT, TEXT_ACCENTS, genreColor, genreGradient, genreTextColor, rgba } from "../data/homeColors.js"
 import { workQuadrantMeta } from "../utils/quadrantWorkMeta.js"
-import { glassNode } from "./home/panelChrome.jsx"
+import { glassNode, glassPlain } from "./home/panelChrome.jsx"
 import DomStatsPanel from "./home/DomStatsPanel.jsx"
 
 const S = XY_SCALE
 const mono = "'DepartureMono', monospace"
 const displayMono = "'403Mesapholic', monospace"
+const MOBILE_MQ = "(max-width: 768px)"
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MQ)
+    const update = () => setMobile(mq.matches)
+    update()
+    mq.addEventListener("change", update)
+    return () => mq.removeEventListener("change", update)
+  }, [])
+  return mobile
+}
+
+function collectWorks() {
+  return genreLayers
+    .filter((l) => l.id !== "all")
+    .flatMap((layer) => layer.works.map((w) => ({ ...w, genreId: layer.id })))
+}
+
+/** Map x/y in [-1,1] to percentage within padded diagram */
+function toPercent(v, invert = false) {
+  const pad = 12
+  const t = (v + 1) / 2
+  const p = invert ? 1 - t : t
+  return pad + p * (100 - pad * 2)
+}
 
 // ─── axis end label ───────────────────────────────────────────────────────────
 
@@ -201,12 +228,7 @@ const WorkNode = memo(function WorkNode({ work, genreId, dimmed }) {
 // ─── the 3d scene ─────────────────────────────────────────────────────────────
 
 function Scene({ genreFilter }) {
-  const works = useMemo(
-    () => genreLayers
-      .filter((l) => l.id !== "all")
-      .flatMap((layer) => layer.works.map((w) => ({ ...w, genreId: layer.id }))),
-    [],
-  )
+  const works = useMemo(() => collectWorks(), [])
 
   return (
     <>
@@ -290,6 +312,162 @@ function Scene({ genreFilter }) {
         />
       ))}
     </>
+  )
+}
+
+// ─── 2d table view (mobile / toggle) ──────────────────────────────────────────
+
+const COL = {
+  fontFamily: mono,
+  fontSize: "calc(10px * var(--ui-scale, 1))",
+  letterSpacing: "0.04em",
+  padding: "9px 10px",
+  verticalAlign: "middle",
+  borderBottom: `1px solid ${rgba(ACCENTS.violet, 0.08)}`,
+}
+
+/** Tiny inline sparkline for a single axis value */
+function CoordSpark({ value, accent }) {
+  const pct = ((value + 1) / 2) * 100
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", opacity: 0.55 }}>
+      <div style={{ width: "36px", height: "2px", background: "#e8e8e8", borderRadius: "1px", position: "relative", flexShrink: 0 }}>
+        <div style={{
+          position: "absolute",
+          left: `${Math.min(pct, 50)}%`,
+          width: `${Math.abs(pct - 50)}%`,
+          top: 0, bottom: 0,
+          background: accent,
+          borderRadius: "1px",
+        }} />
+        <div style={{
+          position: "absolute",
+          left: `${pct}%`,
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "4px",
+          height: "4px",
+          borderRadius: "50%",
+          background: accent,
+        }} />
+      </div>
+      <span style={{ fontFamily: mono, fontSize: "8px", color: TEXT.tertiary, letterSpacing: "0.02em" }}>
+        {value.toFixed(2)}
+      </span>
+    </div>
+  )
+}
+
+function Quadrant2DView({ genreFilter }) {
+  const works = useMemo(() => collectWorks(), [])
+  const visible = genreFilter ? works.filter((w) => w.genreId === genreFilter) : works
+
+  const th = (extra = {}) => ({
+    ...COL,
+    borderBottom: `1px solid ${rgba(ACCENTS.violet, 0.15)}`,
+    color: TEXT.tertiary,
+    fontSize: "calc(8.5px * var(--ui-scale, 1))",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    padding: "6px 10px 8px",
+    fontWeight: 400,
+    whiteSpace: "nowrap",
+    ...extra,
+  })
+
+  return (
+    <div
+      className="absolute inset-0 overflow-y-auto"
+      style={{ zIndex: 1, paddingBottom: "3.5rem" }}
+    >
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead style={{ position: "sticky", top: 0, background: "#fff", zIndex: 2 }}>
+          <tr>
+            {/* primary info — left */}
+            <th style={th({ paddingLeft: "1.25rem" })}>Title</th>
+            <th style={th()}>Genre</th>
+            <th style={th()}>Year</th>
+            {/* 3d coords — right, dimmer */}
+            <th style={th({ color: rgba(AXIS_TEXT_COLORS.x, 0.55), textAlign: "right" })}>x</th>
+            <th style={th({ color: rgba(AXIS_TEXT_COLORS.y, 0.55), textAlign: "right" })}>y</th>
+            <th style={th({ color: rgba(AXIS_TEXT_COLORS.z, 0.55), textAlign: "right", paddingRight: "1.25rem" })}>z</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visible.map((work) => {
+            const accent = genreColor(work.genreId)
+            const textAccent = genreTextColor(work.genreId)
+            const label = work.planeLabel ?? work.label
+            return (
+              <tr
+                key={work.slug ?? work.label}
+                style={{ transition: "background 0.1s" }}
+                onMouseEnter={(e) => e.currentTarget.style.background = rgba(accent, 0.04)}
+                onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+              >
+                {/* title */}
+                <td style={{ ...COL, paddingLeft: "1.25rem" }}>
+                  {work.slug ? (
+                    <a
+                      href={`/art/${work.slug}`}
+                      style={{
+                        fontFamily: displayMono,
+                        fontSize: "calc(13px * var(--ui-scale, 1))",
+                        fontStyle: "italic",
+                        letterSpacing: "0.03em",
+                        color: TEXT.primary,
+                        textDecoration: "none",
+                        whiteSpace: "nowrap",
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = textAccent}
+                      onMouseLeave={(e) => e.currentTarget.style.color = TEXT.primary}
+                    >
+                      {label}
+                    </a>
+                  ) : (
+                    <span style={{
+                      fontFamily: displayMono,
+                      fontSize: "calc(13px * var(--ui-scale, 1))",
+                      letterSpacing: "0.03em",
+                      color: TEXT.secondary,
+                      whiteSpace: "nowrap",
+                    }}>
+                      {label}
+                    </span>
+                  )}
+                </td>
+                {/* genre */}
+                <td style={{ ...COL, whiteSpace: "nowrap" }}>
+                  <span style={{
+                    fontFamily: mono,
+                    fontSize: "calc(8.5px * var(--ui-scale, 1))",
+                    letterSpacing: "0.07em",
+                    textTransform: "uppercase",
+                    color: textAccent,
+                  }}>
+                    {work.genreId}
+                  </span>
+                </td>
+                {/* year */}
+                <td style={{ ...COL, color: TEXT.secondary, whiteSpace: "nowrap" }}>
+                  {work.date ? work.date.slice(0, 4) : "—"}
+                </td>
+                {/* coords — subtle, pushed right */}
+                <td style={{ ...COL, textAlign: "right" }}>
+                  <CoordSpark value={work.x} accent={AXIS_COLORS.x} />
+                </td>
+                <td style={{ ...COL, textAlign: "right" }}>
+                  <CoordSpark value={work.y} accent={AXIS_COLORS.y} />
+                </td>
+                <td style={{ ...COL, textAlign: "right", paddingRight: "1.25rem" }}>
+                  <CoordSpark value={work.z ?? 0} accent={AXIS_COLORS.z} />
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
   )
 }
 
@@ -459,11 +637,21 @@ function ChronologyView({ layer }) {
 
 export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = layers.length > 1 }) {
   const [genreFilter, setGenreFilter] = useState(null)
+  const isMobile = useIsMobile()
+  const [viewOverride, setViewOverride] = useState(null) // null = auto by viewport
+  const viewMode = viewOverride ?? (isMobile ? "2d" : "3d")
 
   const isSingleChronology =
     layers.length === 1 && layers[0].layout === "chronology"
 
   const genreButtons = genreLayers.filter((l) => l.id !== "all")
+  const showDiagram = !isSingleChronology
+  const showToggle = showDiagram
+  const showDomStats = showDiagram && !isMobile
+
+  const toggleView = () => {
+    setViewOverride(viewMode === "2d" ? "3d" : "2d")
+  }
 
   return (
     <div
@@ -473,7 +661,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
     >
 
       {/* backdrop text behind the 3d canvas */}
-      {!isSingleChronology && (
+      {showDiagram && viewMode === "3d" && (
         <div
           aria-hidden="true"
           className="quadrant-backdrop absolute inset-0 flex items-center justify-center pointer-events-none select-none"
@@ -506,6 +694,8 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
 
       {isSingleChronology ? (
         <ChronologyView layer={layers[0]} />
+      ) : viewMode === "2d" ? (
+        <Quadrant2DView genreFilter={genreFilter} />
       ) : (
         <Canvas
           camera={{ position: [9, 6, 13], fov: 48 }}
@@ -516,19 +706,58 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
         </Canvas>
       )}
 
-      {!isSingleChronology && <DomStatsPanel />}
+      {showDomStats && <DomStatsPanel />}
+
+      {/* 2d / 3d toggle */}
+      {showToggle && (
+        <button
+          type="button"
+          onClick={toggleView}
+          aria-pressed={viewMode === "2d"}
+          aria-label={viewMode === "2d" ? "Switch to 3D view" : "Switch to 2D view"}
+          className="absolute"
+          style={{
+            bottom: isMobile ? "3.25rem" : "0.75rem",
+            right: showGenreNav && !isMobile ? "clamp(140px, 20vw, 240px)" : "1rem",
+            zIndex: 5,
+            fontFamily: mono,
+            fontSize: "calc(9px * var(--ui-scale, 1))",
+            letterSpacing: "0.28em",
+            textTransform: "uppercase",
+            color: TEXT.secondary,
+            padding: "0.55rem 0.85rem",
+            cursor: "pointer",
+            ...glassPlain,
+          }}
+        >
+          {viewMode === "2d" ? "view · 3d" : "view · 2d"}
+        </button>
+      )}
 
       {/* genre filter — floats over canvas */}
-      {showGenreNav && !isSingleChronology && (
+      {showGenreNav && showDiagram && (
         <nav
-          className="absolute top-0 right-0 bottom-0 flex flex-col justify-center gap-2 pr-8"
-          style={{
-            minWidth: "clamp(120px, 18vw, 220px)",
-            paddingLeft: "clamp(2rem, 5vw, 4rem)",
-            borderLeft: `1px solid ${rgba(ACCENTS.violet, 0.22)}`,
-            pointerEvents: "auto",
-            zIndex: 2,
-          }}
+          className={
+            isMobile
+              ? "absolute left-0 right-0 bottom-0 flex flex-row justify-center gap-3 px-3 py-2"
+              : "absolute top-0 right-0 bottom-0 flex flex-col justify-center gap-2 pr-8"
+          }
+          style={
+            isMobile
+              ? {
+                  pointerEvents: "auto",
+                  zIndex: 4,
+                  borderTop: `1px solid ${rgba(ACCENTS.violet, 0.22)}`,
+                  ...glassPlain,
+                }
+              : {
+                  minWidth: "clamp(120px, 18vw, 220px)",
+                  paddingLeft: "clamp(2rem, 5vw, 4rem)",
+                  borderLeft: `1px solid ${rgba(ACCENTS.violet, 0.22)}`,
+                  pointerEvents: "auto",
+                  zIndex: 2,
+                }
+          }
           aria-label="Genre filter"
         >
           {[{ id: null, title: "All" }, ...genreButtons].map((item) => {
@@ -544,20 +773,20 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
                   fontFamily: "'403Mesapholic', monospace",
                   color: active ? TEXT.primary : TEXT.secondary,
                   fontSize: active
-                    ? "clamp(1.1rem, 2.2vw, 1.5rem)"
-                    : "clamp(0.8rem, 1.4vw, 1rem)",
+                    ? isMobile ? "0.85rem" : "clamp(1.1rem, 2.2vw, 1.5rem)"
+                    : isMobile ? "0.72rem" : "clamp(0.8rem, 1.4vw, 1rem)",
                   fontWeight: active ? 600 : 400,
                   letterSpacing: "0.08em",
                   lineHeight: 1.4,
-                  padding: "0.3rem 0",
-                  paddingBottom: active ? "calc(0.3rem - 3px)" : "0.3rem",
+                  padding: isMobile ? "0.2rem 0" : "0.3rem 0",
+                  paddingBottom: active ? (isMobile ? "calc(0.2rem - 2px)" : "calc(0.3rem - 3px)") : (isMobile ? "0.2rem" : "0.3rem"),
                   cursor: "pointer",
                   backgroundColor: "transparent",
                   borderTop: "none",
                   borderLeft: "none",
                   borderRight: "none",
                   borderBottom: active ? `3px solid ${activeAccent}` : "none",
-                  textAlign: "right",
+                  textAlign: isMobile ? "center" : "right",
                   whiteSpace: "nowrap",
                   transition: "color 0.2s ease, font-size 0.35s ease",
                 }}
@@ -572,7 +801,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
       )}
 
       {/* hint */}
-      {!isSingleChronology && (
+      {showDiagram && viewMode === "3d" && !isMobile && (
         <div
           className="absolute bottom-3 left-4 pointer-events-none"
           style={{
