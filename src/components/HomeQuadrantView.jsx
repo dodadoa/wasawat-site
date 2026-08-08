@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, Html, Line, Grid } from "@react-three/drei"
-import { memo, useEffect, useMemo, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { genreLayers, XY_SCALE, Z_AXIS_LABELS, QUADRANT_LABELS } from "../data/homeQuadrant3d.js"
 import { AXIS_COLORS, AXIS_TEXT_COLORS, ACCENTS, TEXT, TEXT_ACCENTS, genreColor, genreGradient, genreTextColor, rgba } from "../data/homeColors.js"
 import { workQuadrantMeta } from "../utils/quadrantWorkMeta.js"
@@ -137,95 +137,109 @@ const WorkNode = memo(function WorkNode({ work, genreId, dimmed, onHoverChange }
         <meshBasicMaterial color={color} />
       </mesh>
 
-      {!dimmed && (
-        <Html
-          center
-          style={{ pointerEvents: "none", zIndex: hovered ? 9999 : undefined }}
-          occlude={false}
+      {/*
+        Always mounted — even when dimmed — and dimmed via opacity/pointerEvents
+        instead of conditional rendering. Unmounting this on every genre-filter
+        click would tear down the <img> DOM node and force the browser to
+        re-fetch the thumbnail each time it comes back.
+      */}
+      <Html
+        center
+        style={{ pointerEvents: "none", zIndex: hovered ? 9999 : undefined }}
+        occlude={false}
+      >
+        <div
+          style={{
+            position: "relative",
+            display: "inline-flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            pointerEvents: dimmed ? "none" : "auto",
+            opacity: dimmed ? 0 : 1,
+            visibility: dimmed ? "hidden" : "visible",
+            transition: "opacity 0.2s ease",
+          }}
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
         >
-          <div
-            style={{ position: "relative", display: "inline-flex", flexDirection: "column", alignItems: "center", textAlign: "center", pointerEvents: "auto" }}
-            onMouseEnter={() => setHover(true)}
-            onMouseLeave={() => setHover(false)}
-          >
-            {work.image && (
-              <div
-                className="dither-thumb"
-                style={{
-                  width: "88px",
-                  height: "60px",
-                  marginBottom: "4px",
-                  flexShrink: 0,
-                  ...glassNode(accent),
-                  padding: 0,
-                }}
-              >
-                <img src={work.image} alt="" loading="lazy" />
-              </div>
-            )}
-            {work.slug ? (
-              <a
-                href={`/art/${work.slug}`}
-                style={{
-                  display: "block",
-                  fontFamily: "'403Mesapholic', monospace",
-                  fontSize: "calc(15px * var(--ui-scale, 1))",
-                  fontWeight: 400,
-                  fontStyle: "italic",
-                  letterSpacing: "0.04em",
-                  color: "#0a0a0a",
-                  padding: "5px 14px",
-                  textDecoration: "none",
-                  width: "max-content",
-                  maxWidth: "min(92vw, 640px)",
-                  whiteSpace: "nowrap",
-                  lineHeight: 1.35,
-                  ...glassNode(accent),
-                }}
-              >
-                {planeLabel}
-              </a>
-            ) : (
-              <span
-                style={{
-                  display: "block",
-                  fontFamily: "'403Mesapholic', monospace",
-                  fontSize: "calc(15px * var(--ui-scale, 1))",
-                  fontWeight: 300,
-                  letterSpacing: "0.04em",
-                  color: "#2a2a2a",
-                  padding: "5px 14px",
-                  width: "max-content",
-                  maxWidth: "min(92vw, 640px)",
-                  whiteSpace: "nowrap",
-                  lineHeight: 1.35,
-                  ...glassNode(null),
-                }}
-              >
-                {planeLabel}
-              </span>
-            )}
-            {showDetail && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  paddingTop: "4px",
-                  width: "max-content",
-                  zIndex: 20,
-                  pointerEvents: "auto",
-                }}
-                onMouseEnter={() => setHover(true)}
-                onMouseLeave={() => setHover(false)}
-              >
-                <WorkHoverCard work={work} accent={accent} />
-              </div>
-            )}
-          </div>
-        </Html>
-      )}
+          {work.image && (
+            <div
+              className="dither-thumb"
+              style={{
+                width: "88px",
+                height: "60px",
+                marginBottom: "4px",
+                flexShrink: 0,
+                ...glassNode(accent),
+                padding: 0,
+              }}
+            >
+              <img src={work.image} alt="" decoding="async" />
+            </div>
+          )}
+          {work.slug ? (
+            <a
+              href={`/art/${work.slug}`}
+              style={{
+                display: "block",
+                fontFamily: "'403Mesapholic', monospace",
+                fontSize: "calc(15px * var(--ui-scale, 1))",
+                fontWeight: 400,
+                fontStyle: "italic",
+                letterSpacing: "0.04em",
+                color: "#0a0a0a",
+                padding: "5px 14px",
+                textDecoration: "none",
+                width: "max-content",
+                maxWidth: "min(92vw, 640px)",
+                whiteSpace: "nowrap",
+                lineHeight: 1.35,
+                ...glassNode(accent),
+              }}
+            >
+              {planeLabel}
+            </a>
+          ) : (
+            <span
+              style={{
+                display: "block",
+                fontFamily: "'403Mesapholic', monospace",
+                fontSize: "calc(15px * var(--ui-scale, 1))",
+                fontWeight: 300,
+                letterSpacing: "0.04em",
+                color: "#2a2a2a",
+                padding: "5px 14px",
+                width: "max-content",
+                maxWidth: "min(92vw, 640px)",
+                whiteSpace: "nowrap",
+                lineHeight: 1.35,
+                ...glassNode(null),
+              }}
+            >
+              {planeLabel}
+            </span>
+          )}
+          {showDetail && (
+            <div
+              style={{
+                position: "absolute",
+                top: "100%",
+                left: "50%",
+                transform: "translateX(-50%)",
+                paddingTop: "4px",
+                width: "max-content",
+                zIndex: 20,
+                pointerEvents: "auto",
+              }}
+              onMouseEnter={() => setHover(true)}
+              onMouseLeave={() => setHover(false)}
+            >
+              <WorkHoverCard work={work} accent={accent} />
+            </div>
+          )}
+        </div>
+      </Html>
     </group>
   )
 })
@@ -238,9 +252,12 @@ function Scene({ genreFilter }) {
   // label/thumbnail (backdrop-blurred, screen-projected each frame) has to be
   // repositioned and repainted continuously, which reads as hover lag.
   const [hoveredKey, setHoveredKey] = useState(null)
-  const handleHoverChange = (key, isHovered) => {
+  // Stable identity across re-renders — WorkNode is memo()'d, so if this were
+  // redefined on every render, every node's <Html> (and its <img>) would be
+  // torn down and recreated whenever *any* node's hover state changed.
+  const handleHoverChange = useCallback((key, isHovered) => {
     setHoveredKey((prev) => (isHovered ? key : prev === key ? null : prev))
-  }
+  }, [])
 
   return (
     <>
