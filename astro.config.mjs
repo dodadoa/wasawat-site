@@ -14,6 +14,12 @@ export default defineConfig({
     }),
   ],
   output: "server",
+  // Astro's dev toolbar periodically re-scans/audits the page in the background,
+  // which was re-triggering fetches for every work thumbnail on the home 3D plane
+  // (visible as an endlessly growing "network.log" in the HUD). It's dev-only and
+  // has no effect on production builds — disabled here to keep dev-mode network
+  // activity honest. Flip to `true` if you want the toolbar back.
+  devToolbar: { enabled: false },
   redirects: {
     "/art": "/index",
     "/art/vina-v-para-cartography": "/art/from-scratch-live-coding#vina-v",

@@ -59,6 +59,153 @@ const { title, preview, description } = Astro.props
     <title>{title}</title>
   </head>
   <body>
+    <div id="site-loader" role="status" aria-live="polite" aria-label="Loading">
+      <div class="loader-ring">
+        <svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
+          <defs>
+            <clipPath id="loaderClip"><circle cx="60" cy="60" r="55" /></clipPath>
+            <linearGradient id="loaderGrad" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stop-color="#0a0a0a" />
+              <stop offset="100%" stop-color="#4a4a4a" />
+            </linearGradient>
+            <!-- fine 2×2 Bayer dither, matching .dither-thumb elsewhere on the site -->
+            <pattern id="loaderDither" width="2" height="2" patternUnits="userSpaceOnUse">
+              <rect width="1" height="1" fill="#000000" opacity="0.22" />
+            </pattern>
+          </defs>
+          <circle class="loader-track" cx="60" cy="60" r="55" fill="none" stroke="rgba(10,10,10,0.12)" stroke-width="1" />
+          <g clip-path="url(#loaderClip)">
+            <g id="loader-liquid" class="loader-liquid">
+              <path class="loader-wave wave-a" d="M-60 40 Q -40 20 -20 40 T 20 40 T 60 40 T 100 40 T 140 40 T 180 40 V160 H-60 Z" fill="url(#loaderGrad)" opacity="0.5" />
+              <path class="loader-wave wave-b" d="M-60 40 Q -40 25 -20 40 T 20 40 T 60 40 T 100 40 T 140 40 T 180 40 V160 H-60 Z" fill="url(#loaderGrad)" />
+            </g>
+            <rect x="0" y="0" width="120" height="120" fill="url(#loaderDither)" style="mix-blend-mode: multiply;" />
+          </g>
+        </svg>
+      </div>
+      <p class="loader-label">loading · <span id="loader-pct">0</span>%</p>
+    </div>
+
+    <script>
+      (function () {
+        const loader = document.getElementById("site-loader")
+        if (!loader) return
+
+        const body = document.body
+        const pctEl = document.getElementById("loader-pct")
+        const liquid = document.getElementById("loader-liquid")
+
+        body.classList.add("is-loading")
+
+        const tracked = new Set()
+        let hidden = false
+        let quietTimer = null
+        let observer = null
+        const maxTimer = setTimeout(finish, 7000)
+
+        function setProgress(p) {
+          const clamped = Math.max(0, Math.min(1, p))
+          if (liquid) liquid.style.setProperty("--progress", String(clamped))
+          if (pctEl) pctEl.textContent = String(Math.round(clamped * 100))
+        }
+
+        /** @param {HTMLImageElement} img */
+        function pending(img) {
+          return !img.complete
+        }
+
+        function updateProgress() {
+          if (tracked.size === 0) {
+            setProgress(0.12)
+            return
+          }
+          let pendingCount = 0
+          tracked.forEach((img) => { if (pending(img)) pendingCount++ })
+          const done = tracked.size - pendingCount
+          // cap below 100% until the settle check actually finishes, so the
+          // liquid never visually tops out before the overlay is gone
+          setProgress(Math.min(0.96, done / tracked.size))
+        }
+
+        /** @param {HTMLImageElement} img */
+        function trackImage(img) {
+          if (tracked.has(img)) return
+          tracked.add(img)
+          if (pending(img)) {
+            const onSettle = () => {
+              img.removeEventListener("load", onSettle)
+              img.removeEventListener("error", onSettle)
+              updateProgress()
+              scheduleSettleCheck()
+            }
+            img.addEventListener("load", onSettle)
+            img.addEventListener("error", onSettle)
+          }
+        }
+
+        function scanImages() {
+          document.querySelectorAll("img").forEach(trackImage)
+        }
+
+        // Waits for a quiet window with nothing pending — restarted on every
+        // DOM mutation and every image settling, so a slow-hydrating island
+        // (e.g. the 3d canvas) keeps pushing the deadline out instead of the
+        // loader vanishing before its images even exist yet.
+        function scheduleSettleCheck() {
+          if (quietTimer) clearTimeout(quietTimer)
+          quietTimer = setTimeout(() => {
+            let stillPending = false
+            tracked.forEach((img) => { if (pending(img)) stillPending = true })
+            if (stillPending) scheduleSettleCheck()
+            else finish()
+          }, 380)
+        }
+
+        function finish() {
+          if (hidden) return
+          hidden = true
+          clearTimeout(maxTimer)
+          if (quietTimer) clearTimeout(quietTimer)
+          if (observer) observer.disconnect()
+          setProgress(1)
+          body.classList.remove("is-loading")
+          requestAnimationFrame(() => loader.classList.add("is-hidden"))
+          setTimeout(() => loader.remove(), 700)
+        }
+
+        scanImages()
+        updateProgress()
+
+        // Ignore mutations caused by the loader's own UI (e.g. the percentage
+        // text node it rewrites on every tick) — otherwise updateProgress()
+        // rewriting that text would retrigger this same observer forever.
+        observer = new MutationObserver((mutations) => {
+          const external = mutations.some((m) => !loader.contains(m.target))
+          if (!external) return
+          scanImages()
+          updateProgress()
+          scheduleSettleCheck()
+        })
+        observer.observe(document.body, { childList: true, subtree: true })
+
+        Promise.resolve(document.fonts && document.fonts.ready).then(() => {
+          scanImages()
+          updateProgress()
+          scheduleSettleCheck()
+        })
+
+        if (document.readyState === "complete") {
+          scheduleSettleCheck()
+        } else {
+          window.addEventListener("load", () => {
+            scanImages()
+            updateProgress()
+            scheduleSettleCheck()
+          })
+        }
+      })()
+    </script>
+
     <Navigator />
     <main class="relative z-10 mt-10 pointer-events-auto">
       <slot />
@@ -210,6 +357,80 @@ const { title, preview, description } = Astro.props
         background-size: 2px 2px;
         mix-blend-mode: multiply;
       }
+
+      /* ── site loader — circular liquid fill, gates first paint of content ── */
+      body.is-loading {
+        overflow: hidden;
+      }
+
+      #site-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.1rem;
+        background: var(--bg, #ffffff);
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+      }
+
+      #site-loader.is-hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .loader-ring {
+        position: relative;
+        width: 120px;
+        height: 120px;
+      }
+
+      .loader-ring svg {
+        display: block;
+        overflow: visible;
+      }
+
+      /*
+        Wave paths are authored with their crest at local y=40. The clip
+        circle spans roughly y=5..115, so mapping progress 0→1 to a crest of
+        y=115 (barely a sliver at the bottom) → y=5 (nearly full) means
+        translateY = (115 - progress*110) - 40.
+      */
+      .loader-liquid {
+        transform: translateY(calc(75px - var(--progress, 0) * 110px));
+        transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .loader-wave {
+        animation: loader-wave-drift 3.4s linear infinite;
+      }
+
+      .loader-wave.wave-b {
+        animation-duration: 2.3s;
+        animation-direction: reverse;
+      }
+
+      @keyframes loader-wave-drift {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-80px); }
+      }
+
+      .loader-label {
+        font-family: "DepartureMono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+      }
+
+      /* keep the custom cursor from popping over the loader before content is ready */
+      body.is-loading #custom-cursor,
+      body.is-loading #cursor-thought {
+        display: none !important;
+      }
     </style>
   <script>
     // Prevent bfcache from restoring stale Astro island hydration states,
@@ -272,6 +493,19 @@ const { title, preview, description } = Astro.props
       50%       { box-shadow: 0 0 18px 12px rgba(10,10,10,0.22), 0 0 50px 26px rgba(10,10,10,0.09); }
     }
 
+    /* ring around the crosshair — expands to call out clickable targets */
+    #custom-cursor .cursor-circle {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(10,10,10,0.3);
+      background: rgba(10,10,10,0.02);
+      transform: translate(-50%, -50%) scale(1);
+      transition: width 0.2s cubic-bezier(0.22,1,0.36,1), height 0.2s cubic-bezier(0.22,1,0.36,1),
+        border-color 0.2s ease, background 0.2s ease;
+    }
+
     #custom-cursor.cursor--hover {
       transform-origin: center center;
     }
@@ -294,50 +528,56 @@ const { title, preview, description } = Astro.props
       50%       { box-shadow: 0 0 26px 18px rgba(10,10,10,0.28), 0 0 70px 36px rgba(10,10,10,0.1); }
     }
 
-    /* ── thought cloud ── */
+    /* larger ring — visually calls out the bigger effective click target */
+    #custom-cursor.cursor--hover .cursor-circle {
+      width: 56px; height: 56px;
+      border-color: rgba(10,10,10,0.5);
+      background: rgba(10,10,10,0.04);
+    }
+
+    /*
+      ── hover label — smooth pill, sits below the cursor ──
+      #cursor-thought's own `transform` is driven imperatively from JS every
+      mousemove (to track the cursor position), so the horizontal centering
+      and entrance scale live on the inner `.cursor-label` instead — that way
+      they're free to animate via CSS without fighting the JS-driven position.
+    */
     #cursor-thought {
       position: fixed;
       top: 0; left: 0;
       pointer-events: none;
       z-index: 2147483646;
       opacity: 0;
-      transition: opacity 0.15s ease, transform 0.22s cubic-bezier(0.34,1.5,0.64,1);
+      transition: opacity 0.15s ease;
     }
 
     #cursor-thought.visible {
       opacity: 1;
     }
 
-    #cursor-thought svg {
-      display: block;
-      overflow: visible;
-    }
-
-    #cursor-thought text {
+    #cursor-thought .cursor-label {
+      display: inline-block;
+      white-space: nowrap;
+      background: #0a0a0a;
+      color: #ffffff;
       font-family: "DepartureMono", monospace;
       font-size: 9px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      fill: #ffffff;
-      dominant-baseline: middle;
-      text-anchor: middle;
+      padding: 6px 12px;
+      border-radius: 999px;
       pointer-events: none;
       user-select: none;
+      transform: translateX(-50%) scale(0.9);
+      transition: transform 0.22s cubic-bezier(0.34,1.5,0.64,1);
+    }
+
+    #cursor-thought.visible .cursor-label {
+      transform: translateX(-50%) scale(1);
     }
   </style>
 
   <script>
-    // minimal black cloud, no border, white text
-    const THOUGHT_SVG = `<svg id="cursor-cloud-svg" width="90" height="58" viewBox="0 0 90 58" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- two small bubbles -->
-      <circle cx="5"  cy="54" r="3"   fill="#0a0a0a"/>
-      <circle cx="14" cy="44" r="4.5" fill="#0a0a0a"/>
-      <!-- minimal pill cloud body -->
-      <rect x="22" y="8" width="62" height="32" rx="16" fill="#0a0a0a"/>
-      <!-- label centred in pill -->
-      <text id="cloud-label" x="53" y="24">click</text>
-    </svg>`
-
     function setupCursor() {
       if (!window.matchMedia("(pointer: fine)").matches) return
 
@@ -347,6 +587,11 @@ const { title, preview, description } = Astro.props
         el.id = "custom-cursor"
         document.body.appendChild(el)
       }
+      if (!el.querySelector(".cursor-circle")) {
+        const circle = document.createElement("div")
+        circle.className = "cursor-circle"
+        el.appendChild(circle)
+      }
 
       let thought = document.getElementById("cursor-thought")
       if (!thought) {
@@ -355,32 +600,56 @@ const { title, preview, description } = Astro.props
         thought.style.position = "fixed"
         thought.style.top = "0"
         thought.style.left = "0"
-        thought.innerHTML = THOUGHT_SVG
+        thought.innerHTML = `<span class="cursor-label" id="cursor-label-text">click</span>`
         document.body.appendChild(thought)
       }
 
       let raf = null
 
+      const HOVER_SELECTOR = "a, button, [role=button], input, textarea, select, label, [tabindex]"
+      // Sample a small ring of points around the cursor (not just the exact
+      // pixel under it) so hovering "near" a clickable target — its padding,
+      // an icon's edge, a thin link — still registers as clickable. Widens
+      // the effective touch/click area the cursor reacts to.
+      const HOVER_RADIUS = 14
+      const HOVER_OFFSETS = [
+        [0, 0],
+        [HOVER_RADIUS, 0], [-HOVER_RADIUS, 0], [0, HOVER_RADIUS], [0, -HOVER_RADIUS],
+        [HOVER_RADIUS, HOVER_RADIUS], [-HOVER_RADIUS, HOVER_RADIUS],
+        [HOVER_RADIUS, -HOVER_RADIUS], [-HOVER_RADIUS, -HOVER_RADIUS],
+      ]
+
+      /** @param {number} x @param {number} y */
+      function findClickableNear(x, y) {
+        for (const [dx, dy] of HOVER_OFFSETS) {
+          const px = x + dx
+          const py = y + dy
+          if (px < 0 || py < 0 || px > window.innerWidth || py > window.innerHeight) continue
+          const hit = document.elementFromPoint(px, py)
+          const t = hit && hit.closest(HOVER_SELECTOR)
+          if (t) return t
+        }
+        return null
+      }
+
       document.addEventListener("mousemove", (e) => {
         if (raf) cancelAnimationFrame(raf)
         raf = requestAnimationFrame(() => {
           el.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`
-          thought.style.transform = `translate(${e.clientX + 16}px, ${e.clientY - 26}px)`
+          // label sits centered below the cursor (inner .cursor-label handles
+          // the horizontal -50% centering via CSS)
+          thought.style.transform = `translate(${e.clientX}px, ${e.clientY + 24}px)`
+
+          const t = findClickableNear(e.clientX, e.clientY)
+          el.classList.toggle("cursor--hover", !!t)
+          thought.classList.toggle("visible", !!t)
+          const labelText = document.getElementById("cursor-label-text")
+          if (labelText) {
+            const anchor = t && t.closest("a")
+            labelText.textContent = anchor ? (anchor.getAttribute("aria-label") || "open") : (t ? "click" : "")
+          }
         })
       })
-
-      document.addEventListener("mouseover", (e) => {
-        const t = e.target.closest("a, button, [role=button], input, textarea, select, label, [tabindex]")
-        el.classList.toggle("cursor--hover", !!t)
-        thought.classList.toggle("visible", !!t)
-        // update text inside SVG
-        const svgLabel = document.getElementById("cloud-label")
-        if (svgLabel) {
-          const anchor = e.target.closest("a")
-          svgLabel.textContent = anchor ? (anchor.getAttribute("aria-label") || "open") : "click"
-        }
-      })
-
     }
 
     setupCursor()
