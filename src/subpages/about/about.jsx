@@ -451,6 +451,7 @@ function FullBio() {
 
 const About = () => {
   const [showFull, setShowFull] = useState(false)
+  const [showPlan, setShowPlan] = useState(false)
 
   return (
     <div
@@ -522,9 +523,37 @@ const About = () => {
         )}
       </div>
 
-      {/* floor plan — sits above this in the page flow */}
-      <div style={{ width: "100%" }}>
-        <CombinedPlan />
+      {/* floor plan toggle */}
+      <div style={{ width: "100%", borderTop: "1px solid var(--border-subtle)", marginTop: "1rem" }}>
+        <div className="px-8 lg:w-4/5 max-w-3xl" style={{ paddingTop: "1rem", paddingBottom: showPlan ? "0" : "1rem" }}>
+          <button
+            onClick={() => setShowPlan(v => !v)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5em",
+              fontFamily: "'DepartureMono', monospace",
+              fontSize: "11px",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--text-muted)",
+              background: "none",
+              border: "none",
+              borderBottom: "1px solid var(--border-subtle)",
+              padding: "0.25em 0",
+              cursor: "pointer",
+              transition: "color 0.15s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
+          >
+            <span style={{ display: "inline-block", transition: "transform 0.2s", transform: showPlan ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
+            <span>{showPlan ? "close plan" : "floor plan"}</span>
+          </button>
+        </div>
+        {showPlan && (
+          <CombinedPlan />
+        )}
       </div>
 
       <div className="px-8 lg:w-4/5 max-w-3xl mt-10">

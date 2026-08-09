@@ -2,7 +2,8 @@
 import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
 ---
 
-<div class="mt-4 max-w-3xl">
+<!-- text content -->
+<div class="byob-text-content mt-4 max-w-3xl">
   <ArtworkMeta fields={[
     { label: "Year",   value: "2023" },
     { label: "Role",   value: "Organizer, Co-Director" },
@@ -37,7 +38,7 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
   <span class="byob-mode-hint">scattered</span>
 </div>
 
-<!-- image field -->
+<!-- image field: starts in scatter mode (position:fixed applied by script) -->
 <div class="byob-field" id="byob-field" data-mode="scatter">
   <div class="byob-item" data-i="0"><img src="/images/byob/poster.jpg"  alt="BYOB BKK 2023 — Poster" loading="lazy" /></div>
   <div class="byob-item" data-i="1"><img src="/images/byob/byob-1.jpg"  alt="BYOB BKK 2023" loading="lazy" /></div>
@@ -50,24 +51,79 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
   <div class="byob-item" data-i="8"><img src="/images/byob/byob-16.jpg" alt="BYOB BKK 2023" loading="lazy" /></div>
   <div class="byob-item" data-i="9"><img src="/images/byob/byob-17.jpg" alt="BYOB BKK 2023" loading="lazy" /></div>
 </div>
-<p class="byob-caption">BYOB Bangkok, 2023. Bangkok CityCity Gallery.</p>
+<p class="byob-caption" id="byob-caption">BYOB Bangkok, 2023. Bangkok CityCity Gallery.</p>
 
 <script>
   const field   = document.getElementById('byob-field') as HTMLElement;
   const btn     = document.getElementById('byob-toggle') as HTMLButtonElement;
   const hint    = btn.nextElementSibling as HTMLElement;
+  const caption = document.getElementById('byob-caption') as HTMLElement;
 
-  function setMode(mode: 'scatter' | 'arrange') {
+  // ── apply scatter: field becomes a fixed full-viewport bg layer ──
+  function applyScatter() {
+    Object.assign(field.style, {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      width: '100vw',
+      height: '100vh',
+      zIndex: '1',
+      pointerEvents: 'none',
+      display: 'block',
+    });
+    document.body.classList.add('byob-scatter');
+  }
+
+  // ── apply arrange: field back to normal doc flow below content ──
+  function applyArrange() {
+    Object.assign(field.style, {
+      position: 'relative',
+      top: '',
+      left: '',
+      width: '100%',
+      height: 'auto',
+      zIndex: '',
+      pointerEvents: '',
+      display: '',
+    });
+    document.body.classList.remove('byob-scatter');
+  }
+
+  async function setMode(mode: 'scatter' | 'arrange', instant = false) {
     field.dataset.mode = mode;
     btn.dataset.mode   = mode;
+
+    if (!instant) {
+      // fade out
+      field.style.transition = 'opacity 0.25s';
+      field.style.opacity = '0';
+      await new Promise<void>(r => setTimeout(r, 250));
+    }
+
     if (mode === 'scatter') {
+      applyScatter();
       btn.querySelector('.byob-btn-label')!.textContent = '↓ ARRANGE';
       hint.textContent = 'scattered';
+      caption.style.display = 'none';
     } else {
+      applyArrange();
       btn.querySelector('.byob-btn-label')!.textContent = '↑ SCATTER';
       hint.textContent = 'arranged';
+      caption.style.display = '';
+    }
+
+    if (!instant) {
+      field.style.opacity = '0';
+      requestAnimationFrame(() => {
+        field.style.transition = 'opacity 0.4s';
+        field.style.opacity = '1';
+      });
     }
   }
+
+  // boot in scatter
+  applyScatter();
+  caption.style.display = 'none';
 
   btn.addEventListener('click', () => {
     const next = field.dataset.mode === 'scatter' ? 'arrange' : 'scatter';
@@ -82,6 +138,8 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
     align-items: center;
     gap: 1rem;
     margin: 2rem 0 0.75rem;
+    position: relative;
+    z-index: 20;
   }
   .byob-btn {
     font-family: "JetBrains Mono", monospace;
@@ -104,26 +162,22 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
     text-transform: uppercase;
   }
 
-  /* ─── field container ─── */
+  /* ─── field container defaults ─── */
   .byob-field {
     position: relative;
     width: 100%;
-    max-width: 860px;
+    overflow: hidden;
   }
 
-  /* ════════ SCATTER MODE ════════ */
+  /* ════════ SCATTER: images fill full viewport as BG ════════ */
+  /* (position:fixed is applied by script; these set each image's size+place) */
   .byob-field[data-mode="scatter"] {
-    height: 980px;
+    /* container is fixed via inline style from script */
   }
 
   .byob-field[data-mode="scatter"] .byob-item {
     position: absolute;
-    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-                z-index 0s,
-                width 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-                height 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-                top 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-                left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow: hidden;
   }
 
   .byob-field[data-mode="scatter"] .byob-item img {
@@ -131,83 +185,97 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: contrast(1.05) saturate(0.9);
+    filter: contrast(1.05) saturate(0.88);
   }
 
-  /* individual scatter positions — no rotation */
-  .byob-field[data-mode="scatter"] [data-i="0"] { /* poster — large, anchored left */
-    top: 0; left: 0;
-    width: 320px; height: 430px;
-    z-index: 2;
+  /* viewport-scale scatter positions — no rotation */
+  .byob-field[data-mode="scatter"] [data-i="0"] {
+    top: 0;      left: -2vw;  width: 46vw; height: 62vh; z-index: 2;
   }
-  .byob-field[data-mode="scatter"] [data-i="1"] { /* top-center, tall */
-    top: 0; left: 345px;
-    width: 190px; height: 280px;
-    z-index: 1;
+  .byob-field[data-mode="scatter"] [data-i="1"] {
+    top: 10vh;   left: 54vw;  width: 34vw; height: 46vh; z-index: 1;
   }
-  .byob-field[data-mode="scatter"] [data-i="2"] { /* top-right, landscape */
-    top: 30px; left: 555px;
-    width: 280px; height: 190px;
-    z-index: 3;
+  .byob-field[data-mode="scatter"] [data-i="2"] {
+    top: 4vh;    left: 28vw;  width: 28vw; height: 38vh; z-index: 3;
   }
-  .byob-field[data-mode="scatter"] [data-i="3"] { /* right edge, square-ish */
-    top: 240px; left: 600px;
-    width: 230px; height: 210px;
-    z-index: 1;
+  .byob-field[data-mode="scatter"] [data-i="3"] {
+    top: 56vh;   left: 76vw;  width: 26vw; height: 34vh; z-index: 2;
   }
-  .byob-field[data-mode="scatter"] [data-i="4"] { /* below poster, left */
-    top: 450px; left: 20px;
-    width: 240px; height: 185px;
-    z-index: 3;
+  .byob-field[data-mode="scatter"] [data-i="4"] {
+    top: 52vh;   left: 0;     width: 36vw; height: 50vh; z-index: 3;
   }
-  .byob-field[data-mode="scatter"] [data-i="5"] { /* center, overlapping */
-    top: 300px; left: 330px;
-    width: 260px; height: 200px;
-    z-index: 4;
+  .byob-field[data-mode="scatter"] [data-i="5"] {
+    top: 48vh;   left: 36vw;  width: 30vw; height: 40vh; z-index: 4;
   }
-  .byob-field[data-mode="scatter"] [data-i="6"] { /* mid-right, tall */
-    top: 470px; left: 520px;
-    width: 190px; height: 260px;
-    z-index: 2;
+  .byob-field[data-mode="scatter"] [data-i="6"] {
+    top: 0;      left: 82vw;  width: 20vw; height: 30vh; z-index: 2;
   }
-  .byob-field[data-mode="scatter"] [data-i="7"] { /* bottom-left, wide */
-    top: 660px; left: 0;
-    width: 300px; height: 200px;
-    z-index: 3;
+  .byob-field[data-mode="scatter"] [data-i="7"] {
+    top: 66vh;   left: 6vw;   width: 28vw; height: 36vh; z-index: 3;
   }
-  .byob-field[data-mode="scatter"] [data-i="8"] { /* bottom-center */
-    top: 650px; left: 310px;
-    width: 210px; height: 175px;
-    z-index: 2;
+  .byob-field[data-mode="scatter"] [data-i="8"] {
+    top: 70vh;   left: 42vw;  width: 26vw; height: 32vh; z-index: 2;
   }
-  .byob-field[data-mode="scatter"] [data-i="9"] { /* bottom-right */
-    top: 745px; left: 555px;
-    width: 240px; height: 170px;
-    z-index: 1;
+  .byob-field[data-mode="scatter"] [data-i="9"] {
+    top: 58vh;   left: 68vw;  width: 30vw; height: 40vh; z-index: 1;
   }
 
-  /* hover: raise z and very subtle scale — no rotation */
-  .byob-field[data-mode="scatter"] .byob-item:hover {
-    z-index: 10 !important;
-    transform: scale(1.02);
+  /* ════════ text blur + invert when scatter is active ════════ */
+
+  /* ensure page text sits above the fixed BG images */
+  body.byob-scatter .relative.z-10 {
+    position: relative;
+    z-index: 10; /* already z-10 from Tailwind, but reinforce */
   }
 
-  /* ════════ ARRANGE MODE ════════ */
+  /* frosted-glass + darkened bg behind the text block */
+  body.byob-scatter .byob-text-content {
+    backdrop-filter: blur(14px) brightness(0.38);
+    -webkit-backdrop-filter: blur(14px) brightness(0.38);
+    background: rgba(0, 0, 0, 0.12);
+    padding: 1.25rem 1.5rem;
+    margin-left: -1.5rem;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* invert text to white */
+  body.byob-scatter .byob-text-content * {
+    color: rgba(255, 255, 255, 0.92) !important;
+  }
+
+  /* invert the page h1 and back link too */
+  body.byob-scatter h1,
+  body.byob-scatter .back-index-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  }
+
+  /* toolbar stays visible + readable */
+  body.byob-scatter .byob-toolbar .byob-btn {
+    background: rgba(255, 255, 255, 0.9);
+    color: #000;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  }
+  body.byob-scatter .byob-toolbar .byob-mode-hint {
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  }
+
+  /* ════════ ARRANGE MODE: clean grid below content ════════ */
   .byob-field[data-mode="arrange"] {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
     background: transparent;
     padding: 0;
-    outline: none;
     height: auto;
+    max-width: 860px;
   }
 
   .byob-field[data-mode="arrange"] .byob-item {
     position: static;
     transform: none !important;
-    box-shadow: none;
-    outline: none;
     overflow: hidden;
   }
 
@@ -222,17 +290,13 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
     object-fit: cover;
     display: block;
     filter: contrast(1.06) saturate(0.88);
+    transition: filter 0.2s;
+  }
+  .byob-field[data-mode="arrange"] .byob-item:hover img {
+    filter: contrast(1.08) saturate(1);
   }
   .byob-field[data-mode="arrange"] [data-i="0"] img {
     height: 100%;
-  }
-
-  /* transition into arrange: items animate from their scatter pos */
-  .byob-field .byob-item {
-    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-                box-shadow 0.3s ease,
-                width 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-                height 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .byob-caption {
