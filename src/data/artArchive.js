@@ -21,7 +21,7 @@ export const artSections = [
       {
         title: "Netart",
         items: [
-          { label: "Self-censored Step Sequencer", slug: "self-censored-step-sequencer" },
+          { label: "Self-censored Step Sequencer (2025)", slug: "self-censored-step-sequencer" },
         ],
       },
     ],
@@ -44,19 +44,21 @@ export const artSections = [
             slug: "gimme-the-light",
           },
           {
-            label: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025",
+            label: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025 (2025)",
             slug: "unfest2025",
+            date: "2025-01-01",
           },
           {
             label: "As if you would still be here, if I keep thinking about you.",
             slug: "as-if-you-would-still-be-here",
+            date: "2026-01-01",
           },
           {
             label: "OperationSéance: Purifying the AI Spirits in Latent Space Salon",
             slug: "operation-seance",
             unlisted: true,
+            date: "2026-01-01",
           },
-          { label: "BYOB", slug: "byob" },
         ],
       },
       {
@@ -105,7 +107,8 @@ export const artSections = [
       {
         items: [
           { label: "Neonatus/Neotokyo", slug: "neonatus-neotokyo" },
-          { label: "Tentacular Teriterria" },
+          { label: "Tentacular Territoria (2020)", slug: "tentacular-territoria", date: "2020-01-01" },
+          { label: "BYOB (2023, as JAAG)", slug: "byob", date: "2023-01-01" },
         ],
       },
       {
@@ -127,17 +130,18 @@ export const artworkPages = {
   "neonatus-neotokyo": { title: "Neonatus/Neotokyo" },
   "from-scratch-live-coding": { title: "From Scratch Live Coding From Scratch" },
   "gimme-the-light": { title: "Gimme the light, and you shall receive the praise (2025)" },
-  unfest2025: { title: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025" },
-  byob: { title: "BYOB" },
+  unfest2025: { title: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025 (2025)" },
+  byob: { title: "BYOB (2023, as JAAG)" },
   "eternal-gain-eternal-pain": {
     title: "Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)",
   },
   "here-now-absolute-elsewhere": { title: "Here-now; absolute-elsewhere." },
-  "self-censored-step-sequencer": { title: "Self-censored Step Sequencer" },
+  "self-censored-step-sequencer": { title: "Self-censored Step Sequencer (2025)" },
   "as-if-you-would-still-be-here": {
     title: "As if you would still be here, if I keep thinking about you.",
   },
+  "tentacular-territoria": { title: "Tentacular Territoria (2020)" },
   "operation-seance": {
-    title: "OperationSéance: Purifying the AI Spirits in Latent Space Salon",
+    title: "OperationSéance: Purifying the AI Spirits in Latent Space Salon (2026)",
   },
 }

@@ -61,7 +61,7 @@ function splitSection(section) {
                   </thead>
                   <tbody>
                     {selected.map(({ item, groupTitle }) => {
-                      const date = dateBySlug[item.slug]
+                      const date = dateBySlug[item.slug] ?? item.date
                       const image = imageBySlug[item.slug]
                       return (
                         <tr style="border-bottom: 1px solid var(--border-subtle);">
@@ -102,25 +102,28 @@ function splitSection(section) {
                 <p class="text-[11px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">Archive</p>
                 <table class="w-full text-[13px] border-collapse">
                   <tbody>
-                    {unselected.map(({ item, groupTitle }) => (
-                      <tr style="border-bottom: 1px solid var(--border-subtle);">
-                        <td class="py-2 pr-4" style="color: var(--text-muted);">
-                          {item.slug ? (
-                            <a href={`/art/${item.slug}`} class="hover:underline">
-                              {item.label}
-                            </a>
-                          ) : (
-                            item.label
-                          )}
-                        </td>
-                        <td class="py-2 pr-4" style="color: var(--text-dim); width: 180px;">
-                          {groupTitle ?? "—"}
-                        </td>
-                        <td class="py-2 text-right" style="color: var(--text-dim); width: 60px;">
-                          —
-                        </td>
-                      </tr>
-                    ))}
+                    {unselected.map(({ item, groupTitle }) => {
+                      const archiveDate = (item.slug ? dateBySlug[item.slug] : undefined) ?? item.date
+                      return (
+                        <tr style="border-bottom: 1px solid var(--border-subtle);">
+                          <td class="py-2 pr-4" style="color: var(--text-muted);">
+                            {item.slug ? (
+                              <a href={`/art/${item.slug}`} class="hover:underline">
+                                {item.label}
+                              </a>
+                            ) : (
+                              item.label
+                            )}
+                          </td>
+                          <td class="py-2 pr-4" style="color: var(--text-dim); width: 180px;">
+                            {groupTitle ?? "—"}
+                          </td>
+                          <td class="py-2 text-right" style="color: var(--text-dim); width: 60px;">
+                            {archiveDate ? archiveDate.slice(0, 4) : "—"}
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </>

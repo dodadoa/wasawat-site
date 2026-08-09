@@ -40,6 +40,9 @@ const pathSuffix = pathname === "/" ? "" : pathname
     </button>
 
     <div class="lg:flex lg:flex-row lg:items-center lg:justify-between lg:mr-6 hidden">
+      <a href="/news" class="nav-desktop-link nav-link-news">
+        <span class="mx-4">/news</span>
+      </a>
       <a href="/index" class="nav-desktop-link nav-link-index">
         <span class="mx-4">/index</span>
       </a>
@@ -55,6 +58,9 @@ const pathSuffix = pathname === "/" ? "" : pathname
     style="border-top: 1px solid var(--border-subtle);"
   >
     <div class="flex flex-col px-6 py-4 gap-4">
+      <a href="/news" class="nav-mobile-link nav-link-news">
+        /news
+      </a>
       <a href="/index" class="nav-mobile-link nav-link-index">
         /index
       </a>
@@ -92,6 +98,10 @@ const pathSuffix = pathname === "/" ? "" : pathname
   .nav-mobile-link {
     font-size: 11px;
     letter-spacing: 0.03em;
+  }
+
+  .nav-link-news:hover {
+    color: #2a7a5a;
   }
 
   .nav-link-index:hover {

@@ -12,6 +12,7 @@ import AsIfYouWouldStillBeHere from "../../subpages/art/AsIfYouWouldStillBeHere.
 import OperationSeance from "../../subpages/art/OperationSeance.astro"
 import DoTheNPCsHearTheSimulatedWind from "../../subpages/art/DoTheNPCsHearTheSimulatedWind.astro"
 import NeonatusNeotokyo from "../../subpages/art/NeonatusNeotokyo.astro"
+import TentacularTerritoria from "../../subpages/art/TentacularTerritoria.astro"
 
 const components = {
   "do-the-npcs-hear-the-simulated-wind": DoTheNPCsHearTheSimulatedWind,
@@ -25,6 +26,7 @@ const components = {
   "self-censored-step-sequencer": SelfCensoredStepSequencer,
   "as-if-you-would-still-be-here": AsIfYouWouldStillBeHere,
   "operation-seance": OperationSeance,
+  "tentacular-territoria": TentacularTerritoria,
 }
 
 export function getStaticPaths() {
@@ -126,6 +128,11 @@ if (!artwork || !Content) {
     font-family: "DepartureMono", monospace;
     font-size: calc(12px * var(--ui-scale, 1));
     line-height: 1.5;
+  }
+  .art-detail-body a {
+    font-weight: normal;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   .art-detail-body p,
   .art-detail-body li {

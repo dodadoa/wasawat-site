@@ -410,55 +410,137 @@ function CombinedPlan() {
   )
 }
 
+// ── Full bio content ──────────────────────────────────────────────────
+
+function FullBio() {
+  return (
+    <div className="space-y-3" style={{ fontSize: "13px", lineHeight: 1.65 }}>
+      <p>
+        He also performs and records under the name <strong>WrappedByte</strong> — a live-coding
+        audio/visual project working primarily in TidalCycles and Hydra. As WrappedByte, he has
+        performed across club scenes, art exhibitions, and international live-coding communities,
+        including <em>evals</em> (Bangkok Kunsthalle), <em>Para Cartography</em> (Vietnam Media Lab,
+        Ho Chi Minh City), <em>Ghost2565</em>, <em>NonNonNon Bangkok</em>, <em>Road to Diage</em>{" "}
+        and <em>Diage Festival</em>, <em>Algorapture</em> (Jakarta), <em>Interlude</em> (Ho Chi Minh
+        City), and <em>AlgoSeoul</em> (Seoul).
+      </p>
+      <p>
+        Alongside the solo practice, he is active as an organizer and curator in Bangkok's independent
+        tech-art and experimental electronic music scene. He co-organized{" "}
+        <strong>BYOB Bangkok (Bring Your Own Beamer)</strong> with members of JAAG and ZonZon.Studio,
+        supported by Bangkok CityCity Gallery. With his collective{" "}
+        <strong>Cornea Cochlear Club</strong>, he organized <em>Cybernaut Party</em> (at Unformat) and{" "}
+        <em>Hear/Hex/Halt</em> (at Goethe-Institut Thailand), bringing together artists from New York,
+        Ho Chi Minh City, Yogyakarta, and Seoul. He co-organized and curated{" "}
+        <strong>Player 2 Has Entered The Server</strong>, a tech-art initiative in collaboration with
+        Goethe-Institut Thailand, under the group name Stack. He also co-founded{" "}
+        <strong>TouchDesigner Bangkok Meetup (TDBKK)</strong>.
+      </p>
+      <p>
+        He regularly collaborates with other artists. Notable contributions include{" "}
+        <em>THE IMMORTALS ARE QUITE BUSY THESE DAYS</em> by Nawin Nuthong, and the algorave collective{" "}
+        <strong>WrappedByte [Algorave]</strong> hosting regular events under the name{" "}
+        <strong>WrappedByte</strong> at venues including De Commune. He co-founded{" "}
+        <strong>Mal Studio</strong> as a studio and event space in Bangkok.
+      </p>
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────
 
-const About = () => (
-  <div
-    className="relative z-10 font-mono w-full mt-16 pb-16"
-    style={{ color: "var(--text-body)", fontSize: "14px", lineHeight: 1.5 }}
-  >
-    <div className="px-8 lg:w-4/5 max-w-3xl font-thin space-y-3 mb-12">
-      <p className="uppercase text-[13px] tracking-widest mb-5 font-normal" style={{ color: "var(--text-muted)" }}>
-        ~Artist
-      </p>
-      <p>
-        Wasawat Somno (1994, Thailand) is an artist working with code, audiovisual/sound performance,
-        and installation. His practice is organized around the act of mapping — holding two planes of
-        context in tension and tracing what passes between them. A computational system and the ethical
-        questions it quietly carries. A simulation and the physical world it stands in for. An interface
-        and the body that encounters it.
-      </p>
-      <p>
-        His work constructs situations where these double registers become navigable: spaces where narrative
-        bleeds across layers, where expectation bends, and where the logic of a system begins to press
-        against something more speculative. Working across installation, audiovisual/sound performance, and
-        net art, he is drawn to the threshold where the technical and the ethical fold into each other —
-        where a worm's connectome becomes a question about consciousness, where a screen holds more than
-        what it displays.
-      </p>
-      <p>
-        The work holds a deliberately semi-serious structure — rigorous in its systems, amateur in its
-        posture, sustained by the spirit of DIY.
-      </p>
-    </div>
+const About = () => {
+  const [showFull, setShowFull] = useState(false)
 
-    <div style={{ width: "100%" }}>
-      <CombinedPlan />
-    </div>
+  return (
+    <div
+      className="relative z-10 font-mono w-full mt-16 pb-16"
+      style={{ color: "var(--text-body)", fontSize: "14px", lineHeight: 1.5 }}
+    >
+      <div className="px-8 lg:w-4/5 max-w-3xl font-thin space-y-3 mb-6">
+        <p className="uppercase text-[13px] tracking-widest mb-5 font-normal" style={{ color: "var(--text-muted)" }}>
+          ~Artist
+        </p>
+        <p>
+          Wasawat Somno (1994, Thailand) is an artist working with code, audiovisual/sound performance,
+          and installation. His practice is organized around the act of mapping — holding two planes of
+          context in tension and tracing what passes between them. A computational system and the ethical
+          questions it quietly carries. A simulation and the physical world it stands in for. An interface
+          and the body that encounters it.
+        </p>
+        <p>
+          His work constructs situations where these double registers become navigable: spaces where narrative
+          bleeds across layers, where expectation bends, and where the logic of a system begins to press
+          against something more speculative. Working across installation, audiovisual/sound performance, and
+          net art, he is drawn to the threshold where the technical and the ethical fold into each other —
+          where a worm's connectome becomes a question about consciousness, where a screen holds more than
+          what it displays.
+        </p>
+        <p>
+          The work holds a deliberately semi-serious structure — rigorous in its systems, amateur in its
+          posture, sustained by the spirit of DIY.
+        </p>
 
-    <div className="px-8 lg:w-4/5 max-w-3xl mt-10">
-      <a
-        className="hover:font-bold block"
-        target="_blank"
-        rel="noopener noreferrer"
-        href="https://shrouded-runner-ae1.notion.site/Wasawat-Somno-dc377ed5daf94a79a57575adc00331bf?pvs=4"
-      >
-        <span className="underline uppercase text-[13px] tracking-widest" style={{ color: "var(--text-muted)" }}>
-          /More about me/
-        </span>
-      </a>
+        {/* toggle */}
+        <button
+          onClick={() => setShowFull(v => !v)}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5em",
+            fontFamily: "'DepartureMono', monospace",
+            fontSize: "11px",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "var(--text-muted)",
+            background: "none",
+            border: "none",
+            borderBottom: "1px solid var(--border-subtle)",
+            padding: "0.25em 0",
+            cursor: "pointer",
+            marginTop: "0.5rem",
+            transition: "color 0.15s",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
+        >
+          <span style={{ display: "inline-block", transition: "transform 0.2s", transform: showFull ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
+          <span>{showFull ? "collapse" : "extended bio"}</span>
+        </button>
+
+        {/* expanded content */}
+        {showFull && (
+          <div
+            style={{
+              borderLeft: "1px solid var(--border-subtle)",
+              paddingLeft: "1.2rem",
+              marginTop: "0.5rem",
+            }}
+          >
+            <FullBio />
+          </div>
+        )}
+      </div>
+
+      {/* floor plan — sits above this in the page flow */}
+      <div style={{ width: "100%" }}>
+        <CombinedPlan />
+      </div>
+
+      <div className="px-8 lg:w-4/5 max-w-3xl mt-10">
+        <a
+          className="hover:font-bold block"
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://shrouded-runner-ae1.notion.site/Wasawat-Somno-dc377ed5daf94a79a57575adc00331bf?pvs=4"
+        >
+          <span className="underline uppercase text-[13px] tracking-widest" style={{ color: "var(--text-muted)" }}>
+            /More about me/
+          </span>
+        </a>
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 export default About

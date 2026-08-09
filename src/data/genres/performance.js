@@ -16,15 +16,6 @@ const performance = {
     { label: "From Scratch Live Coding From Scratch", slug: "from-scratch-live-coding", image: "/images/from-scratch/from-scratch-03.jpg", date: "2025-07-04", x: -0.7, y: 0, z: 1 },
     { label: "Do The NPCs Hear The Simulated Wind", slug: "do-the-npcs-hear-the-simulated-wind", image: "/images/do-npcs-hear/npcs-05.jpg", date: "2026-07-04", x: -0.4, y: 0.4, z: 0.35 },
     { label: "As if you would still be here, if I keep thinking about you.", slug: "as-if-you-would-still-be-here", image: "/images/as-if-you-would-still-be-here-performance.jpg", date: "2026-01-01", x: -0.72, y: -0.68, z: 1 },
-    {
-      label: "OperationSéance: Purifying the AI Spirits in Latent Space Salon",
-      planeLabel: "OperationSéance",
-      slug: "operation-seance",
-      date: "2026-03-14",
-      x: 0.6,
-      y: 0.55,
-      z: -0.5,
-    },
   ],
 }
 

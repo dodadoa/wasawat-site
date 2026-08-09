@@ -5,8 +5,10 @@ const netart = {
   z: 0,
   works: [
     {
-      label: "Self-censored Step Sequencer",
+      label: "Self-censored Step Sequencer (2025)",
+      planeLabel: "Self-censored Step Sequencer",
       slug: "self-censored-step-sequencer",
+      date: "2025-01-01",
       image: "/images/self-censored-step-sequencer-chrome-extension.jpg",
       x: 0.5,
       y: -0.55,

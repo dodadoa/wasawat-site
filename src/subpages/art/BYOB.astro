@@ -1,13 +1,244 @@
 ---
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
 ---
 
 <div class="mt-4 max-w-3xl">
-  <p class="mb-2 text-sm opacity-80">
-    BYOB is a series of motion picture exhibitions that take place for one night in various locations around the world. Artists will bring the projector/beamer to display their works along with others filled in the space to create the visual together.
+  <ArtworkMeta fields={[
+    { label: "Year",   value: "2023" },
+    { label: "Role",   value: "Organizer, Co-Director" },
+    { label: "With",   value: "JAAG (Joint Artistic Amateur Group) & ZonZon.Studio" },
+    { label: "Venue",  value: "Bangkok CityCity Gallery, Bangkok" },
+    { label: "Type",   value: "One-night motion picture exhibition" },
+  ]} />
+
+  <p class="mb-4">
+    BYOB (Bring Your Own Beamers) is a series of one-night motion picture exhibitions that take place
+    in various locations around the world. Artists bring their own projectors and beamers to display
+    their works, filling the space with projected images together.
   </p>
-  
-  <p class="mb-4 mt-4">
-    BYOB was originally started by Rafaël Rozendaal in Berlin, Germany, in 2010. This event showcasing moving images has been expanded by individuals interested in motion media in many countries, such as Amsterdam, Los Angeles, Melbourne, and Taipei. The open invitation invites visual artists and creators to showcase their work, exploring new possibilities in presenting images through projection.
+
+  <p class="mb-4">
+    Originally started by Rafaël Rozendaal in Berlin in 2010, BYOB has since expanded across
+    Amsterdam, Los Angeles, Melbourne, and Taipei. The open invitation format welcomes visual artists
+    and creators to explore new possibilities in presenting moving images through projection.
+  </p>
+
+  <p class="mb-4">
+    BYOB Bangkok was organised by JAAG (Joint Artistic Amateur Group) and ZonZon.Studio,
+    with support from Bangkok CityCity Gallery.
   </p>
 </div>
 
+<!-- toolbar -->
+<div class="byob-toolbar">
+  <button id="byob-toggle" class="byob-btn" data-mode="scatter">
+    <span class="byob-btn-label">↓ ARRANGE</span>
+  </button>
+  <span class="byob-mode-hint">scattered</span>
+</div>
+
+<!-- image field -->
+<div class="byob-field" id="byob-field" data-mode="scatter">
+  <div class="byob-item" data-i="0"><img src="/images/byob/poster.jpg"  alt="BYOB BKK 2023 — Poster" loading="lazy" /></div>
+  <div class="byob-item" data-i="1"><img src="/images/byob/byob-1.jpg"  alt="BYOB BKK 2023" loading="lazy" /></div>
+  <div class="byob-item" data-i="2"><img src="/images/byob/byob-3.jpg"  alt="BYOB BKK 2023" loading="lazy" /></div>
+  <div class="byob-item" data-i="3"><img src="/images/byob/byob-4.jpg"  alt="BYOB BKK 2023" loading="lazy" /></div>
+  <div class="byob-item" data-i="4"><img src="/images/byob/byob-5.jpg"  alt="BYOB BKK 2023" loading="lazy" /></div>
+  <div class="byob-item" data-i="5"><img src="/images/byob/byob-6.jpg"  alt="BYOB BKK 2023" loading="lazy" /></div>
+  <div class="byob-item" data-i="6"><img src="/images/byob/byob-10.jpg" alt="BYOB BKK 2023" loading="lazy" /></div>
+  <div class="byob-item" data-i="7"><img src="/images/byob/byob-12.jpg" alt="BYOB BKK 2023" loading="lazy" /></div>
+  <div class="byob-item" data-i="8"><img src="/images/byob/byob-16.jpg" alt="BYOB BKK 2023" loading="lazy" /></div>
+  <div class="byob-item" data-i="9"><img src="/images/byob/byob-17.jpg" alt="BYOB BKK 2023" loading="lazy" /></div>
+</div>
+<p class="byob-caption">BYOB Bangkok, 2023. Bangkok CityCity Gallery.</p>
+
+<script>
+  const field   = document.getElementById('byob-field') as HTMLElement;
+  const btn     = document.getElementById('byob-toggle') as HTMLButtonElement;
+  const hint    = btn.nextElementSibling as HTMLElement;
+
+  function setMode(mode: 'scatter' | 'arrange') {
+    field.dataset.mode = mode;
+    btn.dataset.mode   = mode;
+    if (mode === 'scatter') {
+      btn.querySelector('.byob-btn-label')!.textContent = '↓ ARRANGE';
+      hint.textContent = 'scattered';
+    } else {
+      btn.querySelector('.byob-btn-label')!.textContent = '↑ SCATTER';
+      hint.textContent = 'arranged';
+    }
+  }
+
+  btn.addEventListener('click', () => {
+    const next = field.dataset.mode === 'scatter' ? 'arrange' : 'scatter';
+    setMode(next as 'scatter' | 'arrange');
+  });
+</script>
+
+<style is:global>
+  /* ─── toolbar ─── */
+  .byob-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0 0.75rem;
+  }
+  .byob-btn {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    padding: 0.4rem 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .byob-btn:hover { opacity: 0.7; }
+  .byob-mode-hint {
+    font-family: "DepartureMono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* ─── field container ─── */
+  .byob-field {
+    position: relative;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  /* ════════ SCATTER MODE ════════ */
+  .byob-field[data-mode="scatter"] {
+    height: 980px;
+  }
+
+  .byob-field[data-mode="scatter"] .byob-item {
+    position: absolute;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                z-index 0s,
+                width 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                height 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                top 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .byob-field[data-mode="scatter"] .byob-item img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: contrast(1.05) saturate(0.9);
+  }
+
+  /* individual scatter positions — no rotation */
+  .byob-field[data-mode="scatter"] [data-i="0"] { /* poster — large, anchored left */
+    top: 0; left: 0;
+    width: 320px; height: 430px;
+    z-index: 2;
+  }
+  .byob-field[data-mode="scatter"] [data-i="1"] { /* top-center, tall */
+    top: 0; left: 345px;
+    width: 190px; height: 280px;
+    z-index: 1;
+  }
+  .byob-field[data-mode="scatter"] [data-i="2"] { /* top-right, landscape */
+    top: 30px; left: 555px;
+    width: 280px; height: 190px;
+    z-index: 3;
+  }
+  .byob-field[data-mode="scatter"] [data-i="3"] { /* right edge, square-ish */
+    top: 240px; left: 600px;
+    width: 230px; height: 210px;
+    z-index: 1;
+  }
+  .byob-field[data-mode="scatter"] [data-i="4"] { /* below poster, left */
+    top: 450px; left: 20px;
+    width: 240px; height: 185px;
+    z-index: 3;
+  }
+  .byob-field[data-mode="scatter"] [data-i="5"] { /* center, overlapping */
+    top: 300px; left: 330px;
+    width: 260px; height: 200px;
+    z-index: 4;
+  }
+  .byob-field[data-mode="scatter"] [data-i="6"] { /* mid-right, tall */
+    top: 470px; left: 520px;
+    width: 190px; height: 260px;
+    z-index: 2;
+  }
+  .byob-field[data-mode="scatter"] [data-i="7"] { /* bottom-left, wide */
+    top: 660px; left: 0;
+    width: 300px; height: 200px;
+    z-index: 3;
+  }
+  .byob-field[data-mode="scatter"] [data-i="8"] { /* bottom-center */
+    top: 650px; left: 310px;
+    width: 210px; height: 175px;
+    z-index: 2;
+  }
+  .byob-field[data-mode="scatter"] [data-i="9"] { /* bottom-right */
+    top: 745px; left: 555px;
+    width: 240px; height: 170px;
+    z-index: 1;
+  }
+
+  /* hover: raise z and very subtle scale — no rotation */
+  .byob-field[data-mode="scatter"] .byob-item:hover {
+    z-index: 10 !important;
+    transform: scale(1.02);
+  }
+
+  /* ════════ ARRANGE MODE ════════ */
+  .byob-field[data-mode="arrange"] {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    background: transparent;
+    padding: 0;
+    outline: none;
+    height: auto;
+  }
+
+  .byob-field[data-mode="arrange"] .byob-item {
+    position: static;
+    transform: none !important;
+    box-shadow: none;
+    outline: none;
+    overflow: hidden;
+  }
+
+  /* poster spans 2 rows in arrange */
+  .byob-field[data-mode="arrange"] [data-i="0"] {
+    grid-row: span 2;
+  }
+
+  .byob-field[data-mode="arrange"] .byob-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    filter: contrast(1.06) saturate(0.88);
+  }
+  .byob-field[data-mode="arrange"] [data-i="0"] img {
+    height: 100%;
+  }
+
+  /* transition into arrange: items animate from their scatter pos */
+  .byob-field .byob-item {
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.3s ease,
+                width 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                height 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .byob-caption {
+    font-size: 10px !important;
+    color: var(--text-dim);
+    margin-top: 0.6rem;
+    letter-spacing: 0.06em;
+  }
+</style>
