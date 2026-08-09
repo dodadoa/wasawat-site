@@ -10,7 +10,7 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
 <!-- full-screen scattered background field -->
 <div class="byob-bg-field" id="byob-bg-field" aria-hidden="true">
   {scatterImages.map((src, i) => (
-    <img class="byob-bg-item" data-i={i} src={src} alt="" loading="lazy" />
+    <img class="byob-bg-item" data-i={i} src={src} alt="" loading="eager" decoding="async" />
   ))}
 </div>
 
@@ -70,22 +70,22 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
   const hint    = btn.nextElementSibling as HTMLElement;
   const caption = document.getElementById('byob-caption') as HTMLElement;
 
-  // ── apply scatter: field becomes a fixed full-viewport bg layer ──
+  const bgFieldEl = document.getElementById('byob-bg-field') as HTMLElement | null;
+
+  // ── apply scatter: hide the curated 10-image grid, show the true
+  //    full-page scattered field (byob-bg-field) instead — having both
+  //    on screen at once is what made things feel cramped, not scattered ──
   function applyScatter() {
-    Object.assign(field.style, {
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      width: '100vw',
-      height: '100vh',
-      zIndex: '1',
-      pointerEvents: 'none',
-      display: 'block',
-    });
+    field.style.display = 'none';
+    if (bgFieldEl) {
+      bgFieldEl.style.transition = 'opacity 0.4s';
+      bgFieldEl.style.opacity = '1';
+      bgFieldEl.style.pointerEvents = '';
+    }
     document.body.classList.add('byob-scatter');
   }
 
-  // ── apply arrange: field back to normal doc flow below content ──
+  // ── apply arrange: show curated grid, fade the scattered field out ──
   function applyArrange() {
     Object.assign(field.style, {
       position: 'relative',
@@ -97,6 +97,11 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
       pointerEvents: '',
       display: '',
     });
+    if (bgFieldEl) {
+      bgFieldEl.style.transition = 'opacity 0.4s';
+      bgFieldEl.style.opacity = '0';
+      bgFieldEl.style.pointerEvents = 'none';
+    }
     document.body.classList.remove('byob-scatter');
   }
 
@@ -158,14 +163,43 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
     const items = [...bgField.querySelectorAll<HTMLElement>('.byob-bg-item')];
     const pageHeight = () => Math.max(document.body.scrollHeight, window.innerHeight);
 
+    // jittered-grid layout: pure random placement clumps (birthday paradox)
+    // and leaves empty holes — instead bucket the page into a grid with
+    // one image per cell, jittered within the cell, so coverage is even
+    // across the *entire* screen/page, edges and corners included.
     function layout() {
-      const h = pageHeight();
+      // measure page height with the field collapsed first, else its own
+      // previous height feeds back into scrollHeight and it can never grow
+      bgField!.style.height = '0px';
+      const h = Math.max(pageHeight(), window.innerHeight * 1.6);
       bgField!.style.height = `${h}px`;
-      items.forEach((el, i) => {
-        const w = 100 + rand() * 140;
-        const top = rand() * (h - 220);
-        const left = rand() * 92; // vw
-        const rot = (rand() - 0.5) * 14;
+
+      const n = items.length;
+      const cols = Math.ceil(Math.sqrt((n * (window.innerWidth || 1200)) / h)) || 5;
+      const rows = Math.ceil(n / cols);
+      const cellW = 100 / cols; // vw
+      const cellH = h / rows;   // px
+
+      // shuffle item order so the same image doesn't always land in the same cell
+      const order = items.map((_, i) => i);
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+
+      order.forEach((itemIdx, cellIdx) => {
+        const el = items[itemIdx];
+        const col = cellIdx % cols;
+        const row = Math.floor(cellIdx / cols);
+
+        const w = 90 + rand() * 130;
+        const halfWidthVw = (w / (window.innerWidth || 1200)) * 50; // half of width-in-vw
+        const jitterX = (rand() - 0.5) * cellW * 0.7;
+        const jitterY = (rand() - 0.5) * cellH * 0.6;
+        const left = Math.max(0, Math.min(96, col * cellW + cellW * 0.5 + jitterX - halfWidthVw));
+        const top = Math.max(0, Math.min(h - 200, row * cellH + cellH * 0.5 + jitterY - 100));
+        const rot = (rand() - 0.5) * 16;
+
         el.style.width = `${w}px`;
         el.style.top = `${top}px`;
         el.style.left = `${left}vw`;
@@ -344,9 +378,14 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
     color: rgba(255, 255, 255, 0.92) !important;
   }
 
-  /* invert the page h1 and back link too */
+  /* invert the page h1 and back link too — and lift them above the fixed
+     scatter field: elements with an explicit z-index (the field is z:1)
+     paint AFTER auto-z-index siblings, so the title needs its own
+     positioned stacking context with a higher z-index to stay visible */
   body.byob-scatter h1,
   body.byob-scatter .back-index-link {
+    position: relative;
+    z-index: 50;
     color: rgba(255, 255, 255, 0.9) !important;
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
   }

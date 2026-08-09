@@ -228,6 +228,13 @@ const { title, preview, description } = Astro.props
         --accent-5: #99b0ee;
       }
 
+      html {
+        /* reserve the scrollbar's gutter always — pages that toggle between
+           scrollable/short content no longer shift width and flicker */
+        scrollbar-gutter: stable;
+        overflow-y: scroll;
+      }
+
       html,
       body {
         font-size: 18px;
