@@ -10,7 +10,7 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
 <!-- full-screen scattered background field -->
 <div class="byob-bg-field" id="byob-bg-field" aria-hidden="true">
   {scatterImages.map((src, i) => (
-    <img class="byob-bg-item" data-i={i} src={src} alt="" loading="eager" decoding="async" />
+    <img class="byob-bg-item" data-i={i} src={src} alt="" loading="lazy" decoding="async" />
   ))}
 </div>
 
@@ -61,7 +61,11 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
   <div class="byob-item" data-i="7"><img src="/images/byob/byob-12.jpg" alt="BYOB BKK 2023" loading="lazy" /></div>
   <div class="byob-item" data-i="8"><img src="/images/byob/byob-16.jpg" alt="BYOB BKK 2023" loading="lazy" /></div>
   <div class="byob-item" data-i="9"><img src="/images/byob/byob-17.jpg" alt="BYOB BKK 2023" loading="lazy" /></div>
+  {scatterImages.map((src, i) => (
+    <div class="byob-item byob-extra-item" data-i={`extra-${i}`}><img src={src} alt="BYOB BKK 2023" loading="lazy" /></div>
+  ))}
 </div>
+<button id="byob-load-more" class="byob-btn byob-load-more">↓ LOAD MORE</button>
 <p class="byob-caption" id="byob-caption">BYOB Bangkok, 2023. Bangkok CityCity Gallery.</p>
 
 <script>
@@ -144,7 +148,26 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
   btn.addEventListener('click', () => {
     const next = field.dataset.mode === 'scatter' ? 'arrange' : 'scatter';
     setMode(next as 'scatter' | 'arrange');
+    updateLoadMoreVisibility();
   });
+
+  // ── load more: arrange starts with the first 10 curated images only;
+  //    the rest reveal on demand ──
+  const loadMoreBtn = document.getElementById('byob-load-more') as HTMLButtonElement;
+  let extrasRevealed = false;
+
+  function updateLoadMoreVisibility() {
+    const inArrange = field.dataset.mode === 'arrange';
+    loadMoreBtn.style.display = (inArrange && !extrasRevealed) ? 'inline-block' : 'none';
+  }
+
+  loadMoreBtn.addEventListener('click', () => {
+    extrasRevealed = true;
+    field.classList.add('byob-extras-revealed');
+    updateLoadMoreVisibility();
+  });
+
+  updateLoadMoreVisibility();
 
   // ── full-screen scatter background ──────────────────────────────────
   // deterministic PRNG so layout is stable across renders
@@ -198,12 +221,10 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
         const jitterY = (rand() - 0.5) * cellH * 0.6;
         const left = Math.max(0, Math.min(96, col * cellW + cellW * 0.5 + jitterX - halfWidthVw));
         const top = Math.max(0, Math.min(h - 200, row * cellH + cellH * 0.5 + jitterY - 100));
-        const rot = (rand() - 0.5) * 16;
-
         el.style.width = `${w}px`;
         el.style.top = `${top}px`;
         el.style.left = `${left}vw`;
-        el.style.transform = `rotate(${rot}deg)`;
+        el.style.transform = 'none';
         el.style.zIndex = String(1 + Math.floor(rand() * 3));
       });
     }
@@ -234,8 +255,8 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
     display: block;
     height: auto;
     object-fit: cover;
-    opacity: 0.5;
-    filter: contrast(1.02) saturate(0.85) grayscale(0.15);
+    opacity: 1;
+    filter: contrast(1.02) saturate(0.95);
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
   }
 
@@ -312,6 +333,18 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
   .byob-field[data-mode="scatter"] .byob-item {
     position: absolute;
     overflow: hidden;
+  }
+
+  .byob-field[data-mode="scatter"] .byob-extra-item {
+    display: none;
+  }
+
+  /* arrange: only show the extra images once revealed via "load more" */
+  .byob-field[data-mode="arrange"] .byob-extra-item {
+    display: none;
+  }
+  .byob-field[data-mode="arrange"].byob-extras-revealed .byob-extra-item {
+    display: block;
   }
 
   .byob-field[data-mode="scatter"] .byob-item img {
@@ -401,11 +434,11 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
   }
 
-  /* ════════ ARRANGE MODE: clean grid below content ════════ */
+  /* ════════ ARRANGE MODE: masonry — full images, no cropping ════════ */
   .byob-field[data-mode="arrange"] {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    display: block;
+    columns: 3;
+    column-gap: 8px;
     background: transparent;
     padding: 0;
     height: auto;
@@ -416,17 +449,14 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
     position: static;
     transform: none !important;
     overflow: hidden;
-  }
-
-  /* poster spans 2 rows in arrange */
-  .byob-field[data-mode="arrange"] [data-i="0"] {
-    grid-row: span 2;
+    break-inside: avoid;
+    margin-bottom: 8px;
   }
 
   .byob-field[data-mode="arrange"] .byob-item img {
     width: 100%;
-    height: 200px;
-    object-fit: cover;
+    height: auto;
+    object-fit: contain;
     display: block;
     filter: contrast(1.06) saturate(0.88);
     transition: filter 0.2s;
@@ -434,8 +464,18 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
   .byob-field[data-mode="arrange"] .byob-item:hover img {
     filter: contrast(1.08) saturate(1);
   }
-  .byob-field[data-mode="arrange"] [data-i="0"] img {
-    height: 100%;
+
+  @media (max-width: 640px) {
+    .byob-field[data-mode="arrange"] {
+      columns: 2;
+    }
+  }
+
+  .byob-load-more {
+    position: relative;
+    z-index: 2;
+    display: none;
+    margin-top: 0.75rem;
   }
 
   .byob-caption {

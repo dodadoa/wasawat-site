@@ -451,7 +451,7 @@ function FullBio() {
 
 const About = () => {
   const [showFull, setShowFull] = useState(false)
-  const [showPlan, setShowPlan] = useState(false)
+  const [showPlan, setShowPlan] = useState(true)
 
   return (
     <div
