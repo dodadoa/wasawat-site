@@ -462,6 +462,44 @@ const About = () => {
         <p className="uppercase text-[13px] tracking-widest mb-5 font-normal" style={{ color: "var(--text-muted)" }}>
           ~Artist
         </p>
+
+        <div className="flex gap-3 mb-4">
+          <a
+            href="/cv"
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "11px",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              background: "var(--text)",
+              color: "var(--bg)",
+              padding: "0.45rem 0.9rem",
+              transition: "opacity 0.15s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
+            onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+          >
+            CV
+          </a>
+          <a
+            href="/cv"
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "11px",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              background: "var(--text)",
+              color: "var(--bg)",
+              padding: "0.45rem 0.9rem",
+              transition: "opacity 0.15s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
+            onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+          >
+            Resume
+          </a>
+        </div>
+
         <p>
           Wasawat Somno (1994, Thailand) is an artist working with code, audiovisual/sound performance,
           and installation. His practice is organized around the act of mapping — holding two planes of
@@ -554,19 +592,6 @@ const About = () => {
         {showPlan && (
           <CombinedPlan />
         )}
-      </div>
-
-      <div className="px-8 lg:w-4/5 max-w-3xl mt-10">
-        <a
-          className="hover:font-bold block"
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://shrouded-runner-ae1.notion.site/Wasawat-Somno-dc377ed5daf94a79a57575adc00331bf?pvs=4"
-        >
-          <span className="underline uppercase text-[13px] tracking-widest" style={{ color: "var(--text-muted)" }}>
-            /More about me/
-          </span>
-        </a>
       </div>
     </div>
   )

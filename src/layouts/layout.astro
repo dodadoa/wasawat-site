@@ -63,27 +63,60 @@ const { title, preview, description } = Astro.props
       <div class="loader-ring">
         <svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
           <defs>
-            <clipPath id="loaderClip"><circle cx="60" cy="60" r="55" /></clipPath>
-            <linearGradient id="loaderGrad" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stop-color="#0a0a0a" />
-              <stop offset="100%" stop-color="#4a4a4a" />
-            </linearGradient>
             <!-- fine 2×2 Bayer dither, matching .dither-thumb elsewhere on the site -->
             <pattern id="loaderDither" width="2" height="2" patternUnits="userSpaceOnUse">
               <rect width="1" height="1" fill="#000000" opacity="0.22" />
             </pattern>
+            <marker id="loaderArrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#0a0a0a" />
+            </marker>
           </defs>
+
+          <!-- progress ring — dashoffset driven by --progress -->
           <circle class="loader-track" cx="60" cy="60" r="55" fill="none" stroke="rgba(10,10,10,0.12)" stroke-width="1" />
-          <g clip-path="url(#loaderClip)">
-            <g id="loader-liquid" class="loader-liquid">
-              <path class="loader-wave wave-a" d="M-60 40 Q -40 20 -20 40 T 20 40 T 60 40 T 100 40 T 140 40 T 180 40 V160 H-60 Z" fill="url(#loaderGrad)" opacity="0.5" />
-              <path class="loader-wave wave-b" d="M-60 40 Q -40 25 -20 40 T 20 40 T 60 40 T 100 40 T 140 40 T 180 40 V160 H-60 Z" fill="url(#loaderGrad)" />
-            </g>
-            <rect x="0" y="0" width="120" height="120" fill="url(#loaderDither)" style="mix-blend-mode: multiply;" />
+          <circle id="loader-progress-ring" cx="60" cy="60" r="55" fill="none" stroke="#0a0a0a" stroke-width="1"
+            stroke-dasharray="345.6" stroke-dashoffset="345.6" transform="rotate(-90 60 60)" />
+
+          <!-- diagrammatic node graph: a small notion-style network, arrows
+               pointing between nodes, dots traveling the edges on a loop —
+               a "system diagramming itself" motif for the loading state -->
+          <g class="loader-diagram" stroke="#0a0a0a" stroke-width="1" fill="none">
+            <path id="loaderEdgeAB" d="M32,82 L58,34" />
+            <path id="loaderEdgeBC" d="M62,34 L88,68" marker-end="url(#loaderArrow)" />
+            <path id="loaderEdgeAD" d="M32,84 L58,97" marker-end="url(#loaderArrow)" />
+            <path id="loaderEdgeDC" d="M62,98 L86,70" />
+            <path id="loaderEdgeBD" d="M60,36 L60,94" stroke-dasharray="2 3" opacity="0.5" />
           </g>
+
+          <g class="loader-nodes" fill="#0a0a0a">
+            <circle cx="30" cy="83" r="3" />
+            <circle cx="60" cy="32" r="3.5" />
+            <circle cx="90" cy="68" r="3" />
+            <circle cx="60" cy="98" r="2.5" />
+          </g>
+
+          <g class="loader-dots" fill="var(--accent-1, #f90d63)">
+            <circle r="2">
+              <animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#loaderEdgeAB" /></animateMotion>
+            </circle>
+            <circle r="1.8">
+              <animateMotion dur="3.1s" repeatCount="indefinite"><mpath href="#loaderEdgeBC" /></animateMotion>
+            </circle>
+            <circle r="1.6">
+              <animateMotion dur="2.1s" repeatCount="indefinite"><mpath href="#loaderEdgeAD" /></animateMotion>
+            </circle>
+            <circle r="1.6" fill="#0a0a0a" opacity="0.6">
+              <animateMotion dur="1.8s" repeatCount="indefinite"><mpath href="#loaderEdgeDC" /></animateMotion>
+            </circle>
+          </g>
+
+          <rect x="0" y="0" width="120" height="120" fill="url(#loaderDither)" style="mix-blend-mode: multiply;" />
         </svg>
       </div>
       <p class="loader-label">loading · <span id="loader-pct">0</span>%</p>
+      <!-- cycling list of predicted apocalypse/doomsday dates — deadpan
+           end-of-the-world countdown while the site itself loads -->
+      <p class="loader-ticker" id="loader-ticker" aria-hidden="true"></p>
     </div>
 
     <script>
@@ -93,7 +126,8 @@ const { title, preview, description } = Astro.props
 
         const body = document.body
         const pctEl = document.getElementById("loader-pct")
-        const liquid = document.getElementById("loader-liquid")
+        const ring = document.getElementById("loader-progress-ring")
+        const RING_CIRCUMFERENCE = 345.6
 
         body.classList.add("is-loading")
 
@@ -105,8 +139,40 @@ const { title, preview, description } = Astro.props
 
         function setProgress(p) {
           const clamped = Math.max(0, Math.min(1, p))
-          if (liquid) liquid.style.setProperty("--progress", String(clamped))
+          if (ring) ring.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - clamped))
           if (pctEl) pctEl.textContent = String(Math.round(clamped * 100))
+        }
+
+        // ── deadpan doomsday ticker: cycles through historical/predicted
+        //    end-of-the-world dates while the actual page loads ──
+        const DOOMSDAY_DATES = [
+          "1844.10.22 — MILLERITE GREAT DISAPPOINTMENT",
+          "1910.05.18 — HALLEY'S COMET PANIC",
+          "1982.03.10 — THE JUPITER EFFECT",
+          "1994.09.06 — CAMPING'S FIRST DATE",
+          "1997.03.26 — HEAVEN'S GATE / HALE-BOPP",
+          "1999.08.18 — GRAND CROSS ALIGNMENT",
+          "2000.01.01 — Y2K ROLLOVER",
+          "2003.05.15 — NIBIRU CATACLYSM (LIEDER)",
+          "2011.05.21 — CAMPING'S JUDGMENT DAY",
+          "2011.10.21 — CAMPING'S REVISED DATE",
+          "2012.12.21 — MAYAN LONG COUNT",
+          "2029.04.13 — APOPHIS CLOSE APPROACH",
+        ]
+        const tickerEl = document.getElementById("loader-ticker")
+        let tickerIdx = 0
+        let tickerTimer = null
+        if (tickerEl) {
+          const showNext = () => {
+            tickerEl.style.opacity = "0"
+            setTimeout(() => {
+              tickerEl.textContent = DOOMSDAY_DATES[tickerIdx % DOOMSDAY_DATES.length]
+              tickerIdx++
+              tickerEl.style.opacity = "1"
+            }, 220)
+          }
+          showNext()
+          tickerTimer = setInterval(showNext, 1100)
         }
 
         /** @param {HTMLImageElement} img */
@@ -166,6 +232,7 @@ const { title, preview, description } = Astro.props
           hidden = true
           clearTimeout(maxTimer)
           if (quietTimer) clearTimeout(quietTimer)
+          if (tickerTimer) clearInterval(tickerTimer)
           if (observer) observer.disconnect()
           setProgress(1)
           body.classList.remove("is-loading")
@@ -400,29 +467,36 @@ const { title, preview, description } = Astro.props
         overflow: visible;
       }
 
-      /*
-        Wave paths are authored with their crest at local y=40. The clip
-        circle spans roughly y=5..115, so mapping progress 0→1 to a crest of
-        y=115 (barely a sliver at the bottom) → y=5 (nearly full) means
-        translateY = (115 - progress*110) - 40.
-      */
-      .loader-liquid {
-        transform: translateY(calc(75px - var(--progress, 0) * 110px));
-        transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      #loader-progress-ring {
+        transition: stroke-dashoffset 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       }
 
-      .loader-wave {
-        animation: loader-wave-drift 3.4s linear infinite;
+      /* diagrammatic node graph: edges settle in first, nodes pop in after,
+         evoking a system quietly wiring itself together while it loads */
+      .loader-diagram path {
+        stroke-dasharray: 120;
+        stroke-dashoffset: 120;
+        animation: loader-edge-draw 1.8s ease-out infinite alternate;
       }
 
-      .loader-wave.wave-b {
-        animation-duration: 2.3s;
-        animation-direction: reverse;
+      @keyframes loader-edge-draw {
+        0%   { stroke-dashoffset: 120; }
+        60%, 100% { stroke-dashoffset: 0; }
       }
 
-      @keyframes loader-wave-drift {
-        from { transform: translateX(0); }
-        to   { transform: translateX(-80px); }
+      .loader-nodes circle {
+        animation: loader-node-pulse 2.4s ease-in-out infinite;
+        transform-origin: center;
+        transform-box: fill-box;
+      }
+
+      .loader-nodes circle:nth-child(2) { animation-delay: 0.2s; }
+      .loader-nodes circle:nth-child(3) { animation-delay: 0.4s; }
+      .loader-nodes circle:nth-child(4) { animation-delay: 0.6s; }
+
+      @keyframes loader-node-pulse {
+        0%, 100% { opacity: 0.55; transform: scale(0.85); }
+        50%      { opacity: 1;    transform: scale(1.15); }
       }
 
       .loader-label {
@@ -432,6 +506,21 @@ const { title, preview, description } = Astro.props
         text-transform: uppercase;
         color: var(--text-dim);
       }
+
+      /* deadpan doomsday ticker — same voice as loader-label, fades between entries */
+      .loader-ticker {
+        font-family: "DepartureMono", monospace;
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        min-height: 1.4em;
+        opacity: 1;
+        transition: opacity 0.22s ease;
+      }
+
+      /* dither stays scoped to the node-graph svg itself (via #loaderDither
+         inside the <svg>) — the loader's page background stays plain white */
 
       /* keep the custom cursor from popping over the loader before content is ready */
       body.is-loading #custom-cursor,

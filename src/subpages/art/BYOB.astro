@@ -92,11 +92,11 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
   // ── apply arrange: show curated grid, fade the scattered field out ──
   function applyArrange() {
     Object.assign(field.style, {
-      position: 'relative',
+      position: '',
       top: '',
       left: '',
-      width: '100%',
-      height: 'auto',
+      width: '', // let the arrange-mode stylesheet rule (full-bleed 100vw) control this —
+      height: '', // an inline style here would always win over CSS regardless of specificity
       zIndex: '',
       pointerEvents: '',
       display: '',
@@ -186,6 +186,13 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
     const items = [...bgField.querySelectorAll<HTMLElement>('.byob-bg-item')];
     const pageHeight = () => Math.max(document.body.scrollHeight, window.innerHeight);
 
+    // ── trickle reveal: start with just the first batch on screen, then
+    //    drip in more as the user scrolls down (instead of dumping all 30
+    //    at once, or revealing them on a blind timer) ──
+    const REVEAL_BATCH = 10;
+    const REVEAL_SCROLL_MARGIN_PX = 600; // start loading the next batch this far before hitting bottom
+    let revealedCount = Math.min(REVEAL_BATCH, items.length);
+
     // jittered-grid layout: pure random placement clumps (birthday paradox)
     // and leaves empty holes — instead bucket the page into a grid with
     // one image per cell, jittered within the cell, so coverage is even
@@ -197,36 +204,74 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
       const h = Math.max(pageHeight(), window.innerHeight * 1.6);
       bgField!.style.height = `${h}px`;
 
-      const n = items.length;
-      const cols = Math.ceil(Math.sqrt((n * (window.innerWidth || 1200)) / h)) || 5;
+      const vw = window.innerWidth || 1200;
+      const isMobile = vw < 640;
+      const visible = items.slice(0, revealedCount);
+      const n = visible.length;
+      const cols = Math.max(isMobile ? 3 : 2, Math.ceil(Math.sqrt((n * vw) / h)) || 5);
       const rows = Math.ceil(n / cols);
       const cellW = 100 / cols; // vw
       const cellH = h / rows;   // px
 
       // shuffle item order so the same image doesn't always land in the same cell
-      const order = items.map((_, i) => i);
+      const order = visible.map((_, i) => i);
       for (let i = order.length - 1; i > 0; i--) {
         const j = Math.floor(rand() * (i + 1));
         [order[i], order[j]] = [order[j], order[i]];
       }
 
+      const cellWpx = (cellW / 100) * vw;
+      // scale each image down well below its cell size — a proper scattered
+      // look (small photos with visible space around them), not a solid
+      // edge-to-edge wall of images
+      const SCALE = isMobile ? 0.62 : 0.55;
+
       order.forEach((itemIdx, cellIdx) => {
-        const el = items[itemIdx];
+        const el = visible[itemIdx];
         const col = cellIdx % cols;
         const row = Math.floor(cellIdx / cols);
 
-        const w = 90 + rand() * 130;
-        const halfWidthVw = (w / (window.innerWidth || 1200)) * 50; // half of width-in-vw
-        const jitterX = (rand() - 0.5) * cellW * 0.7;
-        const jitterY = (rand() - 0.5) * cellH * 0.6;
-        const left = Math.max(0, Math.min(96, col * cellW + cellW * 0.5 + jitterX - halfWidthVw));
-        const top = Math.max(0, Math.min(h - 200, row * cellH + cellH * 0.5 + jitterY - 100));
+        // size each image off its own cell, scaled well down, with a little
+        // size jitter so the scatter doesn't look grid-uniform
+        const w = cellWpx * SCALE * (0.8 + rand() * 0.3);
+        const hgt = cellH * SCALE * (0.8 + rand() * 0.3);
+        const wVw = (w / vw) * 100; // width expressed in vw, so we can clamp against the viewport edge
+        const jitterX = (rand() - 0.5) * cellW * 0.5;
+        const jitterY = (rand() - 0.5) * cellH * 0.5;
+
+        // clamp so the WHOLE image (not just its anchor point) stays on-screen —
+        // previously only the left edge was clamped, letting wide images spill
+        // past the right edge and get clipped by the container's overflow:hidden
+        const left = Math.max(0, Math.min(100 - wVw, col * cellW + cellW * 0.5 + jitterX - wVw / 2));
+        const top = Math.max(0, Math.min(h - hgt, row * cellH + cellH * 0.5 + jitterY - hgt / 2));
+
         el.style.width = `${w}px`;
+        el.style.height = `${hgt}px`;
         el.style.top = `${top}px`;
         el.style.left = `${left}vw`;
         el.style.transform = 'none';
         el.style.zIndex = String(1 + Math.floor(rand() * 3));
+        el.classList.add('byob-revealed');
       });
+    }
+
+    function revealMore() {
+      if (revealedCount >= items.length) return;
+      revealedCount = Math.min(items.length, revealedCount + REVEAL_BATCH);
+      layout();
+    }
+
+    // only reveal more scatter images while actually scrolling through
+    // scatter mode — nearing the bottom of the (currently revealed) page
+    // triggers the next batch, like a classic infinite-scroll feed
+    function maybeRevealOnScroll() {
+      if (field.dataset.mode !== 'scatter') return;
+      if (revealedCount >= items.length) return;
+      const scrollBottom = window.scrollY + window.innerHeight;
+      const doc = document.documentElement;
+      if (scrollBottom >= doc.scrollHeight - REVEAL_SCROLL_MARGIN_PX) {
+        revealMore();
+      }
     }
 
     layout();
@@ -234,16 +279,26 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
     // page content (byob-field) can change page height when toggled — relayout after transition
     window.addEventListener('load', layout);
     setTimeout(layout, 700);
+    window.addEventListener('scroll', maybeRevealOnScroll, { passive: true });
+    // catch the case where the initial batch already fills less than one
+    // screen (nothing to scroll yet) so more still trickles in on load
+    setTimeout(maybeRevealOnScroll, 800);
   }
 </script>
 
 <style is:global>
   /* ─── full-screen scattered background ─── */
+  /* this sits inside the page's max-w-4xl article wrapper (position:relative),
+     which becomes its containing block since it's absolutely positioned —
+     so width:100% capped at ~896px instead of the real viewport width on
+     any screen wider than that. left:0 already lands at the viewport edge
+     (abs-positioned children measure from the padding edge, ignoring the
+     wrapper's own p-8 padding), so just force width to the true viewport. */
   .byob-bg-field {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 100vw;
     min-height: 100vh;
     pointer-events: none;
     z-index: 0;
@@ -255,33 +310,46 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
     display: block;
     height: auto;
     object-fit: cover;
-    opacity: 1;
+    opacity: 0;
+    transition: opacity 0.8s ease;
     filter: contrast(1.02) saturate(0.95);
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
   }
 
-  /* text sits above the scattered field: mix-blend-mode auto-inverts
-     against whatever is behind it, and backdrop-filter blurs the
-     photos directly underneath so the words stay legible */
+  .byob-bg-item.byob-revealed {
+    opacity: 1;
+  }
+
+  /* by default this reads like any other art page's text block — plain
+     body copy, no panel. Only in scatter mode (photos filling the screen
+     behind it) does it need a solid dark, blurred panel for contrast —
+     mix-blend-mode: difference used to do this unconditionally before but
+     produced muddy, sometimes unreadable results depending on the
+     underlying image's colors, and it was staying on even outside scatter */
   .byob-textblock {
     position: relative;
     z-index: 2;
+  }
+
+  body.byob-scatter .byob-textblock {
     isolation: isolate;
   }
 
-  .byob-textblock::before {
+  body.byob-scatter .byob-textblock::before {
     content: "";
     position: absolute;
     inset: -0.75rem -1rem;
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
+    border-radius: 4px;
     z-index: -1;
   }
 
-  .byob-textblock,
-  .byob-textblock :is(p, dt, dd, span, strong) {
+  body.byob-scatter .byob-textblock,
+  body.byob-scatter .byob-textblock :is(p, dt, dd, span, strong) {
     color: #ffffff;
-    mix-blend-mode: difference;
+    mix-blend-mode: normal;
   }
 
   /* ─── toolbar ─── */
@@ -395,22 +463,6 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
     z-index: 10; /* already z-10 from Tailwind, but reinforce */
   }
 
-  /* frosted-glass + darkened bg behind the text block */
-  body.byob-scatter .byob-text-content {
-    backdrop-filter: blur(14px) brightness(0.38);
-    -webkit-backdrop-filter: blur(14px) brightness(0.38);
-    background: rgba(0, 0, 0, 0.12);
-    padding: 1.25rem 1.5rem;
-    margin-left: -1.5rem;
-    position: relative;
-    z-index: 10;
-  }
-
-  /* invert text to white */
-  body.byob-scatter .byob-text-content * {
-    color: rgba(255, 255, 255, 0.92) !important;
-  }
-
   /* invert the page h1 and back link too — and lift them above the fixed
      scatter field: elements with an explicit z-index (the field is z:1)
      paint AFTER auto-z-index siblings, so the title needs its own
@@ -435,14 +487,20 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
   }
 
   /* ════════ ARRANGE MODE: masonry — full images, no cropping ════════ */
+  /* breaks out of the page's max-w-4xl article wrapper (left-aligned, not
+     centered — so the usual `calc(-50vw + 50%)` full-bleed trick doesn't
+     apply here) to span the full viewport width. The wrapper's left inset
+     is Tailwind's p-8 (2rem), so cancel exactly that and go full 100vw. */
   .byob-field[data-mode="arrange"] {
     display: block;
-    columns: 3;
+    columns: 8; /* more, smaller columns — scaled-down tiles instead of large photos */
     column-gap: 8px;
     background: transparent;
     padding: 0;
     height: auto;
-    max-width: 860px;
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: -2rem;
   }
 
   .byob-field[data-mode="arrange"] .byob-item {
@@ -465,9 +523,15 @@ const scatterImages = Array.from({ length: SCATTER_COUNT }, (_, i) =>
     filter: contrast(1.08) saturate(1);
   }
 
+  @media (max-width: 1024px) {
+    .byob-field[data-mode="arrange"] {
+      columns: 6;
+    }
+  }
+
   @media (max-width: 640px) {
     .byob-field[data-mode="arrange"] {
-      columns: 2;
+      columns: 3;
     }
   }
 

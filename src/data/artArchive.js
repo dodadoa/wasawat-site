@@ -109,8 +109,18 @@ export const artSections = [
           { label: "Neonatus/Neotokyo", slug: "neonatus-neotokyo" },
           { label: "Tentacular Territoria (2020)", slug: "tentacular-territoria", date: "2020-01-01" },
           { label: "BYOB (2023, as JAAG)", slug: "byob", date: "2023-01-01" },
+          {
+            label: "I will always think of you fondly. (2019, with Tewprai Bualoi)",
+            slug: "i-will-always-think-of-you-fondly",
+            date: "2019-01-01",
+          },
         ],
       },
+    ],
+  },
+  {
+    title: "Technical Work",
+    groups: [
       {
         title: "Technical Consultant/Assistant/Advisor",
         items: [
@@ -141,6 +151,9 @@ export const artworkPages = {
     title: "As if you would still be here, if I keep thinking about you.",
   },
   "tentacular-territoria": { title: "Tentacular Territoria (2020)" },
+  "i-will-always-think-of-you-fondly": {
+    title: "I will always think of you fondly. (2019, with Tewprai Bualoi)",
+  },
   "operation-seance": {
     title: "OperationSéance: Purifying the AI Spirits in Latent Space Salon (2026)",
   },

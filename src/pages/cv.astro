@@ -15,6 +15,7 @@ import "@fontsource/jetbrains-mono/700.css"
   </head>
   <body>
     <div class="toolbar">
+      <a href="/about" class="breadcrumb-link">~/giang /about /cv</a>
       <button onclick="window.print()" class="pdf-btn">↓ Download PDF</button>
     </div>
     <main class="page">
@@ -481,7 +482,18 @@ import "@fontsource/jetbrains-mono/700.css"
         max-width: 210mm;
         margin: 1.5rem auto 0;
         display: flex;
-        justify-content: flex-end;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .breadcrumb-link {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        color: #6a6a6a;
+        text-decoration: none;
+      }
+      .breadcrumb-link:hover {
+        color: #111;
       }
       .pdf-btn {
         font-family: "JetBrains Mono", monospace;

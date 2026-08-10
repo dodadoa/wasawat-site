@@ -1,0 +1,81 @@
+---
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2019" },
+    { label: "Role", value: "Programmer, Collaborator" },
+    {
+      label: "With",
+      value:
+        '<a href="https://tewprai.com/IWillAlwaysThinkOfYouFondly" target="_blank" rel="noopener noreferrer" style="color: inherit;">Tewprai Bualoi</a>',
+      html: true,
+    },
+    { label: "Exhibition", value: "EARLY YEARS PROJECT #4: PRAXIS MAKES PERFECT, Bangkok Art and Culture Centre (BACC)" },
+    { label: "Revisited", value: "Speedy Grandma Centennial, 19 June – 31 July 2020" },
+    { label: "Medium", value: "Research project, mixed media, 6 pieces" },
+  ]} />
+
+  <p class="mb-4">
+    A research project in collaboration with Tewprai Bualoi exploring what forms a video file could
+    inhabit. Together we manifested a digital object — a video file — into physical form without
+    altering its original code, so that anyone who interacted with the piece could transform the
+    physical object back into the original video file. That exploration of digital/physical
+    alteration continues in Tewprai's practice since.
+  </p>
+
+  <p class="mb-4">
+    My role was the programmer: building the tools that moved the file between states, and the
+    application that could scan and reassemble it back into video.
+  </p>
+
+  <p class="mb-4">
+    The project began when a dead laptop hard drive came back from data recovery on a brand-new
+    replacement disk — the original rendered a carcass, its data intact elsewhere. That feeling of
+    mourning a dead drive became the piece's starting point: the original HDD, dissected and
+    presented as an anatomical study.
+  </p>
+
+  <p class="mb-4">
+    The first experiment: opening a video file in plain text, saving all ~14 million characters as
+    a .txt, then renaming the extension back to .mp4 — recovering the original file intact, as long
+    as none of the text was touched. That became the project's method. We printed as much of it as
+    we could — the longest paper available covered only one eighth of the total text.
+  </p>
+
+  <p class="mb-4">
+    From there we looked for a way to make the physical form shorter without damaging the original
+    file, testing materials that could outlast paper.
+  </p>
+
+  <figure class="my-8">
+    <img
+      src="/images/i-will-always-think-of-you-fondly/05-qr-codes.jpg"
+      alt="132 printed QR codes arranged in a grid on a gallery wall"
+      class="w-full"
+      loading="lazy"
+    />
+    <figcaption class="mt-2 text-sm opacity-70">Untitled, 132 QR codes (2019)</figcaption>
+  </figure>
+
+  <p class="mb-4">
+    Finally, we encoded the file as a base64 string and split it into 132 QR codes — small enough to
+    print, complete enough to scan back into the original video. I built the application that
+    collects and joins each scanned code in sequence and reconstructs the file.
+  </p>
+
+  <p class="mb-4">
+    The final piece pushes the material furthest: one QR code carved into marble, a medium that has
+    carried inscriptions for thousands of years — the same file, given the site's oldest surviving
+    format for permanence.
+  </p>
+
+  <p>
+    First shown in EARLY YEARS PROJECT #4: PRAXIS MAKES PERFECT at BACC, the piece was revisited for
+    <em>Speedy Grandma Centennial</em> (2020), presenting its full background — physical, published
+    source code, and the originally-intended (but unrealized) online/virtual form — across physical,
+    print, and web. Full documentation on
+    <a href="https://tewprai.com/IWillAlwaysThinkOfYouFondly" target="_blank" rel="noopener noreferrer">tewprai.com</a>.
+  </p>
+</div>

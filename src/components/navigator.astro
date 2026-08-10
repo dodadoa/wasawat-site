@@ -1,6 +1,9 @@
 ---
 const pathname = Astro.url.pathname.replace(/\/$/, "") || "/"
-const pathSuffix = pathname === "/" ? "" : pathname
+// /cv isn't a nested route, but conceptually it lives under /about — show
+// it that way in the breadcrumb rather than as a flat top-level page
+const displayPath = pathname === "/cv" ? "/about/cv" : pathname
+const pathSuffix = pathname === "/" ? "" : displayPath
 ---
 
 <nav
@@ -128,7 +131,8 @@ const pathSuffix = pathname === "/" ? "" : pathname
 <script>
   function readPathSuffix() {
     const pathname = window.location.pathname.replace(/\/$/, "") || "/"
-    return pathname === "/" ? "" : pathname
+    const displayPath = pathname === "/cv" ? "/about/cv" : pathname
+    return pathname === "/" ? "" : displayPath
   }
 
   function updatePathSuffix() {

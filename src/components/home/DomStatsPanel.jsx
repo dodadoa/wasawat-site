@@ -428,11 +428,11 @@ export default function DomStatsPanel() {
         type="button"
         onClick={toggle}
         aria-expanded={false}
-        aria-label="Show HUD panel"
+        aria-label="Show stats panel"
         className="absolute"
         style={{ ...panelShell, ...toggleBtnStyle }}
       >
-        hud [+]
+        [+]
       </button>
     )
   }
@@ -476,7 +476,7 @@ export default function DomStatsPanel() {
           marginBottom: "0.45rem",
           textTransform: "uppercase",
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           width: "100%",
           background: "none",
           border: "none",
@@ -484,7 +484,6 @@ export default function DomStatsPanel() {
           cursor: "pointer",
         }}
       >
-        <span>hud</span>
         <span style={{ color: inkFaint, letterSpacing: "0.05em" }}>[–]</span>
       </button>
 
