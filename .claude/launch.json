@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "astro-dev",
-      "runtimeExecutable": "zsh",
-      "runtimeArgs": ["-c", "export PATH=$HOME/.nvm/versions/node/v22.21.0/bin:$PATH && pnpm dev"],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev"],
       "port": 4321,
       "autoPort": true
     }

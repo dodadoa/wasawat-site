@@ -60,62 +60,127 @@ const { title, preview, description } = Astro.props
   </head>
   <body>
     <div id="site-loader" role="status" aria-live="polite" aria-label="Loading">
-      <div class="loader-ring">
-        <svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
+
+      <!-- ── 4-quadrant political compass loader ── -->
+      <!-- Animated dither rects fill each quadrant; axes + dots render on top -->
+      <!-- CX=500 CY=350 AX=270; quadrants: TL[230-500,80-350] TR[500-770,80-350] BL[230-500,350-620] BR[500-770,350-620] -->
+      <div class="loader-compass-wrap">
+        <svg class="loader-compass" viewBox="-280 -20 1560 740" aria-hidden="true">
           <defs>
-            <!-- fine 2×2 Bayer dither, matching .dither-thumb elsewhere on the site -->
-            <pattern id="loaderDither" width="2" height="2" patternUnits="userSpaceOnUse">
-              <rect width="1" height="1" fill="#000000" opacity="0.22" />
+            <!-- ordered dither patterns — 2px dots, increasing density per quadrant -->
+            <!-- TL "Community Garden": very sparse, 1 dot per 16×16 ≈ 1.6% -->
+            <pattern id="dTL" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+              <rect x="0" y="0" width="3" height="3" fill="#0a0a0a"/>
             </pattern>
-            <marker id="loaderArrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="#0a0a0a" />
-            </marker>
+            <!-- TR "Maker Faire": light, 1 dot per 8×8 ≈ 14% -->
+            <pattern id="dTR" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+              <rect x="0" y="0" width="3" height="3" fill="#0a0a0a"/>
+            </pattern>
+            <!-- BL "Relational Despair": medium-heavy, 2×2 checkerboard per 8px ≈ 56% -->
+            <pattern id="dBL" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+              <rect x="0" y="0" width="4" height="4" fill="#0a0a0a"/>
+              <rect x="4" y="4" width="4" height="4" fill="#0a0a0a"/>
+            </pattern>
+            <!-- BR "Accelerationism": dense, 3 of 4 cells filled ≈ 75% -->
+            <pattern id="dBR" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+              <rect x="0" y="0" width="4" height="4" fill="#0a0a0a"/>
+              <rect x="4" y="4" width="4" height="4" fill="#0a0a0a"/>
+              <rect x="0" y="4" width="4" height="4" fill="#0a0a0a"/>
+            </pattern>
+            <!-- clip paths — 1px inset so rects never cross the axis lines -->
+            <clipPath id="cTL"><rect x="231" y="81" width="268" height="268"/></clipPath>
+            <clipPath id="cTR"><rect x="501" y="81" width="268" height="268"/></clipPath>
+            <clipPath id="cBL"><rect x="231" y="351" width="268" height="268"/></clipPath>
+            <clipPath id="cBR"><rect x="501" y="351" width="268" height="268"/></clipPath>
           </defs>
 
-          <!-- progress ring — dashoffset driven by --progress -->
-          <circle class="loader-track" cx="60" cy="60" r="55" fill="none" stroke="rgba(10,10,10,0.12)" stroke-width="1" />
-          <circle id="loader-progress-ring" cx="60" cy="60" r="55" fill="none" stroke="#0a0a0a" stroke-width="1"
-            stroke-dasharray="345.6" stroke-dashoffset="345.6" transform="rotate(-90 60 60)" />
-
-          <!-- diagrammatic node graph: a small notion-style network, arrows
-               pointing between nodes, dots traveling the edges on a loop —
-               a "system diagramming itself" motif for the loading state -->
-          <g class="loader-diagram" stroke="#0a0a0a" stroke-width="1" fill="none">
-            <path id="loaderEdgeAB" d="M32,82 L58,34" />
-            <path id="loaderEdgeBC" d="M62,34 L88,68" marker-end="url(#loaderArrow)" />
-            <path id="loaderEdgeAD" d="M32,84 L58,97" marker-end="url(#loaderArrow)" />
-            <path id="loaderEdgeDC" d="M62,98 L86,70" />
-            <path id="loaderEdgeBD" d="M60,36 L60,94" stroke-dasharray="2 3" opacity="0.5" />
+          <!-- ── dither fills — one per quadrant, density tells the story; pulse cycles TL→TR→BR→BL ── -->
+          <g class="loader-quad" clip-path="url(#cTL)" style="--qo: 0.3; --qd: 0s">
+            <rect x="231" y="81" width="268" height="268" fill="url(#dTL)"/>
+          </g>
+          <g class="loader-quad" clip-path="url(#cTR)" style="--qo: 0.3; --qd: 0.7s">
+            <rect x="501" y="81" width="268" height="268" fill="url(#dTR)"/>
+          </g>
+          <g class="loader-quad" clip-path="url(#cBR)" style="--qo: 0.34; --qd: 1.4s">
+            <rect x="501" y="351" width="268" height="268" fill="url(#dBR)"/>
+          </g>
+          <g class="loader-quad" clip-path="url(#cBL)" style="--qo: 0.32; --qd: 2.1s">
+            <rect x="231" y="351" width="268" height="268" fill="url(#dBL)"/>
           </g>
 
-          <g class="loader-nodes" fill="#0a0a0a">
-            <circle cx="30" cy="83" r="3" />
-            <circle cx="60" cy="32" r="3.5" />
-            <circle cx="90" cy="68" r="3" />
-            <circle cx="60" cy="98" r="2.5" />
+          <!-- ── main axes on top of rects ── -->
+          <line x1="216" y1="350" x2="784" y2="350" stroke="#0a0a0a" stroke-width="0.9" opacity="0.6"/>
+          <line x1="500" y1="66"  x2="500" y2="634" stroke="#0a0a0a" stroke-width="0.9" opacity="0.6"/>
+          <!-- arrowheads -->
+          <path d="M784,350 L774,345 L774,355 Z" fill="#0a0a0a" opacity="0.55"/>
+          <path d="M216,350 L226,345 L226,355 Z" fill="#0a0a0a" opacity="0.55"/>
+          <path d="M500,66  L495,76  L505,76  Z"  fill="#0a0a0a" opacity="0.55"/>
+          <path d="M500,634 L495,624 L505,624 Z"  fill="#0a0a0a" opacity="0.55"/>
+          <!-- tick marks -->
+          <g stroke="#0a0a0a" stroke-width="0.8" opacity="0.4">
+            <line x1="365" y1="344" x2="365" y2="356"/>  <line x1="635" y1="344" x2="635" y2="356"/>
+            <line x1="230" y1="344" x2="230" y2="356"/>  <line x1="770" y1="344" x2="770" y2="356"/>
+            <line x1="494" y1="215"  x2="506" y2="215"/>   <line x1="494" y1="485"  x2="506" y2="485"/>
+            <line x1="494" y1="81"   x2="506" y2="81"/>    <line x1="494" y1="619"  x2="506" y2="619"/>
           </g>
-
-          <g class="loader-dots" fill="var(--accent-1, #f90d63)">
-            <circle r="2">
-              <animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#loaderEdgeAB" /></animateMotion>
-            </circle>
-            <circle r="1.8">
-              <animateMotion dur="3.1s" repeatCount="indefinite"><mpath href="#loaderEdgeBC" /></animateMotion>
-            </circle>
-            <circle r="1.6">
-              <animateMotion dur="2.1s" repeatCount="indefinite"><mpath href="#loaderEdgeAD" /></animateMotion>
-            </circle>
-            <circle r="1.6" fill="#0a0a0a" opacity="0.6">
-              <animateMotion dur="1.8s" repeatCount="indefinite"><mpath href="#loaderEdgeDC" /></animateMotion>
-            </circle>
-          </g>
-
-          <rect x="0" y="0" width="120" height="120" fill="url(#loaderDither)" style="mix-blend-mode: multiply;" />
+          <!-- axis labels -->
+          <text x="204" y="340" text-anchor="end"    fill="#0a0a0a" opacity="0.65" font-family="'JetBrains Mono',monospace" font-size="18" letter-spacing="1.4">ART WORLD</text>
+          <text x="796" y="340" text-anchor="start"  fill="#0a0a0a" opacity="0.65" font-family="'JetBrains Mono',monospace" font-size="18" letter-spacing="1.4">TECH WORLD</text>
+          <text x="500" y="52"  text-anchor="middle" fill="#0a0a0a" opacity="0.65" font-family="'JetBrains Mono',monospace" font-size="18" letter-spacing="1.4">IT'S FINE ACTUALLY</text>
+          <text x="500" y="652" text-anchor="middle" fill="#0a0a0a" opacity="0.65" font-family="'JetBrains Mono',monospace" font-size="18" letter-spacing="1.4">BENATAR WAS RIGHT</text>
+          <!-- quadrant watermarks -->
+          <text x="365" y="203" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">COMMUNITY</text>
+          <text x="365" y="231" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">GARDEN ART</text>
+          <text x="635" y="226" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">MAKER FAIRE</text>
+          <text x="365" y="483" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">RELATIONAL</text>
+          <text x="365" y="511" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">DESPAIR</text>
+          <text x="635" y="483" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">ACCELER-</text>
+          <text x="635" y="511" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">ATIONISM</text>
+          <!-- origin -->
+          <circle cx="500" cy="350" r="5.5" fill="none" stroke="#0a0a0a" stroke-width="0.7" opacity="0.4"/>
+          <circle cx="500" cy="350" r="1.8" fill="#0a0a0a" opacity="0.45"/>
+          <!-- practice dots + rings (on top, still pulse) -->
+          <circle class="loader-compass-mine" cx="586" cy="490" r="3.2" fill="#0a0a0a"/>
+          <circle cx="586" cy="490" r="6.5" fill="none" stroke="#0a0a0a" stroke-width="0.7" opacity="0.3"/>
+          <circle class="loader-compass-mine" cx="378" cy="453" r="3.2" fill="#0a0a0a" style="animation-delay:.38s"/>
+          <circle cx="378" cy="453" r="6.5" fill="none" stroke="#0a0a0a" stroke-width="0.7" opacity="0.3"/>
+          <circle class="loader-compass-mine" cx="360" cy="409" r="3.2" fill="#0a0a0a" style="animation-delay:.76s"/>
+          <circle cx="360" cy="409" r="6.5" fill="none" stroke="#0a0a0a" stroke-width="0.7" opacity="0.3"/>
+          <circle class="loader-compass-mine" cx="397" cy="237" r="3.2" fill="#0a0a0a" style="animation-delay:1.14s"/>
+          <circle cx="397" cy="237" r="6.5" fill="none" stroke="#0a0a0a" stroke-width="0.7" opacity="0.3"/>
+          <circle class="loader-compass-mine" cx="343" cy="183" r="3.2" fill="#0a0a0a" style="animation-delay:1.52s"/>
+          <circle cx="343" cy="183" r="6.5" fill="none" stroke="#0a0a0a" stroke-width="0.7" opacity="0.3"/>
+          <circle class="loader-compass-mine" cx="640" cy="220" r="3.2" fill="#0a0a0a" style="animation-delay:1.90s"/>
+          <circle cx="640" cy="220" r="6.5" fill="none" stroke="#0a0a0a" stroke-width="0.7" opacity="0.3"/>
+          <circle class="loader-compass-mine" cx="430" cy="507" r="3.2" fill="#0a0a0a" style="animation-delay:2.28s"/>
+          <circle cx="430" cy="507" r="6.5" fill="none" stroke="#0a0a0a" stroke-width="0.7" opacity="0.3"/>
+          <circle class="loader-compass-mine" cx="559" cy="156" r="3.2" fill="#0a0a0a" style="animation-delay:2.66s"/>
+          <circle cx="559" cy="156" r="6.5" fill="none" stroke="#0a0a0a" stroke-width="0.7" opacity="0.3"/>
+          <circle class="loader-compass-mine" cx="676" cy="237" r="3.2" fill="#0a0a0a" style="animation-delay:3.04s"/>
+          <circle cx="676" cy="237" r="6.5" fill="none" stroke="#0a0a0a" stroke-width="0.7" opacity="0.3"/>
+          <!-- context dots -->
+          <circle cx="738" cy="588" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="700" cy="534" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="667" cy="139" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="619" cy="112" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="306" cy="210" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="316" cy="474" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="532" cy="323" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="333" cy="393" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="576" cy="285" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="748" cy="599" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="689" cy="183" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="279" cy="307" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <circle cx="414" cy="499" r="2" fill="#0a0a0a" opacity="0.28"/>
+          <!-- progress ring, bottom-right -->
+          <circle cx="1140" cy="660" r="28" fill="none" stroke="rgba(10,10,10,0.1)" stroke-width="1"/>
+          <circle id="loader-progress-ring" cx="1140" cy="660" r="28" fill="none" stroke="#0a0a0a" stroke-width="1"
+            stroke-dasharray="175.9" stroke-dashoffset="175.9" transform="rotate(-90 1140 660)" opacity="0.55"/>
         </svg>
       </div>
+
       <p class="loader-label">loading · <span id="loader-pct">0</span>%</p>
-      <!-- cycling list of predicted apocalypse/doomsday dates — deadpan
-           end-of-the-world countdown while the site itself loads -->
+      <!-- cycling doomsday dates — deadpan backdrop to BENATAR WAS RIGHT -->
       <p class="loader-ticker" id="loader-ticker" aria-hidden="true"></p>
     </div>
 
@@ -127,7 +192,7 @@ const { title, preview, description } = Astro.props
         const body = document.body
         const pctEl = document.getElementById("loader-pct")
         const ring = document.getElementById("loader-progress-ring")
-        const RING_CIRCUMFERENCE = 345.6
+        const RING_CIRCUMFERENCE = 175.9 // 2π×28, matches loader-progress-ring r=28
 
         body.classList.add("is-loading")
 
@@ -172,7 +237,7 @@ const { title, preview, description } = Astro.props
             }, 220)
           }
           showNext()
-          tickerTimer = setInterval(showNext, 1100)
+          tickerTimer = setInterval(showNext, 2600)
         }
 
         /** @param {HTMLImageElement} img */
@@ -445,9 +510,11 @@ const { title, preview, description } = Astro.props
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 1.1rem;
+        gap: 0.6rem;
         background: var(--bg, #ffffff);
-        transition: opacity 0.5s ease, visibility 0.5s ease;
+        transition: opacity 0.55s ease, visibility 0.55s ease;
+        padding: 2rem;
+        box-sizing: border-box;
       }
 
       #site-loader.is-hidden {
@@ -456,47 +523,47 @@ const { title, preview, description } = Astro.props
         pointer-events: none;
       }
 
-      .loader-ring {
-        position: relative;
-        width: 120px;
-        height: 120px;
+      /* compass fills most of the loader viewport */
+      .loader-compass-wrap {
+        width: min(92vw, 760px);
+        max-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 0;
       }
 
-      .loader-ring svg {
+      .loader-compass {
+        width: 100%;
+        height: auto;
         display: block;
-        overflow: visible;
+        opacity: 0;
+        animation: loader-compass-in 0.8s ease 0.05s forwards;
+      }
+
+      @keyframes loader-compass-in {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+
+      /* quadrant dither fills breathe in sequence — TL→TR→BR→BL, one lit at a time */
+      .loader-quad {
+        opacity: calc(var(--qo, 0.3) * 0.55);
+        animation: loader-quad-pulse 2.8s ease-in-out var(--qd, 0s) infinite;
+      }
+
+      @keyframes loader-quad-pulse {
+        0%, 50%, 100% { opacity: calc(var(--qo, 0.3) * 0.55); }
+        25%           { opacity: calc(var(--qo, 0.3) * 1.9); }
+      }
+
+      /* mine dots — static while loading */
+      .loader-compass-mine {
+        opacity: 0.6;
       }
 
       #loader-progress-ring {
         transition: stroke-dashoffset 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-      }
-
-      /* diagrammatic node graph: edges settle in first, nodes pop in after,
-         evoking a system quietly wiring itself together while it loads */
-      .loader-diagram path {
-        stroke-dasharray: 120;
-        stroke-dashoffset: 120;
-        animation: loader-edge-draw 1.8s ease-out infinite alternate;
-      }
-
-      @keyframes loader-edge-draw {
-        0%   { stroke-dashoffset: 120; }
-        60%, 100% { stroke-dashoffset: 0; }
-      }
-
-      .loader-nodes circle {
-        animation: loader-node-pulse 2.4s ease-in-out infinite;
-        transform-origin: center;
-        transform-box: fill-box;
-      }
-
-      .loader-nodes circle:nth-child(2) { animation-delay: 0.2s; }
-      .loader-nodes circle:nth-child(3) { animation-delay: 0.4s; }
-      .loader-nodes circle:nth-child(4) { animation-delay: 0.6s; }
-
-      @keyframes loader-node-pulse {
-        0%, 100% { opacity: 0.55; transform: scale(0.85); }
-        50%      { opacity: 1;    transform: scale(1.15); }
       }
 
       .loader-label {

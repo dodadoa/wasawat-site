@@ -1,25 +1,34 @@
 import { useState } from "react"
 
-const WORDS = [
-  "computational system", "ethical questions",
-  "simulation", "physical world",
-  "interface", "the body",
-  "worm's connectome", "consciousness",
-  "screen", "what it displays",
-  "code", "material",
-]
-
-// ── One combined 2D plan drawing ──────────────────────────────────────
-// Mash-up of three references: apartment plan with poché walls, furniture
-// and a stair/elevator core; CAD sheet with grid bubbles, axis lines and a
-// radial fan; 1984 hand-drawn commercial complex with named rooms, sq-m
-// figures, covered walkways, arrows and trees.
+// ── Panopticon plan drawing ─────────────────────────────────────────────
+// Circular cell block: central inspection tower with radiating sightlines,
+// a catwalk ring, and a perimeter ring of 9 cells — practice areas mapped
+// onto Bentham's panopticon, redrawn as a CAD sheet.
 
 const W = 1000
 const H = 700
 const mono = "'JetBrains Mono', monospace"
+const CX = 500
+const CY = 360
+const R_TOWER = 68
+const R_CATWALK = 102
+const R_CELL_IN = 112
+const R_CELL_OUT = 252
+const N_CELLS = 9
 
-// thick poché wall segment
+const WORDS = [
+  "bio simulation",
+  "speculative ethic",
+  "speculative politic",
+  "investigative fiction",
+  "fashion design",
+  "product design",
+  "speculative biograph",
+  "audiovisual",
+  "interface design",
+]
+
+// thick poché wall
 const Wl = ({ x1, y1, x2, y2, w = 2.4, o = 0.85 }) => (
   <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth={w} opacity={o} />
 )
@@ -28,383 +37,317 @@ const Ln = ({ x1, y1, x2, y2, w = 0.7, o = 0.5, dash }) => (
   <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth={w} opacity={o} strokeDasharray={dash} />
 )
 
-// door: gap punched in wall + swing arc
-function Door({ x, y, r = 16, rot = 0 }) {
+const pol = (cx, cy, r, a) => [cx + r * Math.cos(a), cy + r * Math.sin(a)]
+
+function sectorPath(cx, cy, rIn, rOut, a0, a1) {
+  const [x1, y1] = pol(cx, cy, rOut, a0)
+  const [x2, y2] = pol(cx, cy, rOut, a1)
+  const [x3, y3] = pol(cx, cy, rIn, a1)
+  const [x4, y4] = pol(cx, cy, rIn, a0)
+  const large = a1 - a0 > Math.PI ? 1 : 0
+  return `M ${x1} ${y1} A ${rOut} ${rOut} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${large} 0 ${x4} ${y4} Z`
+}
+
+function CellDoor({ am, r = R_CELL_IN }) {
+  const [x, y] = pol(CX, CY, r, am)
+  const rot = (am * 180) / Math.PI + 90
   return (
     <g transform={`rotate(${rot} ${x} ${y})`}>
-      <rect x={x - 2} y={y - r} width={4} height={r} fill="var(--bg, #fff)" />
-      <line x1={x} y1={y} x2={x} y2={y - r} stroke="currentColor" strokeWidth={0.8} opacity={0.6} />
-      <path d={`M ${x} ${y - r} A ${r} ${r} 0 0 1 ${x + r} ${y}`} fill="none" stroke="currentColor" strokeWidth={0.5} opacity={0.4} />
+      <rect x={x - 2} y={y - 14} width={4} height={14} fill="var(--bg, #fff)" />
+      <line x1={x} y1={y} x2={x} y2={y - 14} stroke="currentColor" strokeWidth={0.8} opacity={0.6} />
+      <path d={`M ${x} ${y - 14} A 14 14 0 0 1 ${x + 14} ${y}`} fill="none" stroke="currentColor" strokeWidth={0.5} opacity={0.4} />
     </g>
   )
 }
 
-function TileGrid({ x, y, w, h, cell = 8 }) {
-  const v = []
-  for (let gx = x + cell; gx < x + w; gx += cell) v.push(<line key={`v${gx}`} x1={gx} y1={y} x2={gx} y2={y + h} />)
-  for (let gy = y + cell; gy < y + h; gy += cell) v.push(<line key={`h${gy}`} x1={x} y1={gy} x2={x + w} y2={gy} />)
-  return <g stroke="currentColor" strokeWidth={0.35} opacity={0.3}>{v}</g>
-}
-
-function Bed({ x, y, w, h }) {
+function CellFittings({ am, rMid }) {
+  const [cx, cy] = pol(CX, CY, rMid, am)
+  const rot = (am * 180) / Math.PI + 90
   return (
-    <g stroke="currentColor" fill="none" strokeWidth={0.8} opacity={0.55}>
-      <rect x={x} y={y} width={w} height={h} />
-      <rect x={x + 3} y={y + 3} width={w * 0.28} height={h - 6} />
-      <path d={`M ${x + w * 0.4} ${y} L ${x + w} ${y + h * 0.55} M ${x + w * 0.4} ${y + h} L ${x + w} ${y + h * 0.45}`} strokeWidth={0.5} opacity={0.6} />
+    <g transform={`rotate(${rot} ${cx} ${cy})`} stroke="currentColor" fill="none" opacity={0.5}>
+      <rect x={cx - 20} y={cy - 7} width={40} height={14} strokeWidth={0.6} />
+      <line x1={cx - 20} y1={cy} x2={cx + 20} y2={cy} strokeWidth={0.35} />
+      <circle cx={cx} cy={cy + 20} r={5} strokeWidth={0.5} />
     </g>
   )
 }
 
-function Sofa({ x, y, w, h }) {
-  const n = Math.max(2, Math.round(w / 22))
+// HUD-style leader: dot on cell centroid → past ring → elbow → uppercase label
+function Cell({ idx, a0, a1, label, hovered, onHover }) {
+  const am = (a0 + a1) / 2
+  const rMid = (R_CELL_IN + R_CELL_OUT) / 2
+  const [px, py] = pol(CX, CY, rMid, am)
+  const [ex, ey] = pol(CX, CY, R_CELL_OUT + 18, am)
+  const dir = Math.cos(am) >= 0 ? 1 : -1
+  const elbowX = ex + dir * 80
   return (
-    <g stroke="currentColor" fill="none" strokeWidth={0.8} opacity={0.55}>
-      <rect x={x} y={y} width={w} height={h} rx={3} />
-      {Array.from({ length: n - 1 }, (_, i) => (
-        <line key={i} x1={x + ((i + 1) * w) / n} y1={y} x2={x + ((i + 1) * w) / n} y2={y + h} strokeWidth={0.5} />
-      ))}
-      <rect x={x - 4} y={y - 4} width={w + 8} height={6} rx={2} strokeWidth={0.5} />
+    <g>
+      <path
+        d={sectorPath(CX, CY, R_CELL_IN, R_CELL_OUT, a0, a1)}
+        fill="currentColor"
+        opacity={hovered ? 0.07 : 0.015}
+        style={{ cursor: "crosshair", transition: "opacity 0.15s" }}
+        onMouseEnter={() => onHover(idx)}
+        onMouseLeave={() => onHover(null)}
+      />
+      <CellFittings am={am} rMid={rMid} />
+      <CellDoor am={am} />
+      {hovered && (
+        <g pointerEvents="none">
+          <circle cx={px} cy={py} r={1.8} fill="currentColor" opacity={0.85} />
+          <polyline
+            points={`${px},${py} ${ex},${ey} ${elbowX},${ey}`}
+            fill="none" stroke="currentColor" strokeWidth={0.7} opacity={0.75}
+          />
+          <text
+            x={elbowX + dir * 6} y={ey + 5}
+            textAnchor={dir > 0 ? "start" : "end"}
+            fill="currentColor" opacity={0.92}
+            style={{ fontFamily: mono, fontSize: "22px", letterSpacing: "0.12em" }}
+          >
+            {label.toUpperCase()}
+          </text>
+        </g>
+      )}
     </g>
   )
 }
 
-function DiningSet({ cx, cy, r = 14 }) {
-  const chairs = [[0, -r - 8], [0, r + 8], [-r - 8, 0], [r + 8, 0]]
+// ── Elevation (facade) + Section ───────────────────────────────────────
+
+const EH = 380
+const N_FLOORS = 5
+const FLOOR_H = 40
+const STORE_TOP = 60
+const BASE_Y = STORE_TOP + N_FLOORS * FLOOR_H
+const FACADE_BAYS = 5
+
+const FACADE_ROWS = [
+  { top: 10, h: 14, arched: false },
+  { top: 6, h: 27, arched: true },
+  { top: 6, h: 27, arched: true },
+  { top: 7, h: 25, arched: true },
+  { top: 8, h: 24, arched: false },
+]
+
+function FacadeWindow({ x, y, w, h, arched }) {
+  const r = w / 2
+  const d = arched
+    ? `M ${x} ${y + h} L ${x} ${y + r} A ${r} ${r} 0 0 1 ${x + w} ${y + r} L ${x + w} ${y + h} Z`
+    : `M ${x} ${y} L ${x + w} ${y} L ${x + w} ${y + h} L ${x} ${y + h} Z`
   return (
-    <g stroke="currentColor" fill="none" strokeWidth={0.7} opacity={0.55}>
-      <circle cx={cx} cy={cy} r={r} />
-      {chairs.map(([dx, dy], i) => (
-        <rect key={i} x={cx + dx - 5} y={cy + dy - 5} width={10} height={10} strokeWidth={0.5} />
-      ))}
+    <g>
+      <path d={d} fill="url(#winHatch)" stroke="currentColor" strokeWidth={0.6} opacity={0.8} />
+      <Ln x1={x - 2} y1={y + h} x2={x + w + 2} y2={y + h} w={0.8} o={0.55} />
     </g>
   )
 }
 
-function Wardrobe({ x, y, w, h }) {
-  const n = Math.max(3, Math.round(w / 9))
+function Facade() {
+  const xL = 16, xR = CX - 6
+  const bayW = (xR - xL) / FACADE_BAYS
   return (
-    <g stroke="currentColor" fill="none" strokeWidth={0.7} opacity={0.5}>
-      <rect x={x} y={y} width={w} height={h} />
-      {Array.from({ length: n }, (_, i) => {
-        const gx = x + ((i + 0.5) * w) / n
-        return <line key={i} x1={gx} y1={y + 2} x2={gx + 4} y2={y + h - 2} strokeWidth={0.45} />
+    <g>
+      <path d={`M ${xL} ${STORE_TOP - 4} L ${xL + 96} 16 L ${xR - 24} 16 L ${xR} ${STORE_TOP - 4} Z`} fill="currentColor" opacity={0.035} />
+      <path d={`M ${xL} ${STORE_TOP - 4} L ${xL + 96} 16 L ${xR - 24} 16 L ${xR} ${STORE_TOP - 4} Z`} fill="none" stroke="currentColor" strokeWidth={1.1} opacity={0.7} />
+      <g clipPath="url(#roofClip)" opacity={0.35}>
+        {Array.from({ length: 24 }, (_, i) => <Ln key={`v${i}`} x1={xL + 4 + i * 13} y1={12} x2={xL + 4 + i * 13} y2={STORE_TOP} w={0.35} o={0.6} />)}
+        {Array.from({ length: 6 }, (_, i) => <Ln key={`h${i}`} x1={xL} y1={20 + i * 7} x2={xL + 320} y2={20 + i * 7} w={0.35} o={0.6} />)}
+      </g>
+      <text x={xL + 44} y={11} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px" }}>B</text>
+      <Wl x1={xL - 3} y1={STORE_TOP - 4} x2={xR + 3} y2={STORE_TOP - 4} w={1} o={0.55} />
+      <Wl x1={xL - 2} y1={STORE_TOP} x2={xR + 2} y2={STORE_TOP} w={2.2} o={0.85} />
+      <Wl x1={xL} y1={STORE_TOP} x2={xL} y2={BASE_Y} w={2} o={0.8} />
+      <Wl x1={xR} y1={STORE_TOP} x2={xR} y2={BASE_Y} w={2} o={0.8} />
+      {Array.from({ length: FACADE_BAYS - 1 }, (_, i) => <Ln key={i} x1={xL + (i + 1) * bayW} y1={STORE_TOP + 3} x2={xL + (i + 1) * bayW} y2={BASE_Y - 2} w={0.4} o={0.18} />)}
+      {FACADE_ROWS.map((row, r) => {
+        const y0 = STORE_TOP + r * FLOOR_H
+        const winW = bayW * (r === 0 ? 0.16 : 0.2)
+        return (
+          <g key={r}>
+            {r > 0 && <><Wl x1={xL} y1={y0} x2={xR} y2={y0} w={1} o={0.5} /><Ln x1={xL} y1={y0 + 2.5} x2={xR} y2={y0 + 2.5} w={0.4} o={0.3} /></>}
+            {Array.from({ length: FACADE_BAYS }, (_, c) => {
+              if (r === 4 && c === 2) return null
+              const bayX = xL + c * bayW
+              return <g key={c}><FacadeWindow x={bayX + bayW * 0.26 - winW / 2} y={y0 + row.top} w={winW} h={row.h} arched={row.arched} /><FacadeWindow x={bayX + bayW * 0.74 - winW / 2} y={y0 + row.top} w={winW} h={row.h} arched={row.arched} /></g>
+            })}
+          </g>
+        )
       })}
+      <FacadeWindow x={xL + 2.5 * bayW - 14} y={BASE_Y - 33} w={28} h={33} arched />
+      <Wl x1={xL - 4} y1={BASE_Y} x2={xR + 4} y2={BASE_Y} w={2.4} o={0.85} />
     </g>
   )
 }
 
-function Fixture({ cx, cy, r = 9 }) {
+function Section({ hov }) {
+  const x0 = CX + 6, x1 = W - 44, towerX = CX + 160, cellX = x1 - 116
   return (
-    <g stroke="currentColor" fill="none" strokeWidth={0.7} opacity={0.5}>
-      <circle cx={cx} cy={cy} r={r} />
-      <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} strokeWidth={0.4} />
-      <line x1={cx} y1={cy - r} x2={cx} y2={cy + r} strokeWidth={0.4} />
-    </g>
-  )
-}
-
-function Stove({ x, y }) {
-  return (
-    <g stroke="currentColor" fill="none" strokeWidth={0.6} opacity={0.55}>
-      <rect x={x} y={y} width={20} height={14} />
-      {[[5, 4], [15, 4], [5, 10], [15, 10]].map(([dx, dy], i) => (
-        <circle key={i} cx={x + dx} cy={y + dy} r={2.4} />
-      ))}
-    </g>
-  )
-}
-
-function Elevator({ x, y, w, h }) {
-  return (
-    <g stroke="currentColor" fill="none" opacity={0.8}>
-      <rect x={x} y={y} width={w} height={h} strokeWidth={1.4} />
-      <rect x={x + 4} y={y + 4} width={w - 8} height={h - 8} strokeWidth={0.8} />
-      <line x1={x + 4} y1={y + 4} x2={x + w - 4} y2={y + h - 4} strokeWidth={0.7} />
-      <line x1={x + w - 4} y1={y + 4} x2={x + 4} y2={y + h - 4} strokeWidth={0.7} />
-    </g>
-  )
-}
-
-function Stairs({ x, y, w, h, treads = 9 }) {
-  return (
-    <g stroke="currentColor" fill="none" opacity={0.6}>
-      <rect x={x} y={y} width={w} height={h} strokeWidth={0.9} />
-      {Array.from({ length: treads }, (_, i) => {
-        const gx = x + ((i + 1) * w) / (treads + 1)
-        return <line key={i} x1={gx} y1={y} x2={gx} y2={y + h} strokeWidth={0.55} />
+    <g>
+      <rect x={towerX - 11} y={4} width={22} height={14} fill="none" stroke="currentColor" strokeWidth={1} opacity={0.7} />
+      <Ln x1={towerX - 6} y1={7} x2={towerX - 6} y2={15} w={0.4} o={0.5} />
+      <Ln x1={towerX + 6} y1={7} x2={towerX + 6} y2={15} w={0.4} o={0.5} />
+      <text x={towerX - 18} y={12} textAnchor="end" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px" }}>K</text>
+      <path d={`M ${x0} ${STORE_TOP - 4} L ${towerX} 18 L ${x1} ${STORE_TOP - 4}`} fill="none" stroke="currentColor" strokeWidth={1.4} opacity={0.75} />
+      <Ln x1={x0 + 12} y1={STORE_TOP - 5} x2={towerX} y2={24} w={0.5} o={0.35} />
+      {Array.from({ length: 7 }, (_, i) => { const t = (i + 1) / 8; const px = towerX + t * (x1 - towerX); const py = 18 + t * (STORE_TOP - 4 - 18); return <Ln key={i} x1={px} y1={py + 1} x2={px} y2={py + 8} w={0.45} o={0.4} /> })}
+      <text x={(towerX + x1) / 2 + 10} y={26} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px" }}>C</text>
+      <Wl x1={x0} y1={STORE_TOP - 4} x2={x0} y2={BASE_Y} w={2} o={0.8} />
+      <Wl x1={x1} y1={STORE_TOP - 4} x2={x1} y2={BASE_Y} w={2} o={0.8} />
+      <path d={`M ${x0 + 4} 50 Q ${towerX - 90} 30 ${towerX - 26} 116`} fill="none" stroke="currentColor" strokeWidth={0.7} opacity={0.35} />
+      <path d={`M ${x0 + 4} 84 Q ${towerX - 80} 62 ${towerX - 26} 140`} fill="none" stroke="currentColor" strokeWidth={0.6} opacity={0.25} />
+      <text x={(x0 + towerX) / 2 - 20} y={52} textAnchor="middle" fill="currentColor" opacity={0.4} style={{ fontFamily: mono, fontSize: "7px" }}>I</text>
+      <text x={(x0 + towerX - 26) / 2} y={152} textAnchor="middle" fill="currentColor" opacity={0.42} style={{ fontFamily: mono, fontSize: "7px" }}>G</text>
+      {Array.from({ length: N_FLOORS }, (_, r) => {
+        const yb = STORE_TOP + (r + 1) * FLOOR_H
+        const n = Math.floor((towerX - 34 - (x0 + 8)) / 26)
+        return <g key={r} opacity={0.22}><Ln x1={x0 + 2} y1={yb} x2={towerX - 28} y2={yb} w={0.5} o={0.9} />{Array.from({ length: n }, (_, i) => { const ax = x0 + 8 + i * 26; return <path key={i} d={`M ${ax} ${yb} L ${ax} ${yb - 14} A 9 9 0 0 1 ${ax + 18} ${yb - 14} L ${ax + 18} ${yb}`} fill="none" stroke="currentColor" strokeWidth={0.5} /> })}</g>
       })}
-      <line x1={x} y1={y + h / 2} x2={x + w - 8} y2={y + h / 2} strokeWidth={0.5} />
-      <path d={`M ${x + w - 14} ${y + h / 2 - 4} L ${x + w - 8} ${y + h / 2} L ${x + w - 14} ${y + h / 2 + 4}`} strokeWidth={0.5} />
-      {/* break line */}
-      <path d={`M ${x + w * 0.55} ${y - 3} l 6 ${h * 0.4} l -8 ${h * 0.25} l 6 ${h * 0.4}`} strokeWidth={0.7} />
+      <Wl x1={towerX - 26} y1={18} x2={towerX - 26} y2={BASE_Y} w={1.2} o={0.7} />
+      <Wl x1={towerX + 26} y1={18} x2={towerX + 26} y2={BASE_Y} w={1.2} o={0.7} />
+      {Array.from({ length: 16 }, (_, i) => { const y = 28 + i * 14.4; return i % 2 === 0 ? <Ln key={i} x1={towerX - 22} y1={y} x2={towerX + 22} y2={y - 9} w={0.45} o={0.4} /> : <Ln key={i} x1={towerX - 22} y1={y - 9} x2={towerX + 22} y2={y} w={0.45} o={0.4} /> })}
+      {Array.from({ length: N_FLOORS + 1 }, (_, r) => {
+        const y = STORE_TOP + r * FLOOR_H
+        return <g key={r}><Wl x1={towerX + 26} y1={y} x2={x1} y2={y} w={1.5} o={0.75} />{r > 0 && <g opacity={0.55}><Ln x1={towerX + 27} y1={y - 9} x2={towerX + 61} y2={y - 9} w={0.6} o={0.9} />{Array.from({ length: 9 }, (_, t) => <Ln key={t} x1={towerX + 28 + t * 4} y1={y} x2={towerX + 28 + t * 4} y2={y - 9} w={0.45} o={0.8} />)}</g>}</g>
+      })}
+      {Array.from({ length: N_FLOORS }, (_, r) => {
+        const y = STORE_TOP + r * FLOOR_H
+        const lit = hov != null && hov % N_FLOORS === r
+        return (
+          <g key={r}>
+            <rect x={cellX + 1.5} y={y + 1.5} width={x1 - cellX - 3} height={FLOOR_H - 3} fill="currentColor" opacity={lit ? 0.06 : 0} pointerEvents="none" style={{ transition: "opacity 0.15s" }} />
+            <Wl x1={cellX} y1={y} x2={cellX} y2={y + 16} w={1.3} o={0.7} />
+            <path d={`M ${cellX} ${y + 16} A 8 8 0 0 0 ${cellX - 8} ${y + 24}`} fill="none" stroke="currentColor" strokeWidth={0.6} opacity={0.5} />
+            <Ln x1={cellX} y1={y + FLOOR_H} x2={cellX - 9} y2={y + FLOOR_H - 9} w={0.5} o={0.4} />
+            <g stroke="currentColor" fill="none" opacity={0.45}><rect x={x1 - 32} y={y + FLOOR_H - 9} width={22} height={7} strokeWidth={0.5} /><line x1={x1 - 32} y1={y + FLOOR_H - 5.5} x2={x1 - 10} y2={y + FLOOR_H - 5.5} strokeWidth={0.3} /></g>
+            <rect x={x1 + 1} y={y + 8} width={7} height={11} fill="currentColor" fillOpacity={0.06} stroke="currentColor" strokeWidth={0.6} opacity={0.5} />
+            <text x={(cellX + x1) / 2} y={y + 22} textAnchor="middle" fill="currentColor" opacity={0.5} style={{ fontFamily: mono, fontSize: "7.5px" }}>A</text>
+            {r < N_FLOORS - 1 && <text x={towerX + 88} y={y + 22} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px" }}>D</text>}
+          </g>
+        )
+      })}
+      {hov != null && (() => {
+        const r = hov % N_FLOORS
+        const y = STORE_TOP + r * FLOOR_H
+        const sx = cellX + (x1 - cellX) / 2, sy = y + FLOOR_H / 2
+        const skyY = 50, elbowX = sx + 26
+        return (
+          <g pointerEvents="none">
+            <circle cx={sx} cy={sy} r={1.8} fill="currentColor" opacity={0.85} />
+            <polyline points={`${sx},${sy} ${elbowX},${skyY} ${x1 + 30},${skyY}`} fill="none" stroke="currentColor" strokeWidth={0.7} opacity={0.75} />
+            <text x={x1 + 30} y={skyY - 8} textAnchor="end" fill="currentColor" opacity={0.92} style={{ fontFamily: mono, fontSize: "22px", letterSpacing: "0.12em" }}>
+              {WORDS[hov].toUpperCase()}
+            </text>
+          </g>
+        )
+      })()}
+      <path d={`M ${towerX + 26} ${BASE_Y} Q ${(towerX + 26 + cellX) / 2} ${BASE_Y - 62} ${cellX} ${BASE_Y}`} fill="none" stroke="currentColor" strokeWidth={0.8} opacity={0.5} />
+      <text x={(towerX + 26 + cellX) / 2} y={BASE_Y - 16} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7.5px" }}>H</text>
+      <Wl x1={x0 - 4} y1={BASE_Y} x2={x1 + 8} y2={BASE_Y} w={2.4} o={0.85} />
+      <text x={x1 + 22} y={BASE_Y - 6} textAnchor="middle" fill="currentColor" opacity={0.4} style={{ fontFamily: mono, fontSize: "7px" }}>E</text>
+      <g opacity={0.45}>
+        <Ln x1={x1 + 32} y1={STORE_TOP} x2={x1 + 32} y2={BASE_Y} w={0.5} />
+        {Array.from({ length: N_FLOORS + 1 }, (_, r) => { const y = STORE_TOP + r * FLOOR_H; return <g key={r}><Ln x1={x1 + 28} y1={y} x2={x1 + 36} y2={y} w={0.6} /><Ln x1={x1 + 29} y1={y + 3} x2={x1 + 35} y2={y - 3} w={0.6} /></g> })}
+      </g>
     </g>
   )
 }
 
-function Tree({ cx, cy, r }) {
+function ScaleBar() {
+  const y = BASE_Y + 32, x = 350, seg = 50
   return (
-    <g stroke="currentColor" fill="none" opacity={0.35}>
-      <circle cx={cx} cy={cy} r={r} strokeWidth={0.6} strokeDasharray="3 2.5" />
-      <path d={`M ${cx - r * 0.5} ${cy} a ${r * 0.5} ${r * 0.5} 0 0 1 ${r} 0`} strokeWidth={0.4} />
-      <path d={`M ${cx - r * 0.3} ${cy + r * 0.3} a ${r * 0.4} ${r * 0.4} 0 0 1 ${r * 0.6} -0.1`} strokeWidth={0.4} />
-      <circle cx={cx} cy={cy} r={1.4} fill="currentColor" stroke="none" />
+    <g>
+      <text x={x - 12} y={y + 5} textAnchor="end" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px", fontStyle: "italic" }}>scale of</text>
+      {Array.from({ length: 6 }, (_, i) => i % 2 === 0 && <rect key={i} x={x + i * seg} y={y} width={seg} height={4} fill="currentColor" opacity={0.55} />)}
+      <rect x={x} y={y} width={seg * 6} height={4} fill="none" stroke="currentColor" strokeWidth={0.7} opacity={0.7} />
+      {Array.from({ length: 7 }, (_, i) => <text key={i} x={x + i * seg} y={y - 4} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "6.5px" }}>{i * 10}</text>)}
+      <text x={x + seg * 6 + 12} y={y + 5} textAnchor="start" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px", fontStyle: "italic" }}>feet</text>
     </g>
   )
 }
 
-function WalkArrow({ x, y, rot = 0 }) {
+function ElevationSection({ hov }) {
   return (
-    <g transform={`rotate(${rot} ${x} ${y})`} stroke="currentColor" fill="none" strokeWidth={1.6} opacity={0.6}>
-      <line x1={x} y1={y - 9} x2={x} y2={y + 7} />
-      <path d={`M ${x - 5} ${y + 1} L ${x} ${y + 8} L ${x + 5} ${y + 1}`} />
-    </g>
-  )
-}
-
-function GridBubble({ x, y, label, axis }) {
-  return (
-    <g opacity={0.5}>
-      {axis === "v"
-        ? <Ln x1={x} y1={40} x2={x} y2={y - 9} w={0.4} o={0.35} dash="6 4" />
-        : <Ln x1={x + 9} y1={y} x2={W - 40} y2={y} w={0.4} o={0.35} dash="6 4" />}
-      <circle cx={x} cy={y} r={9} fill="none" stroke="currentColor" strokeWidth={0.8} />
-      <text x={x} y={y + 3} textAnchor="middle" fill="currentColor" style={{ fontFamily: mono, fontSize: "8px" }}>
-        {label}
-      </text>
-    </g>
-  )
-}
-
-// named room: hoverable fill; info shows in the external tooltip
-function NamedRoom({ x, y, w, h, idx, label, active, setActive, rot = 0 }) {
-  const on = active?.idx === idx
-  return (
-    <g
-      transform={rot ? `rotate(${rot} ${x + w / 2} ${y + h / 2})` : undefined}
-      onMouseEnter={() =>
-        setActive({
-          idx,
-          label,
-          area: `${Math.round((w * h) / 100)} sqm (${Math.round((w * h) / 9.29)} sq ft)`,
-        })
-      }
-      onMouseLeave={() => setActive(null)}
-      style={{ cursor: "crosshair" }}
-    >
-      <rect x={x} y={y} width={w} height={h} fill="currentColor" opacity={on ? 0.09 : 0.015} />
-    </g>
+    <svg viewBox={`0 0 ${W} ${EH}`} style={{ width: "100%", height: "auto", display: "block", marginBottom: "0.4rem" }}>
+      <defs>
+        <pattern id="winHatch" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="3.2" stroke="currentColor" strokeWidth="0.5" opacity="0.45" />
+        </pattern>
+        <clipPath id="roofClip">
+          <path d={`M 16 ${STORE_TOP - 4} L 112 16 L ${CX - 30} 16 L ${CX - 6} ${STORE_TOP - 4} Z`} />
+        </clipPath>
+      </defs>
+      <Facade />
+      <Section hov={hov} />
+      <g opacity={0.3}>
+        {Array.from({ length: 70 }, (_, i) => { const x = 20 + i * 14; return <Ln key={i} x1={x} y1={BASE_Y + 2} x2={x - 6} y2={BASE_Y + 8} w={0.5} o={0.9} /> })}
+      </g>
+      <text x={255} y={BASE_Y + 20} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7.5px", letterSpacing: "1.2px" }}>ELEVATION</text>
+      <text x={731} y={BASE_Y + 20} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7.5px", letterSpacing: "1.2px" }}>SECTION A—A</text>
+      <ScaleBar />
+      <Ln x1={CX} y1={0} x2={CX} y2={BASE_Y + 10} w={0.5} o={0.3} dash="1 3" />
+    </svg>
   )
 }
 
 function CombinedPlan() {
-  const [active, setActive] = useState(null)
-  const [pos, setPos] = useState({ x: 0, y: 0 })
-
+  const [hov, setHov] = useState(null)
   return (
-    <div
-      style={{ position: "relative", width: "min(80%, 680px)", margin: "0 auto", color: "var(--text, #000)" }}
-      onMouseMove={(e) => {
-        const r = e.currentTarget.getBoundingClientRect()
-        setPos({ x: e.clientX - r.left, y: e.clientY - r.top })
-      }}
-    >
-      {active && (
-        <div
-          style={{
-            position: "absolute",
-            left: pos.x + 18,
-            top: pos.y - 14,
-            zIndex: 10,
-            pointerEvents: "none",
-            background:
-              "linear-gradient(135deg, color-mix(in srgb, var(--bg, #fff) 60%, transparent), color-mix(in srgb, var(--bg, #fff) 85%, transparent))",
-            backdropFilter: "blur(14px) saturate(1.6)",
-            WebkitBackdropFilter: "blur(14px) saturate(1.6)",
-            borderRadius: "14px",
-            boxShadow:
-              "0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -8px 18px rgba(255,255,255,0.25)",
-            padding: "10px 22px 11px",
-            whiteSpace: "nowrap",
-            lineHeight: 1.1,
-            textAlign: "center",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: mono,
-              fontSize: "8px",
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-              opacity: 0.45,
-              marginBottom: "1px",
-              lineHeight: 1.1,
-            }}
-          >
-            room {String(active.idx + 1).padStart(2, "0")}
-          </div>
-          <div style={{ fontFamily: mono, fontSize: "13px", fontStyle: "italic", letterSpacing: "0.03em", lineHeight: 1.1 }}>
-            {active.label}
-          </div>
-          <div style={{ fontFamily: mono, fontSize: "9px", opacity: 0.5, marginTop: "2px", letterSpacing: "0.08em", lineHeight: 1.1 }}>
-            {active.area}
-          </div>
-        </div>
-      )}
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
-
-        {/* ── central lobby: gray like ref 1 ── */}
-        <polygon points="420,210 580,210 640,266 660,290 340,290 360,266" fill="currentColor" opacity={0.06} />
-        <polygon points="430,90 570,90 570,210 430,210" fill="currentColor" opacity={0.04} />
-
-        {/* ── core: stair + elevator ── */}
-        <Stairs x={438} y={64} w={124} h={30} />
-        <Elevator x={462} y={112} w={76} h={64} />
-        <Wl x1={430} y1={58} x2={430} y2={210} />
-        <Wl x1={570} y1={58} x2={570} y2={210} />
-        <Wl x1={430} y1={58} x2={570} y2={58} />
-
-        {/* ── upper-left apartment ── */}
-        <Wl x1={60} y1={60} x2={430} y2={60} />
-        <Wl x1={60} y1={60} x2={60} y2={290} />
-        <Wl x1={60} y1={290} x2={340} y2={290} />
-        {/* internal walls */}
-        <Wl x1={205} y1={60} x2={205} y2={175} w={1.6} />
-        <Wl x1={330} y1={60} x2={330} y2={175} w={1.6} />
-        <Wl x1={60} y1={175} x2={430} y2={175} w={1.6} />
-        <Door x={205} y={130} rot={90} />
-        <Door x={330} y={100} rot={90} />
-        <Door x={150} y={175} />
-        <Door x={290} y={175} />
-        {/* furniture */}
-        <Bed x={75} y={78} w={78} h={54} />
-        <Sofa x={222} y={78} w={62} h={16} />
-        <DiningSet cx={262} cy={135} />
-        <TileGrid x={332} y={62} w={96} h={111} cell={9} />
-        <Fixture cx={382} cy={92} />
-        <Stove x={344} y={140} />
-        <Wardrobe x={70} y={190} w={80} h={16} />
-        <NamedRoom x={62} y={62} w={141} h={111} idx={0} label={WORDS[0]} active={active} setActive={setActive} />
-        <NamedRoom x={207} y={62} w={121} h={111} idx={1} label={WORDS[1]} active={active} setActive={setActive} />
-        <NamedRoom x={62} y={177} w={276} h={111} idx={2} label={WORDS[2]} active={active} setActive={setActive} />
-
-        {/* ── upper-right apartment (mirror) ── */}
-        <Wl x1={570} y1={60} x2={940} y2={60} />
-        <Wl x1={940} y1={60} x2={940} y2={290} />
-        <Wl x1={660} y1={290} x2={940} y2={290} />
-        <Wl x1={795} y1={60} x2={795} y2={175} w={1.6} />
-        <Wl x1={670} y1={60} x2={670} y2={175} w={1.6} />
-        <Wl x1={570} y1={175} x2={940} y2={175} w={1.6} />
-        <Door x={795} y={130} rot={90} />
-        <Door x={670} y={100} rot={90} />
-        <Door x={850} y={175} />
-        <Door x={710} y={175} />
-        <Bed x={848} y={78} w={78} h={54} />
-        <Sofa x={716} y={78} w={62} h={16} />
-        <DiningSet cx={738} cy={135} />
-        <TileGrid x={572} y={62} w={96} h={111} cell={9} />
-        <Fixture cx={618} cy={92} />
-        <Stove x={636} y={140} />
-        <Wardrobe x={850} y={190} w={80} h={16} />
-        <NamedRoom x={797} y={62} w={141} h={111} idx={3} label={WORDS[3]} active={active} setActive={setActive} />
-        <NamedRoom x={672} y={62} w={121} h={111} idx={4} label={WORDS[4]} active={active} setActive={setActive} />
-        <NamedRoom x={662} y={177} w={276} h={111} idx={5} label={WORDS[5]} active={active} setActive={setActive} />
-
-        {/* ── covered walkways with arrows, ref 3 ── */}
-        <Ln x1={340} y1={290} x2={250} y2={370} w={1} o={0.5} />
-        <Ln x1={360} y1={310} x2={278} y2={384} w={1} o={0.5} />
-        <text x={276} y={330} fill="currentColor" opacity={0.45} transform="rotate(-40 276 330)" style={{ fontFamily: mono, fontSize: "7.5px", letterSpacing: "1px" }}>covered walkway</text>
-        <WalkArrow x={318} y={330} rot={50} />
-        <Ln x1={660} y1={290} x2={750} y2={370} w={1} o={0.5} />
-        <Ln x1={640} y1={310} x2={722} y2={384} w={1} o={0.5} />
-        <text x={678} y={352} fill="currentColor" opacity={0.45} transform="rotate(40 678 352)" style={{ fontFamily: mono, fontSize: "7.5px", letterSpacing: "1px" }}>covered walkway</text>
-        <WalkArrow x={682} y={330} rot={-50} />
-
-        {/* courtyard trees */}
-        <Tree cx={468} cy={352} r={26} />
-        <Tree cx={532} cy={378} r={19} />
-        <Tree cx={432} cy={402} r={14} />
-
-        {/* ── lower-left angled wing, ref 3 ── */}
-        <g transform="rotate(-12 200 480)">
-          <Wl x1={70} y1={390} x2={330} y2={390} />
-          <Wl x1={70} y1={390} x2={70} y2={560} />
-          <Wl x1={70} y1={560} x2={330} y2={560} />
-          <Wl x1={330} y1={390} x2={330} y2={560} />
-          <Wl x1={200} y1={390} x2={200} y2={560} w={1.6} />
-          <Wl x1={70} y1={480} x2={200} y2={480} w={1.6} />
-          <Door x={200} y={440} rot={90} />
-          <Door x={140} y={480} />
-          <Sofa x={220} y={410} w={58} h={15} />
-          <Wardrobe x={80} y={532} w={70} h={14} />
-          <NamedRoom x={72} y={392} w={126} h={86} idx={6} label={WORDS[6]} active={active} setActive={setActive} />
-          <NamedRoom x={72} y={482} w={126} h={76} idx={7} label={WORDS[7]} active={active} setActive={setActive} />
-          <NamedRoom x={202} y={392} w={126} h={166} idx={8} label={WORDS[8]} active={active} setActive={setActive} />
-        </g>
-
-        {/* ── lower-right angled wing ── */}
-        <g transform="rotate(10 790 480)">
-          <Wl x1={660} y1={400} x2={930} y2={400} />
-          <Wl x1={660} y1={400} x2={660} y2={560} />
-          <Wl x1={660} y1={560} x2={930} y2={560} />
-          <Wl x1={930} y1={400} x2={930} y2={560} />
-          <Wl x1={800} y1={400} x2={800} y2={560} w={1.6} />
-          <Wl x1={800} y1={475} x2={930} y2={475} w={1.6} />
-          <Door x={800} y={445} rot={90} />
-          <Door x={860} y={475} />
-          <TileGrid x={662} y={402} w={70} h={70} cell={8} />
-          <Fixture cx={697} cy={437} />
-          <Bed x={815} y={415} w={66} h={44} />
-          <NamedRoom x={662} y={402} w={136} h={156} idx={9} label={WORDS[9]} active={active} setActive={setActive} />
-          <NamedRoom x={802} y={402} w={126} h={71} idx={10} label={WORDS[10]} active={active} setActive={setActive} />
-          <NamedRoom x={802} y={477} w={126} h={81} idx={11} label={WORDS[11]} active={active} setActive={setActive} />
-        </g>
-
-        {/* ── radial fan, ref 2 ── */}
-        <g stroke="currentColor" fill="none" opacity={0.4}>
-          {Array.from({ length: 17 }, (_, i) => {
-            const a = Math.PI + (i * Math.PI) / 16
-            const x2 = 500 + Math.cos(a) * 150
-            const y2 = 655 + Math.sin(a) * 150
-            return <line key={i} x1={500} y1={655} x2={x2} y2={y2} strokeWidth={0.45} />
+    <div style={{ position: "relative", width: "min(80%, 680px)", margin: "0 auto", color: "var(--text, #000)" }}>
+      <ElevationSection hov={hov} />
+      <svg viewBox={`-250 0 1500 ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
+        <circle cx={CX} cy={CY} r={R_CELL_OUT} fill="currentColor" opacity={0.03} />
+        <circle cx={CX} cy={CY} r={R_CELL_OUT} fill="none" stroke="currentColor" strokeWidth={2.4} opacity={0.85} />
+        {Array.from({ length: N_CELLS }, (_, i) => {
+          const a0 = -Math.PI / 2 + (i * 2 * Math.PI) / N_CELLS
+          const a1 = -Math.PI / 2 + ((i + 1) * 2 * Math.PI) / N_CELLS
+          return <Cell key={i} idx={i} a0={a0} a1={a1} label={WORDS[i]} hovered={hov === i} onHover={setHov} />
+        })}
+        {Array.from({ length: N_CELLS }, (_, i) => {
+          const a = -Math.PI / 2 + (i * 2 * Math.PI) / N_CELLS
+          const [x1, y1] = pol(CX, CY, R_CELL_IN, a)
+          const [x2, y2] = pol(CX, CY, R_CELL_OUT, a)
+          return <Wl key={i} x1={x1} y1={y1} x2={x2} y2={y2} w={1.6} o={0.6} />
+        })}
+        <circle cx={CX} cy={CY} r={R_CATWALK} fill="none" stroke="currentColor" strokeWidth={1} opacity={0.5} strokeDasharray="2 3" />
+        <circle cx={CX} cy={CY} r={R_CELL_IN} fill="none" stroke="currentColor" strokeWidth={1.4} opacity={0.7} />
+        <g stroke="currentColor" fill="none" opacity={0.22}>
+          {Array.from({ length: N_CELLS }, (_, i) => {
+            const a = -Math.PI / 2 + ((i + 0.5) * 2 * Math.PI) / N_CELLS
+            const [x2, y2] = pol(CX, CY, R_CELL_OUT - 4, a)
+            return <line key={i} x1={CX} y1={CY} x2={x2} y2={y2} strokeWidth={0.4} strokeDasharray="1 3" />
           })}
-          <path d="M 350 655 A 150 150 0 0 1 650 655" strokeWidth={0.8} />
-          <path d="M 400 655 A 100 100 0 0 1 600 655" strokeWidth={0.6} />
-          <path d="M 450 655 A 50 50 0 0 1 550 655" strokeWidth={0.6} />
         </g>
-        <Stairs x={455} y={568} w={90} h={22} treads={11} />
-
-        {/* ── grid bubbles + axis lines, ref 2 ── */}
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((n, i) => (
-          <GridBubble key={n} x={95 + i * 116} y={682} label={String(n)} axis="v" />
-        ))}
-        {["A", "B", "C", "D", "E"].map((c, i) => (
-          <GridBubble key={c} x={26} y={80 + i * 130} label={c} axis="h" />
-        ))}
-
-        {/* dimension ticks along top */}
+        {hov != null && (() => {
+          const a = -Math.PI / 2 + ((hov + 0.5) * 2 * Math.PI) / N_CELLS
+          const [x2, y2] = pol(CX, CY, R_CELL_OUT - 4, a)
+          return <line x1={CX} y1={CY} x2={x2} y2={y2} stroke="currentColor" strokeWidth={0.7} opacity={0.55} pointerEvents="none" />
+        })()}
+        <circle cx={CX} cy={CY} r={R_TOWER} fill="currentColor" opacity={0.06} />
+        <circle cx={CX} cy={CY} r={R_TOWER} fill="none" stroke="currentColor" strokeWidth={1.6} opacity={0.85} />
+        <g stroke="currentColor" fill="none" opacity={0.6}>
+          {Array.from({ length: N_CELLS }, (_, i) => {
+            const a = -Math.PI / 2 + (i * 2 * Math.PI) / N_CELLS
+            const [x1, y1] = pol(CX, CY, R_TOWER * 0.4, a)
+            const [x2, y2] = pol(CX, CY, R_TOWER, a)
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} strokeWidth={0.4} />
+          })}
+        </g>
+        <circle cx={CX} cy={CY} r={16} fill="none" stroke="currentColor" strokeWidth={1} opacity={0.7} />
+        <circle cx={CX} cy={CY} r={4} fill="currentColor" stroke="none" opacity={0.75} />
+        <text x={CX} y={CY - 26} textAnchor="middle" fill="currentColor" opacity={0.5} style={{ fontFamily: mono, fontSize: "7.5px", letterSpacing: "1.5px" }}>INSPECTION HOUSE</text>
         <g opacity={0.4}>
           <Ln x1={60} y1={34} x2={940} y2={34} w={0.5} />
-          {[60, 205, 330, 430, 570, 670, 795, 940].map((x) => (
-            <g key={x}>
-              <Ln x1={x} y1={30} x2={x} y2={38} w={0.6} />
-              <Ln x1={x - 3} y1={37} x2={x + 3} y2={31} w={0.6} />
-            </g>
-          ))}
+          {[60, 240, 500, 760, 940].map((x) => <g key={x}><Ln x1={x} y1={30} x2={x} y2={38} w={0.6} /><Ln x1={x - 3} y1={37} x2={x + 3} y2={31} w={0.6} /></g>)}
         </g>
-
-        {/* north arrow */}
         <g transform="translate(952 330)" stroke="currentColor" fill="none" opacity={0.5}>
           <circle cx={0} cy={0} r={13} strokeWidth={0.7} />
           <path d="M 0 9 L 0 -9 M -4 -3 L 0 -9 L 4 -3" strokeWidth={0.8} />
           <text x={0} y={24} textAnchor="middle" fill="currentColor" stroke="none" style={{ fontFamily: mono, fontSize: "7px" }}>N</text>
         </g>
-
       </svg>
-      <p
-        style={{ textAlign: "right", marginTop: "0.6rem", fontSize: "10px", opacity: 0.5, color: "var(--text-dim)" }}
-      >
-        first floor plan — commercial complex — scale 1:100 — ws.2026
+      <p style={{ textAlign: "center", marginTop: "0.6rem", fontSize: "10px", opacity: 0.5, color: "var(--text-dim)" }}>
+        first floor plan — panopticon — scale 1:100 — ws.2026
       </p>
     </div>
   )
@@ -482,7 +425,7 @@ const About = () => {
             CV
           </a>
           <a
-            href="/cv"
+            href="/resume"
             style={{
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: "11px",
