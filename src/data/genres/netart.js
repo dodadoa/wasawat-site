@@ -10,9 +10,9 @@ const netart = {
       slug: "self-censored-step-sequencer",
       date: "2025-01-01",
       image: "/images/self-censored-step-sequencer-chrome-extension.jpg",
-      x: 0.5,
-      y: -0.55,
-      z: 0,
+      x: -1,
+      y: -1,
+      z: -0.5,
     },
   ],
 }

@@ -1,0 +1,20 @@
+---
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2021" },
+    { label: "Role", value: "Web Developer, Technical Consultant" },
+    {
+      label: "For",
+      value: '<a href="https://nawinnuthong.com" target="_blank" rel="noopener noreferrer" style="color: inherit;">Nawin Nuthong</a>',
+      html: true,
+    },
+    {
+      label: "Links",
+      value: '<a href="https://nawinnuthong.com/THE-IMMORTALS-ARE-QUITE-BUSY-THESE-DAYS-2021" target="_blank" rel="noopener noreferrer" style="color: inherit;">nawinnuthong.com</a> · <a href="https://www.busyimmortal.com/" target="_blank" rel="noopener noreferrer" style="color: inherit;">busyimmortal.com</a>',
+      html: true,
+    },
+  ]} />
+</div>

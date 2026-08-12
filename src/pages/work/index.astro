@@ -26,6 +26,7 @@ function splitSection(section) {
   const unselected = []
   for (const group of section.groups) {
     for (const item of group.items) {
+      if (item.hidden) continue
       const row = { item, groupTitle: group.title }
       if (item.slug && !item.unlisted) selected.push(row)
       else unselected.push(row)
@@ -35,14 +36,15 @@ function splitSection(section) {
 }
 ---
 
-<Layout title="Index — Wasawat Somno" description="Index of works">
+<Layout title="Work — Wasawat Somno" description="Index of works">
   <div class="relative z-10 font-mono p-8 pb-20 max-w-4xl">
-    <p class="text-[12px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">[index]</p>
-    <h1 class="font-bold text-3xl lg:text-4xl mb-10" style="color: var(--text);">Index</h1>
+    <p class="text-[12px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">[work]</p>
+    <h1 class="font-bold text-3xl lg:text-4xl mb-10" style="color: var(--text);">Work</h1>
 
     {
       artSections.map((section) => {
         const { selected, unselected } = splitSection(section)
+        const hasCommissioner = selected.some(({ item }) => item.commissioner)
         return (
           <section class="mb-14">
             <h2 class="font-bold text-xl mb-4 uppercase tracking-wide" style="color: var(--text);">{section.title}</h2>
@@ -56,6 +58,9 @@ function splitSection(section) {
                       <th class="text-left font-normal py-2 pr-4" style="width: 56px;"></th>
                       <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Title</th>
                       <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Group</th>
+                      {hasCommissioner && (
+                        <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Commissioner</th>
+                      )}
                       <th class="text-right font-normal uppercase tracking-widest py-2" style="color: var(--text-dim); font-size: 11px;">Year</th>
                     </tr>
                   </thead>
@@ -86,6 +91,11 @@ function splitSection(section) {
                           <td class="py-2 pr-4" style="color: var(--text-dim);">
                             {groupTitle ?? "—"}
                           </td>
+                          {hasCommissioner && (
+                            <td class="py-2 pr-4" style="color: var(--text-dim);">
+                              {item.commissioner ?? "—"}
+                            </td>
+                          )}
                           <td class="py-2 text-right" style="color: var(--text-dim);">
                             {date ? date.slice(0, 4) : "—"}
                           </td>
@@ -109,6 +119,10 @@ function splitSection(section) {
                           <td class="py-2 pr-4" style="color: var(--text-muted);">
                             {item.slug ? (
                               <a href={`/art/${item.slug}`} class="hover:underline">
+                                {item.label}
+                              </a>
+                            ) : item.url ? (
+                              <a href={item.url} target="_blank" rel="noopener noreferrer" class="hover:underline">
                                 {item.label}
                               </a>
                             ) : (

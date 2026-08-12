@@ -6,6 +6,9 @@ import { useState } from "react"
 // onto Bentham's panopticon, redrawn as a CAD sheet.
 
 const W = 1000
+// extra right-hand margin so the hover label (positioned past x1) has room
+// to sit at its own size without being clipped by the SVG viewBox edge
+const ELEV_VB_W = W + 170
 const H = 700
 const mono = "'JetBrains Mono', monospace"
 const CX = 500
@@ -235,7 +238,7 @@ function Section({ hov }) {
           <g pointerEvents="none">
             <circle cx={sx} cy={sy} r={1.8} fill="currentColor" opacity={0.85} />
             <polyline points={`${sx},${sy} ${elbowX},${skyY} ${x1 + 30},${skyY}`} fill="none" stroke="currentColor" strokeWidth={0.7} opacity={0.75} />
-            <text x={x1 + 30} y={skyY - 8} textAnchor="end" fill="currentColor" opacity={0.92} style={{ fontFamily: mono, fontSize: "22px", letterSpacing: "0.12em" }}>
+            <text x={x1 + 55} y={skyY - 6} textAnchor="start" fill="currentColor" opacity={0.92} style={{ fontFamily: mono, fontSize: "13px", letterSpacing: "0.1em" }}>
               {WORDS[hov].toUpperCase()}
             </text>
           </g>
@@ -268,7 +271,7 @@ function ScaleBar() {
 
 function ElevationSection({ hov }) {
   return (
-    <svg viewBox={`0 0 ${W} ${EH}`} style={{ width: "100%", height: "auto", display: "block", marginBottom: "0.4rem" }}>
+    <svg viewBox={`0 0 ${ELEV_VB_W} ${EH}`} style={{ width: "100%", height: "auto", display: "block", marginBottom: "0.4rem" }}>
       <defs>
         <pattern id="winHatch" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <line x1="0" y1="0" x2="0" y2="3.2" stroke="currentColor" strokeWidth="0.5" opacity="0.45" />
@@ -293,7 +296,8 @@ function ElevationSection({ hov }) {
 function CombinedPlan() {
   const [hov, setHov] = useState(null)
   return (
-    <div style={{ position: "relative", width: "min(80%, 680px)", margin: "0 auto", color: "var(--text, #000)" }}>
+    <div style={{ position: "relative", width: "min(80%, 680px)", margin: "0 auto", color: "var(--text, #000)" }}
+    >
       <ElevationSection hov={hov} />
       <svg viewBox={`-250 0 1500 ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
         <circle cx={CX} cy={CY} r={R_CELL_OUT} fill="currentColor" opacity={0.03} />
@@ -346,9 +350,6 @@ function CombinedPlan() {
           <text x={0} y={24} textAnchor="middle" fill="currentColor" stroke="none" style={{ fontFamily: mono, fontSize: "7px" }}>N</text>
         </g>
       </svg>
-      <p style={{ textAlign: "center", marginTop: "0.6rem", fontSize: "10px", opacity: 0.5, color: "var(--text-dim)" }}>
-        first floor plan — panopticon — scale 1:100 — ws.2026
-      </p>
     </div>
   )
 }
@@ -390,10 +391,141 @@ function FullBio() {
   )
 }
 
+// ── Works & activity list ───────────────────────────────────────────────
+// Sectioned CV-style listing (structure after nanuttpp.net/about-1):
+// bold section label, dash-prefixed entries, venue/year trailing each line.
+
+const BIO_SECTIONS = [
+  {
+    title: "Group Exhibition",
+    items: [
+      { label: "re:complex", meta: "Goethe-Institut Thailand, 7–13 November 2025", url: "/art/eternal-gain-eternal-pain" },
+      { label: "Close Inspection From Afar", meta: "ETA BKK, organised by Cache, July 2025", url: "/art/here-now-absolute-elsewhere" },
+      { label: "Un_Unsubscribe", meta: "pavilion within The Wrong Biennale 2023, curated by Khristina Ots & Roman Solodkov", url: "https://poetic-garden.netlify.app/" },
+    ],
+  },
+  {
+    title: "Selected Works",
+    items: [
+      { label: "Do The NPCs Hear The Simulated Wind", meta: "PATCH NOTES THAT REFUSE A SETTLED WORLD, Virtual Media Lab, TCDC Bangkok, 2026", url: "/art/do-the-npcs-hear-the-simulated-wind" },
+      { label: "Here-now; absolute-elsewhere.", meta: "Close Inspection From Afar, ETA BKK, 2025", url: "/art/here-now-absolute-elsewhere" },
+      { label: "Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)", meta: "Installation, 2025", url: "/art/eternal-gain-eternal-pain" },
+      { label: "As if you would still be here, if I keep thinking about you.", meta: "Audiovisual performance, 2026", url: "/art/as-if-you-would-still-be-here" },
+      { label: "Poetic Garden", meta: "Un_Unsubscribe pavilion, The Wrong Biennale, 2023", url: "https://poetic-garden.netlify.app/" },
+      { label: "Self-censored Step Sequencer", meta: "Net art, Chrome extension", url: "/art/self-censored-step-sequencer" },
+      { label: "Neonatus/Neotokyo", meta: "with Nanut Thanapornrapee, Tokyo Hot Restaurant, Bangkok, 2020", url: "/art/neonatus-neotokyo" },
+    ],
+  },
+  {
+    title: "Performances & Live Sets",
+    items: [
+      { label: "From Scratch Live Coding From Scratch — evals", meta: "Bangkok Kunsthalle, 2025", url: "/art/from-scratch-live-coding" },
+      { label: "From Scratch Live Coding From Scratch — Para Cartography", meta: "Nina Next Space, Ho Chi Minh City, 2025", url: "/art/from-scratch-live-coding#vina-v" },
+      { label: "UNFEST2025", meta: "with Pasuth Sa-ingthong, Unformat, Bangkok, 2025", url: "/art/unfest2025" },
+      { label: "Diage Festival", meta: "with CRSRCRSR, ShowDC, Bangkok, 2023" },
+      { label: "Road to Diage & Diage Festival", meta: "with CRSRCRSR, Bangkok CityCity Gallery, 2023" },
+      { label: "RE:SYNC 2023", meta: "VJ, People of Ari, Bangkok, 2023" },
+    ],
+    footnote: "Also: Ghost2565 (Bangkok) · NonNonNon Bangkok · Algorapture (Jakarta) · Interlude (Ho Chi Minh City) · AlgoSeoul (Seoul)",
+  },
+  {
+    title: "Curatorial Practice & Organizing",
+    items: [
+      { label: "Player 2 Has Entered The Server", meta: "co-curator w/ Pathompong Manakitsomboon, as Stack, Goethe-Institut Thailand, ongoing", url: "https://www.instagram.com/stack_xyz/" },
+      { label: "Cornea Cochlear Club", meta: "co-organizer, curator, ongoing", url: "https://www.instagram.com/corneacochlearclub/" },
+      { label: "BYOB Bangkok (Bring Your Own Beamer)", meta: "co-organizer, as JAAG, ongoing", url: "/art/byob" },
+      { label: "TouchDesigner Bangkok Meetup (TDBKK)", meta: "co-organizer, ongoing", url: "https://www.instagram.com/tdbkk.meetup/" },
+      { label: "Mal Studio", meta: "co-founder, event space, past" },
+    ],
+  },
+  {
+    title: "Guest Lectures & Workshops",
+    items: [
+      { label: "King Mongkut's Institute of Technology Ladkrabang (KMITL)", meta: "Introduction to TouchDesigner, 2025" },
+      { label: "Chiang Mai University", meta: "Introduction to Tech-based Art, 2024" },
+      { label: "King Mongkut's Institute of Technology Ladkrabang (KMITL)", meta: "Introduction to Tech-based Art: Hydra.js, TouchDesigner, MaxMSP, net.art, 2023" },
+    ],
+  },
+  {
+    title: "Press & Interviews",
+    items: [
+      { label: "Exotic Quixotic", meta: '"DJ CODER" — interview on live coding practice', url: "https://www.youtube.com/watch?v=ANif-L3o-BY" },
+      { label: "Thai PBS", meta: "interview", url: "https://www.youtube.com/watch?v=FrC436oCzjM" },
+      { label: "Arttrovert", meta: "BYOB with JAAG", url: "https://www.youtube.com/watch?v=YebO_X6QA3w" },
+      { label: "Bookshop Library", meta: "Studio visit, Mal Studio / JAAG", url: "https://bookshoplibrary.com/activity/studio-visit-mal-studio/" },
+    ],
+  },
+  {
+    title: "Technical Work",
+    items: [
+      { label: "Tenderness Kit", meta: "web development for Omer Wasim, with Tewprai Bualoi, 2021", url: "/art/tenderness-kit" },
+      { label: 'Website for "THE IMMORTALS ARE QUITE BUSY THESE DAYS"', meta: "for Nawin Nuthong, Bangkok CityCity Gallery, 2021", url: "/art/the-immortals-are-quite-busy-these-days" },
+      { label: "I will always think of you fondly.", meta: "with Tewprai Bualoi, BACC, 2019", url: "/art/i-will-always-think-of-you-fondly" },
+    ],
+  },
+]
+
+function WorksList() {
+  return (
+    <div>
+      {BIO_SECTIONS.map((section) => (
+        <div key={section.title} style={{ marginBottom: "1.2rem" }}>
+          <p
+            style={{
+              fontWeight: 700,
+              fontSize: "11px",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--text-muted)",
+              marginBottom: "0.45rem",
+            }}
+          >
+            {section.title}
+          </p>
+          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {section.items.map((item, i) => (
+              <li
+                key={i}
+                style={{
+                  fontSize: "12.5px",
+                  lineHeight: 1.6,
+                  paddingLeft: "1em",
+                  textIndent: "-1em",
+                  marginBottom: "0.25rem",
+                  color: "var(--text-body)",
+                }}
+              >
+                <span style={{ opacity: 0.4 }}>— </span>
+                {item.url ? (
+                  <a
+                    href={item.url}
+                    target={item.url.startsWith("/") ? undefined : "_blank"}
+                    rel={item.url.startsWith("/") ? undefined : "noopener noreferrer"}
+                    style={{ color: "inherit", textDecoration: "underline", textUnderlineOffset: "3px" }}
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  item.label
+                )}
+                {item.meta && <span style={{ opacity: 0.55 }}> ({item.meta})</span>}
+              </li>
+            ))}
+          </ul>
+          {section.footnote && (
+            <p style={{ fontSize: "11.5px", marginTop: "0.4rem", opacity: 0.6 }}>{section.footnote}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────
 
 const About = () => {
   const [showFull, setShowFull] = useState(false)
+  const [showWorks, setShowWorks] = useState(true)
   const [showPlan, setShowPlan] = useState(true)
 
   return (
@@ -406,41 +538,49 @@ const About = () => {
           ~Artist
         </p>
 
-        <div className="flex gap-3 mb-4">
-          <a
-            href="/cv"
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "11px",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              background: "var(--text)",
-              color: "var(--bg)",
-              padding: "0.45rem 0.9rem",
-              transition: "opacity 0.15s",
-            }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
-            onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
-          >
-            CV
-          </a>
-          <a
-            href="/resume"
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "11px",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              background: "var(--text)",
-              color: "var(--bg)",
-              padding: "0.45rem 0.9rem",
-              transition: "opacity 0.15s",
-            }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
-            onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
-          >
-            Resume
-          </a>
+        <div className="flex gap-4 mb-4">
+          {[
+            { href: "/cv", label: "CV" },
+            { href: "/resume", label: "Resume" },
+          ].map(({ href, label }) => (
+            <a
+              key={href}
+              href={href}
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "11px",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                background: "var(--bg-elevated)",
+                color: "var(--text-muted)",
+                padding: "0.55rem 1.15rem",
+                borderRadius: "10px",
+                boxShadow: "5px 5px 10px rgba(0,0,0,0.12), -5px -5px 10px rgba(255,255,255,0.9)",
+                transform: "translateY(0) scale(1)",
+                transition: "box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1), transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), color 0.15s ease",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.boxShadow = "8px 8px 16px rgba(0,0,0,0.16), -8px -8px 16px rgba(255,255,255,1)"
+                e.currentTarget.style.color = "var(--text)"
+                e.currentTarget.style.transform = "translateY(-3px) scale(1.04)"
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.boxShadow = "5px 5px 10px rgba(0,0,0,0.12), -5px -5px 10px rgba(255,255,255,0.9)"
+                e.currentTarget.style.color = "var(--text-muted)"
+                e.currentTarget.style.transform = "translateY(0) scale(1)"
+              }}
+              onMouseDown={e => {
+                e.currentTarget.style.boxShadow = "inset 3px 3px 6px rgba(0,0,0,0.15), inset -3px -3px 6px rgba(255,255,255,0.9)"
+                e.currentTarget.style.transform = "translateY(0) scale(0.97)"
+              }}
+              onMouseUp={e => {
+                e.currentTarget.style.boxShadow = "8px 8px 16px rgba(0,0,0,0.16), -8px -8px 16px rgba(255,255,255,1)"
+                e.currentTarget.style.transform = "translateY(-3px) scale(1.04)"
+              }}
+            >
+              {label}
+            </a>
+          ))}
         </div>
 
         <p>
@@ -467,7 +607,8 @@ const About = () => {
         <button
           onClick={() => setShowFull(v => !v)}
           style={{
-            display: "inline-flex",
+            display: "flex",
+            width: "fit-content",
             alignItems: "center",
             gap: "0.5em",
             fontFamily: "'DepartureMono', monospace",
@@ -500,6 +641,46 @@ const About = () => {
             }}
           >
             <FullBio />
+          </div>
+        )}
+
+        {/* works & activity toggle */}
+        <button
+          onClick={() => setShowWorks(v => !v)}
+          style={{
+            display: "flex",
+            width: "fit-content",
+            alignItems: "center",
+            gap: "0.5em",
+            fontFamily: "'DepartureMono', monospace",
+            fontSize: "11px",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "var(--text-muted)",
+            background: "none",
+            border: "none",
+            borderBottom: "1px solid var(--border-subtle)",
+            padding: "0.25em 0",
+            cursor: "pointer",
+            marginTop: "0.5rem",
+            transition: "color 0.15s",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
+        >
+          <span style={{ display: "inline-block", transition: "transform 0.2s", transform: showWorks ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
+          <span>{showWorks ? "collapse" : "works & activity"}</span>
+        </button>
+
+        {showWorks && (
+          <div
+            style={{
+              borderLeft: "1px solid var(--border-subtle)",
+              paddingLeft: "1.2rem",
+              marginTop: "0.5rem",
+            }}
+          >
+            <WorksList />
           </div>
         )}
       </div>

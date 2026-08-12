@@ -21,7 +21,8 @@ export const artSections = [
       {
         title: "Netart",
         items: [
-          { label: "Self-censored Step Sequencer (2025)", slug: "self-censored-step-sequencer" },
+          { label: "Self-censored Step Sequencer", slug: "self-censored-step-sequencer" },
+          { label: "Poetic Garden", date: "2023-01-01" },
         ],
       },
     ],
@@ -40,11 +41,11 @@ export const artSections = [
             slug: "do-the-npcs-hear-the-simulated-wind",
           },
           {
-            label: "Gimme the light, and you shall receive the praise (2025)",
+            label: "Gimme the light, and you shall receive the praise",
             slug: "gimme-the-light",
           },
           {
-            label: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025 (2025)",
+            label: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025",
             slug: "unfest2025",
             date: "2025-01-01",
           },
@@ -70,9 +71,10 @@ export const artSections = [
           },
           { label: "Bangkok street noise With Karnpapon (The Black Codes)" },
           { label: "DXPRN (as JAAG)" },
-          { label: "VJing for Jon Samurai at JAM (as JAAG)" },
+          { label: "VJing for Jon Samurai at JAM (as JAAG)", hidden: true },
           {
             label: "Sonic Thread with Thanapat Ogaslert (CSRCSR) at Tentacles Gallery",
+            hidden: true,
           },
         ],
       },
@@ -83,19 +85,20 @@ export const artSections = [
             label:
               "The end is near: a dystopian electronic party. Duo with Thanapat Ogaslert (CSRCSR) at De Commune. Also organize and promote the event.",
           },
-          { label: "Sonic thread" },
-          { label: "Sonic thread" },
-          { label: "Ghost (as JAAG)" },
+          { label: "Sonic thread", hidden: true },
+          { label: "Sonic thread", hidden: true },
+          { label: "Ghost (as JAAG)", hidden: true },
         ],
       },
       {
         title: "DJ [DJ Kanyoke]",
         items: [
-          { label: "Ghost (as JAAG)" },
-          { label: "Opening Party for Nanut, This history is auto-generated" },
-          { label: "Closing Party for Nanut, This history is auto-generated" },
+          { label: "Ghost (as JAAG)", hidden: true },
+          { label: "Opening Party for Nanut, This history is auto-generated", hidden: true },
+          { label: "Closing Party for Nanut, This history is auto-generated", hidden: true },
           {
             label: "Mix, invited guest for Blozxom for Bangkok Community Radio (BCR)",
+            hidden: true,
           },
         ],
       },
@@ -105,15 +108,21 @@ export const artSections = [
     title: "Collaboration",
     groups: [
       {
+        title: "Printing",
         items: [
           { label: "Neonatus/Neotokyo", slug: "neonatus-neotokyo" },
-          { label: "Tentacular Territoria (2020)", slug: "tentacular-territoria", date: "2020-01-01" },
-          { label: "BYOB (2023, as JAAG)", slug: "byob", date: "2023-01-01" },
-          {
-            label: "I will always think of you fondly. (2019, with Tewprai Bualoi)",
-            slug: "i-will-always-think-of-you-fondly",
-            date: "2019-01-01",
-          },
+        ],
+      },
+      {
+        title: "Installation",
+        items: [
+          { label: "Tentacular Territoria", slug: "tentacular-territoria", date: "2020-01-01" },
+        ],
+      },
+      {
+        title: "Event/Installation",
+        items: [
+          { label: "BYOB (as JAAG)", slug: "byob", date: "2023-01-01" },
         ],
       },
     ],
@@ -124,10 +133,24 @@ export const artSections = [
       {
         title: "Technical Consultant/Assistant/Advisor",
         items: [
-          { label: "Nawin Nuthong" },
-          { label: "JAM" },
-          { label: "Tewprai" },
-          { label: "Omer Wasim" },
+          {
+            label: "The Immortals Are Quite Busy These Days",
+            slug: "the-immortals-are-quite-busy-these-days",
+            date: "2021-01-01",
+            commissioner: "Nawin Nuthong",
+          },
+          {
+            label: "Tenderness Kit",
+            slug: "tenderness-kit",
+            date: "2021-01-01",
+            commissioner: "Omer Wasim",
+          },
+          {
+            label: "I will always think of you fondly. (with Tewprai Bualoi)",
+            slug: "i-will-always-think-of-you-fondly",
+            date: "2019-01-01",
+            commissioner: "Tewprai Bualoi",
+          },
         ],
       },
     ],
@@ -139,22 +162,26 @@ export const artworkPages = {
   "do-the-npcs-hear-the-simulated-wind": { title: "Do The NPCs Hear The Simulated Wind" },
   "neonatus-neotokyo": { title: "Neonatus/Neotokyo" },
   "from-scratch-live-coding": { title: "From Scratch Live Coding From Scratch" },
-  "gimme-the-light": { title: "Gimme the light, and you shall receive the praise (2025)" },
-  unfest2025: { title: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025 (2025)" },
-  byob: { title: "BYOB (2023, as JAAG)" },
+  "gimme-the-light": { title: "Gimme the light, and you shall receive the praise" },
+  unfest2025: { title: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025" },
+  byob: { title: "BYOB (as JAAG)" },
   "eternal-gain-eternal-pain": {
     title: "Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)",
   },
   "here-now-absolute-elsewhere": { title: "Here-now; absolute-elsewhere." },
-  "self-censored-step-sequencer": { title: "Self-censored Step Sequencer (2025)" },
+  "self-censored-step-sequencer": { title: "Self-censored Step Sequencer" },
   "as-if-you-would-still-be-here": {
     title: "As if you would still be here, if I keep thinking about you.",
   },
-  "tentacular-territoria": { title: "Tentacular Territoria (2020)" },
+  "tentacular-territoria": { title: "Tentacular Territoria" },
   "i-will-always-think-of-you-fondly": {
-    title: "I will always think of you fondly. (2019, with Tewprai Bualoi)",
+    title: "I will always think of you fondly. (with Tewprai Bualoi)",
   },
   "operation-seance": {
-    title: "OperationSéance: Purifying the AI Spirits in Latent Space Salon (2026)",
+    title: "OperationSéance: Purifying the AI Spirits in Latent Space Salon",
   },
+  "the-immortals-are-quite-busy-these-days": {
+    title: "The Immortals Are Quite Busy These Days",
+  },
+  "tenderness-kit": { title: "Tenderness Kit" },
 }

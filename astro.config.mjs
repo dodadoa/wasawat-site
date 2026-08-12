@@ -21,7 +21,8 @@ export default defineConfig({
   // activity honest. Flip to `true` if you want the toolbar back.
   devToolbar: { enabled: false },
   redirects: {
-    "/art": "/index",
+    "/art": "/work",
+    "/index": "/work",
     "/art/vina-v-para-cartography": "/art/from-scratch-live-coding#vina-v",
   },
   adapter: vercel({

@@ -1,0 +1,26 @@
+---
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2021" },
+    { label: "Role", value: "Web Developer" },
+    { label: "For", value: "Omer Wasim" },
+    {
+      label: "With",
+      value: '<a href="https://tewprai.com/" target="_blank" rel="noopener noreferrer" style="color: inherit;">Tewprai Bualoi</a>',
+      html: true,
+    },
+    {
+      label: "Link",
+      value: '<a href="https://www.tendernesskit.com/" target="_blank" rel="noopener noreferrer" style="color: inherit;">tendernesskit.com</a>',
+      html: true,
+    },
+  ]} />
+
+  <p>
+    Web development for Omer Wasim's <em>Tenderness Kit</em>, built together with
+    <a href="https://tewprai.com/" target="_blank" rel="noopener noreferrer">Tewprai Bualoi</a>.
+  </p>
+</div>

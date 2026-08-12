@@ -9,9 +9,9 @@ const installations = {
       slug: "neonatus-neotokyo",
       image: "/images/neonatus/neonatus-02.png",
       date: "2020-01-01",
-      x: 0.38,
-      y: -0.28,
-      z: 1,
+      x: -1,
+      y: -1,
+      z: -1,
     },
     {
       label: "Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)",
@@ -21,7 +21,7 @@ const installations = {
       date: "2025-11-07",
       x: 0.72,
       y: 0.6,
-      z: 1,
+      z: -1,
     },
     {
       label: "Here-now; absolute-elsewhere.",

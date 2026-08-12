@@ -14,6 +14,8 @@ import DoTheNPCsHearTheSimulatedWind from "../../subpages/art/DoTheNPCsHearTheSi
 import NeonatusNeotokyo from "../../subpages/art/NeonatusNeotokyo.astro"
 import TentacularTerritoria from "../../subpages/art/TentacularTerritoria.astro"
 import IWillAlwaysThinkOfYouFondly from "../../subpages/art/IWillAlwaysThinkOfYouFondly.astro"
+import TheImmortalsAreQuiteBusyTheseDays from "../../subpages/art/TheImmortalsAreQuiteBusyTheseDays.astro"
+import TendernessKit from "../../subpages/art/TendernessKit.astro"
 
 const components = {
   "do-the-npcs-hear-the-simulated-wind": DoTheNPCsHearTheSimulatedWind,
@@ -29,6 +31,8 @@ const components = {
   "operation-seance": OperationSeance,
   "tentacular-territoria": TentacularTerritoria,
   "i-will-always-think-of-you-fondly": IWillAlwaysThinkOfYouFondly,
+  "the-immortals-are-quite-busy-these-days": TheImmortalsAreQuiteBusyTheseDays,
+  "tenderness-kit": TendernessKit,
 }
 
 export function getStaticPaths() {
@@ -47,16 +51,16 @@ const artwork = slug ? artworkPages[slug] : undefined
 const Content = slug ? components[slug] : undefined
 
 if (!artwork || !Content) {
-  return Astro.redirect("/index")
+  return Astro.redirect("/work")
 }
 ---
 
 <Layout title={artwork.title}>
   <div class="relative z-10 p-8 pb-20 max-w-4xl">
     <div class="back-index-wrap">
-      <a href="/index" class="back-index-link">
+      <a href="/work" class="back-index-link">
         <span class="back-arrow" aria-hidden="true">←</span>
-        <span class="back-label">Index</span>
+        <span class="back-label">Work</span>
       </a>
     </div>
     <h1 class="font-bold text-xl lg:text-2xl mt-6 mb-3" style="color: var(--text);">{artwork.title}</h1>

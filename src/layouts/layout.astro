@@ -1,6 +1,7 @@
 ---
 import { SEO } from "astro-seo"
 import Navigator from "../components/navigator.astro"
+import { artSections } from "../data/artArchive.js"
 import "@fontsource/jetbrains-mono/400.css"
 
 export interface Props {
@@ -10,6 +11,42 @@ export interface Props {
 }
 
 const { title, preview, description } = Astro.props
+
+// ── right-click sitemap tree ──
+// Built once at build time from the same artSections data that drives
+// /index, so the context menu's subtree never drifts from the real archive.
+/** @typedef {{ label: string, path?: string, children?: SitemapNode[] }} SitemapNode */
+
+/** @param {import('../data/artArchive.js').ArtSection[]} sections @returns {SitemapNode[]} */
+function buildIndexSubtree(sections) {
+  return sections
+    .map((section) => {
+      const children = section.groups.flatMap((group) => {
+        const items = group.items
+          .filter((item) => item.slug && !item.hidden)
+          .map((item) => ({ label: item.label, path: `/art/${item.slug}` }))
+        if (items.length === 0) return []
+        return group.title ? [{ label: group.title, children: items }] : items
+      })
+      return children.length ? { label: section.title, children } : null
+    })
+    .filter(Boolean)
+}
+
+/** @type {SitemapNode[]} */
+const sitemapTree = [
+  { label: "Home", path: "/" },
+  { label: "News", path: "/news" },
+  { label: "Work", path: "/work", children: buildIndexSubtree(artSections) },
+  {
+    label: "About",
+    path: "/about",
+    children: [
+      { label: "CV", path: "/cv" },
+      { label: "Resume", path: "/resume" },
+    ],
+  },
+]
 ---
 
 <!DOCTYPE html>
@@ -172,10 +209,6 @@ const { title, preview, description } = Astro.props
           <circle cx="689" cy="183" r="2" fill="#0a0a0a" opacity="0.28"/>
           <circle cx="279" cy="307" r="2" fill="#0a0a0a" opacity="0.28"/>
           <circle cx="414" cy="499" r="2" fill="#0a0a0a" opacity="0.28"/>
-          <!-- progress ring, bottom-right -->
-          <circle cx="1140" cy="660" r="28" fill="none" stroke="rgba(10,10,10,0.1)" stroke-width="1"/>
-          <circle id="loader-progress-ring" cx="1140" cy="660" r="28" fill="none" stroke="#0a0a0a" stroke-width="1"
-            stroke-dasharray="175.9" stroke-dashoffset="175.9" transform="rotate(-90 1140 660)" opacity="0.55"/>
         </svg>
       </div>
 
@@ -191,8 +224,6 @@ const { title, preview, description } = Astro.props
 
         const body = document.body
         const pctEl = document.getElementById("loader-pct")
-        const ring = document.getElementById("loader-progress-ring")
-        const RING_CIRCUMFERENCE = 175.9 // 2π×28, matches loader-progress-ring r=28
 
         body.classList.add("is-loading")
 
@@ -204,7 +235,6 @@ const { title, preview, description } = Astro.props
 
         function setProgress(p) {
           const clamped = Math.max(0, Math.min(1, p))
-          if (ring) ring.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - clamped))
           if (pctEl) pctEl.textContent = String(Math.round(clamped * 100))
         }
 
@@ -342,6 +372,18 @@ const { title, preview, description } = Astro.props
     <main class="relative z-10 mt-10 pointer-events-auto">
       <slot />
     </main>
+
+    <!-- ── right-click sitemap menu — replaces the native context menu with
+         a small, in-world navigation tree so you can jump between pages
+         (and expand into their subpages) without leaving the cursor ── -->
+    <div id="site-context-menu" class="site-context-menu" role="menu" aria-hidden="true">
+      <p class="scm-label">Sitemap</p>
+      <div id="scm-tree" class="scm-tree"></div>
+      <div class="scm-sep"></div>
+      <p class="scm-here">you are here: <span id="scm-here-path">/</span></p>
+    </div>
+    <script type="application/json" id="sitemap-data" set:html={JSON.stringify(sitemapTree)} />
+
     <style is:global>
       :root {
         --ui-scale: 1;
@@ -562,10 +604,6 @@ const { title, preview, description } = Astro.props
         opacity: 0.6;
       }
 
-      #loader-progress-ring {
-        transition: stroke-dashoffset 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-      }
-
       .loader-label {
         font-family: "DepartureMono", monospace;
         font-size: 10px;
@@ -738,6 +776,133 @@ const { title, preview, description } = Astro.props
     #cursor-thought.visible .cursor-label {
       transform: translateX(-50%) scale(1);
     }
+
+    /* ── right-click sitemap menu ── */
+    .site-context-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      min-width: 200px;
+      max-width: min(320px, calc(100vw - 16px));
+      background: var(--bg);
+      border: 1px solid var(--border);
+      box-shadow: 0 6px 24px rgba(10, 10, 10, 0.14);
+      font-family: "JetBrains Mono", monospace;
+      padding: 8px 0;
+      z-index: 2147483647;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.96);
+      transform-origin: top left;
+      transition: opacity 0.12s ease, transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .site-context-menu.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    .scm-label {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 2px 14px 6px;
+      margin: 0;
+    }
+
+    .scm-tree {
+      max-height: min(420px, 60vh);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    /*
+      cascading flyout submenus — the macOS/Finder/Explorer pattern: a row
+      with children opens a SIBLING panel next to it (not an inline nested
+      list). Only one child panel per level exists at a time; hovering a
+      different row at the same level swaps it out. Panels are plain
+      .site-context-menu elements created/positioned on the fly.
+    */
+    .scm-row {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      padding: 0 6px 0 14px;
+      cursor: pointer !important;
+      transition: background 0.08s ease, color 0.08s ease;
+    }
+
+    .scm-row:hover,
+    .scm-row.scm-row-active {
+      background: var(--bg-elevated);
+      color: var(--text);
+    }
+
+    .scm-link {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: inherit;
+      padding: 6px 4px;
+      cursor: pointer !important;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .scm-nonlink {
+      color: var(--text-dim);
+      cursor: default !important;
+    }
+
+    .scm-row:hover .scm-nonlink,
+    .scm-row.scm-row-active .scm-nonlink {
+      color: var(--text);
+    }
+
+    .scm-link.scm-current {
+      color: var(--accent-1);
+    }
+
+    .scm-link.scm-current::after {
+      content: " ·";
+    }
+
+    .scm-chevron {
+      flex: 0 0 auto;
+      margin-left: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .scm-row:hover .scm-chevron,
+    .scm-row.scm-row-active .scm-chevron {
+      color: var(--text);
+    }
+
+    .scm-sep {
+      height: 1px;
+      margin: 6px 0;
+      background: var(--border-subtle);
+    }
+
+    .scm-here {
+      font-size: 9px;
+      letter-spacing: 0.04em;
+      color: var(--text-dim);
+      padding: 4px 14px 2px;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
 
   <script>
@@ -817,6 +982,231 @@ const { title, preview, description } = Astro.props
 
     setupCursor()
     document.addEventListener("astro:page-load", setupCursor)
+  </script>
+
+  <script>
+    // ── right-click sitemap menu ──
+    // Suppresses the native browser context menu on right-click and shows a
+    // small in-world "sitemap" at the cursor. Nodes with children open a
+    // SIBLING panel next to their row — a cascading flyout submenu, the same
+    // pattern as macOS/Finder/Explorer "New Folder ▸ Sort By ▸ Name" menus —
+    // rather than expanding inline underneath themselves.
+
+    let sitemapTreeCache = null // parsed once, reused across every menu open
+
+    function makeLabel(node, currentPath) {
+      if (node.path) {
+        const a = document.createElement("a")
+        a.className = "scm-link" + (node.path === currentPath ? " scm-current" : "")
+        a.href = node.path
+        a.dataset.path = node.path
+        a.textContent = node.label
+        return a
+      }
+      const span = document.createElement("span")
+      span.className = "scm-link scm-nonlink"
+      span.textContent = node.label
+      return span
+    }
+
+    // fills `container` (a .scm-tree row list) with one row per node at this
+    // level; rows with children get a "›" chevron and open a flyout on hover.
+    function buildRows(container, nodes, level, currentPath, ctx) {
+      for (const node of nodes) {
+        const hasChildren = Array.isArray(node.children) && node.children.length > 0
+        const row = document.createElement("div")
+        row.className = "scm-row"
+        row._scmNode = node
+        row.appendChild(makeLabel(node, currentPath))
+
+        if (hasChildren) {
+          const chevron = document.createElement("span")
+          chevron.className = "scm-chevron"
+          chevron.textContent = "›"
+          row.appendChild(chevron)
+          row.addEventListener("mouseenter", () => ctx.openFlyout(node, row, level))
+        } else {
+          row.addEventListener("mouseenter", () => ctx.closeFlyoutsFrom(level + 1))
+          row.addEventListener("click", () => ctx.hideMenu())
+        }
+
+        container.appendChild(row)
+      }
+    }
+
+    function findChain(nodes, targetPath, trail) {
+      for (const node of nodes) {
+        if (node.path === targetPath) return trail
+        if (Array.isArray(node.children)) {
+          const found = findChain(node.children, targetPath, trail.concat([node]))
+          if (found) return found
+        }
+      }
+      return null
+    }
+
+    function setupContextMenu() {
+      const menu = document.getElementById("site-context-menu")
+      const treeRoot = document.getElementById("scm-tree")
+      if (!menu || !treeRoot) return
+
+      if (menu.dataset.bound === "1") return
+      menu.dataset.bound = "1"
+
+      // panels[0] is the static root menu; panels[1..] are dynamically
+      // created/destroyed flyouts, one per open submenu level.
+      const panels = [menu]
+      const activeRows = []
+
+      function normalizedPath() {
+        return window.location.pathname.replace(/\/$/, "") || "/"
+      }
+
+      function closeFlyoutsFrom(level) {
+        for (let l = panels.length - 1; l >= level; l--) {
+          if (l > 0 && panels[l]) panels[l].remove()
+          panels[l] = undefined
+          if (activeRows[l - 1]) {
+            activeRows[l - 1].classList.remove("scm-row-active")
+            activeRows[l - 1] = undefined
+          }
+        }
+        panels.length = Math.max(level, 1)
+      }
+
+      function positionFlyout(panel, anchorRow) {
+        const parentPanel = anchorRow.closest(".site-context-menu")
+        const parentRect = parentPanel.getBoundingClientRect()
+        const anchorRect = anchorRow.getBoundingClientRect()
+        const panelRect = panel.getBoundingClientRect()
+        const OVERLAP = 4 // slight overlap, same as native cascading menus
+
+        let left = parentRect.right - OVERLAP
+        if (left + panelRect.width > window.innerWidth - 8) {
+          left = parentRect.left - panelRect.width + OVERLAP // flip to the left edge
+        }
+        left = Math.max(8, left)
+
+        let top = anchorRect.top - 8
+        if (top + panelRect.height > window.innerHeight - 8) top = window.innerHeight - panelRect.height - 8
+        top = Math.max(8, top)
+
+        panel.style.left = `${left}px`
+        panel.style.top = `${top}px`
+      }
+
+      function openFlyout(node, anchorRow, level) {
+        if (panels[level + 1] && panels[level + 1].dataset.forNode === node.label && panels[level + 1]._scmParentRow === anchorRow) {
+          return // already open for this exact row
+        }
+        closeFlyoutsFrom(level + 1)
+
+        if (activeRows[level]) activeRows[level].classList.remove("scm-row-active")
+        anchorRow.classList.add("scm-row-active")
+        activeRows[level] = anchorRow
+
+        const panel = document.createElement("div")
+        panel.className = "site-context-menu scm-flyout"
+        panel.dataset.forNode = node.label
+        panel._scmParentRow = anchorRow
+        panel.setAttribute("role", "menu")
+
+        const inner = document.createElement("div")
+        inner.className = "scm-tree"
+        buildRows(inner, node.children, level + 1, normalizedPath(), ctx)
+        panel.appendChild(inner)
+
+        document.body.appendChild(panel)
+        positionFlyout(panel, anchorRow)
+        // force layout before adding .visible so the open transition plays
+        void panel.offsetWidth
+        panel.classList.add("visible")
+        panels[level + 1] = panel
+      }
+
+      function autoExpandToCurrent(here) {
+        if (!sitemapTreeCache) return
+        const chain = findChain(sitemapTreeCache, here, [])
+        if (!chain || !chain.length) return
+        let container = treeRoot
+        let level = 0
+        for (const node of chain) {
+          const row = Array.from(container.children).find((r) => r._scmNode === node)
+          if (!row) break
+          openFlyout(node, row, level)
+          level++
+          const nextPanel = panels[level]
+          container = nextPanel && nextPanel.querySelector(".scm-tree")
+          if (!container) break
+        }
+      }
+
+      function markCurrentPath(here) {
+        menu.querySelectorAll(".scm-link[data-path]").forEach((a) => {
+          a.classList.toggle("scm-current", a.dataset.path === here)
+        })
+        const label = document.getElementById("scm-here-path")
+        if (label) label.textContent = here
+      }
+
+      function hideMenu() {
+        closeFlyoutsFrom(1)
+        menu.classList.remove("visible")
+        menu.setAttribute("aria-hidden", "true")
+      }
+
+      function showMenuAt(x, y) {
+        const here = normalizedPath()
+        markCurrentPath(here)
+        menu.setAttribute("aria-hidden", "false")
+        menu.classList.add("visible")
+
+        // clamp inside viewport — measure after it's visible so offsetWidth/Height are real
+        const { innerWidth, innerHeight } = window
+        const rect = menu.getBoundingClientRect()
+        const clampedX = Math.min(x, innerWidth - rect.width - 8)
+        const clampedY = Math.min(y, innerHeight - rect.height - 8)
+        menu.style.left = `${Math.max(8, clampedX)}px`
+        menu.style.top = `${Math.max(8, clampedY)}px`
+
+        autoExpandToCurrent(here)
+      }
+
+      const ctx = { openFlyout, closeFlyoutsFrom, hideMenu }
+
+      if (treeRoot.dataset.built !== "1") {
+        const dataEl = document.getElementById("sitemap-data")
+        try {
+          sitemapTreeCache = JSON.parse((dataEl && dataEl.textContent) || "[]")
+        } catch {
+          sitemapTreeCache = []
+        }
+        buildRows(treeRoot, sitemapTreeCache, 0, normalizedPath(), ctx)
+        treeRoot.dataset.built = "1"
+      }
+
+      document.addEventListener("contextmenu", (e) => {
+        // let the browser's native menu through on real inputs/text selection
+        const target = e.target
+        if (target && target.closest && target.closest("input, textarea, [contenteditable='true']")) return
+        e.preventDefault()
+        showMenuAt(e.clientX, e.clientY)
+      })
+
+      document.addEventListener("click", (e) => {
+        if (!menu.classList.contains("visible")) return
+        const t = e.target
+        if (t instanceof Node && panels.some((p) => p && p.contains(t))) return
+        hideMenu()
+      })
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") hideMenu()
+      })
+    }
+
+    setupContextMenu()
+    document.addEventListener("astro:page-load", setupContextMenu)
   </script>
   </body>
 </html>
