@@ -37,7 +37,7 @@ function splitSection(section) {
 ---
 
 <Layout title="Work — Wasawat Somno" description="Index of works">
-  <div class="relative z-10 font-mono p-8 pb-20 max-w-4xl">
+  <div class="relative z-10 font-mono p-8 pb-20 w-full">
     <p class="text-[12px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">[work]</p>
     <h1 class="font-bold text-3xl lg:text-4xl mb-10" style="color: var(--text);">Work</h1>
 
@@ -67,7 +67,7 @@ function splitSection(section) {
                   <tbody>
                     {selected.map(({ item, groupTitle }) => {
                       const date = dateBySlug[item.slug] ?? item.date
-                      const image = imageBySlug[item.slug]
+                      const image = imageBySlug[item.slug] ?? item.image
                       return (
                         <tr style="border-bottom: 1px solid var(--border-subtle);">
                           <td class="py-2 pr-4">
@@ -114,8 +114,22 @@ function splitSection(section) {
                   <tbody>
                     {unselected.map(({ item, groupTitle }) => {
                       const archiveDate = (item.slug ? dateBySlug[item.slug] : undefined) ?? item.date
+                      const archiveImage = (item.slug ? imageBySlug[item.slug] : undefined) ?? item.image
                       return (
                         <tr style="border-bottom: 1px solid var(--border-subtle);">
+                          <td class="py-2 pr-4" style="width: 56px;">
+                            {archiveImage ? (
+                              <div class="dither-thumb" style="width: 44px; height: 32px; flex-shrink: 0;">
+                                <img
+                                  src={archiveImage}
+                                  alt=""
+                                  loading="lazy"
+                                />
+                              </div>
+                            ) : (
+                              <div style="width: 44px; height: 32px; background: var(--border-subtle);" />
+                            )}
+                          </td>
                           <td class="py-2 pr-4" style="color: var(--text-muted);">
                             {item.slug ? (
                               <a href={`/art/${item.slug}`} class="hover:underline">

@@ -1,0 +1,19 @@
+---
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Role", value: "Web Developer" },
+    { label: "For", value: "Stack" },
+    {
+      label: "Link",
+      value: '<a href="https://stackth.xyz/" target="_blank" rel="noopener noreferrer" style="color: inherit;">stackth.xyz</a>',
+      html: true,
+    },
+  ]} />
+
+  <p>
+    Web development for <em>Stack</em>'s website — the tech-art initiative he co-curates and organizes with.
+  </p>
+</div>

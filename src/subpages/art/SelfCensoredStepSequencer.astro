@@ -1,26 +1,66 @@
 ---
-import { linkInstagramMentions } from "../../utils/instagramMentions"
-
-const inspiration = linkInstagramMentions("Inspired by Anu (@karnpapon) and recent redacted documents.")
+// hand-built anchor: the shared mention map renders @karnpapon as "Anu"
+// (display name), which would collide with the artwork title "Anu" here
+const inspiration =
+  'Inspired by <em>Anu</em> by <a href="https://www.instagram.com/karnpapon/" target="_blank" rel="noopener noreferrer" class="ig-mention font-bold hover:underline" style="color: var(--text-muted);">@karnpapon</a> and some recent redacted documents you may have seen.'
 ---
 
 <div class="mt-4 max-w-3xl">
   <p class="mb-6 text-sm opacity-80">What cannot be said becomes the beat</p>
 
   <p class="mb-4">
-    A Chrome extension that turns redacted text into rhythm. Select a text area, highlight words or
-    blacked-out fragments, set BPM and press play — the sequencer steps word-by-word, redacted words
-    glow and trigger drum hits. Two sound modes (local WebSocket→OSC engine, or built-in browser
-    presets) and two layouts (overlay / sidebar).
+    I made a Chrome extension — a step sequencer that turns redacted text into rhythm. In the age
+    of blacked-out documents, what you cannot say becomes the beat. This extension turns that
+    silence into music.
   </p>
 
-  <p class="mb-6 text-sm opacity-80" set:html={inspiration}></p>
+  <p class="mb-6 opacity-70" set:html={inspiration}></p>
+
+  <h2 class="uppercase text-[13px] tracking-widest mt-8 mb-4" style="color: var(--text-muted)">
+    How It Works
+  </h2>
+
+  <ol class="mb-4 space-y-1" style="list-style: decimal; padding-left: 1.4em;">
+    <li>Open any webpage. Click the extension and select an area of text.</li>
+    <li>Highlight the words.</li>
+    <li>
+      Press play. The sequencer steps through your text, word by word, at your chosen BPM.
+      Every redacted word glows and fires a drum sound.
+    </li>
+  </ol>
+
+  <h2 class="uppercase text-[13px] tracking-widest mt-8 mb-4" style="color: var(--text-muted)">
+    Sound Modes
+  </h2>
+
+  <ol class="mb-4 space-y-1" style="list-style: decimal; padding-left: 1.4em;">
+    <li>
+      Connect to your local sound engine via WebSocket and OSC — the <code>bridge.js</code> is
+      provided in the repository.
+    </li>
+    <li>
+      Play directly in the browser with preset sounds: kick, snare, hi-hat, open hat, and laser.
+    </li>
+  </ol>
+
+  <h2 class="uppercase text-[13px] tracking-widest mt-8 mb-4" style="color: var(--text-muted)">
+    Presentation Modes
+  </h2>
+
+  <ol class="mb-4 space-y-1" style="list-style: decimal; padding-left: 1.4em;">
+    <li>Overlay</li>
+    <li>Sidebar</li>
+  </ol>
+
+  <p class="mb-4 text-sm opacity-80">
+    If you encounter any bugs, please report them or send a pull request on GitHub. Thank you.
+  </p>
 
   <figure class="my-8">
     <img
       src="/images/self-censored-step-sequencer-chrome-extension.jpg"
       alt="Self-censored Step Sequencer Chrome extension screenshot"
-      style="width: 100%; max-width: 340px; height: auto; display: block;"
+      style="width: 100%; height: auto; display: block;"
       loading="lazy"
     />
   </figure>

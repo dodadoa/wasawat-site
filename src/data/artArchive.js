@@ -22,7 +22,13 @@ export const artSections = [
         title: "Netart",
         items: [
           { label: "Self-censored Step Sequencer", slug: "self-censored-step-sequencer" },
-          { label: "Poetic Garden", date: "2023-01-01" },
+          {
+            label: "Poetic Garden",
+            slug: "poetic-garden",
+            unlisted: true,
+            date: "2023-01-01",
+            image: "/images/poetic-garden/poetic-garden-capture.jpg",
+          },
         ],
       },
     ],
@@ -122,7 +128,7 @@ export const artSections = [
       {
         title: "Event/Installation",
         items: [
-          { label: "BYOB (as JAAG)", slug: "byob", date: "2023-01-01" },
+          { label: "BYOB (as JAAG)", slug: "byob", date: "2023-01-01", image: "/images/byob/byob-1.jpg" },
         ],
       },
     ],
@@ -149,7 +155,22 @@ export const artSections = [
             label: "I will always think of you fondly. (with Tewprai Bualoi)",
             slug: "i-will-always-think-of-you-fondly",
             date: "2019-01-01",
+            image: "/images/i-will-always-think-of-you-fondly/05-qr-codes.jpg",
             commissioner: "Tewprai Bualoi",
+          },
+          {
+            label: "Website for Stack",
+            slug: "website-for-stack",
+            date: "2026-01-01",
+            image: "/images/website-for-stack.jpg",
+            commissioner: "Stack",
+          },
+          {
+            label: "Website for TDBKK",
+            slug: "website-for-tdbkk",
+            date: "2026-01-01",
+            image: "/images/website-for-tdbkk.jpg",
+            commissioner: "TouchDesigner Bangkok Meetup",
           },
         ],
       },
@@ -184,4 +205,7 @@ export const artworkPages = {
     title: "The Immortals Are Quite Busy These Days",
   },
   "tenderness-kit": { title: "Tenderness Kit" },
+  "website-for-stack": { title: "Website for Stack" },
+  "website-for-tdbkk": { title: "Website for TDBKK" },
+  "poetic-garden": { title: "Poetic Garden" },
 }

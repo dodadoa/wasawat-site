@@ -1,0 +1,43 @@
+---
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2023" },
+    { label: "Medium", value: "Net art · Website, computer, sound, single channel" },
+    { label: "Duration", value: "Variable" },
+    { label: "Exhibition", value: "The Wrong Biennale 2023 · Un_Unsubscribe pavilion" },
+    { label: "Curators", value: "Khristina Ots & Roman Solodkov" },
+    {
+      label: "Link",
+      value: '<a href="https://poetic-garden.netlify.app/" target="_blank" rel="noopener noreferrer" style="color: inherit;">poetic-garden.netlify.app</a>',
+      html: true,
+    },
+  ]} />
+
+  <p class="mb-4">
+    Write a poem, press the Alt key, and the garden takes the words — the text mutates while a
+    dithered tree grows from what the poem gives up. Better played with sound on.
+  </p>
+
+  <p class="mb-4">
+    Exhibited in The Wrong Biennale 2023 within <em>Un_Unsubscribe</em>, a pavilion curated by
+    Khristina Ots and Roman Solodkov exploring affective intensities and regimes of digital
+    aesthetics — from poor images to file mobility.
+  </p>
+
+  <figure class="my-8">
+    <img
+      src="/images/poetic-garden/poetic-garden-capture.jpg"
+      alt="Poetic Garden — a poem typed into the browser, its mutated lines accumulating as a dithered tree grows beneath the text"
+      class="w-full"
+      loading="lazy"
+    />
+  </figure>
+
+  <p>
+    Play it at
+    <a href="https://poetic-garden.netlify.app/" target="_blank" rel="noopener noreferrer">poetic-garden.netlify.app</a>.
+  </p>
+</div>

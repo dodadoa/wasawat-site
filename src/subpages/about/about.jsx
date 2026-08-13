@@ -407,11 +407,11 @@ const BIO_SECTIONS = [
   {
     title: "Selected Works",
     items: [
-      { label: "Do The NPCs Hear The Simulated Wind", meta: "PATCH NOTES THAT REFUSE A SETTLED WORLD, Virtual Media Lab, TCDC Bangkok, 2026", url: "/art/do-the-npcs-hear-the-simulated-wind" },
+      { label: "Do The NPCs Hear The Simulated Wind", meta: "PATCH NOTES THAT REFUSE A SETTLED WORLD (co-curated as Stack), Virtual Media Lab, TCDC Bangkok, 2026", url: "/art/do-the-npcs-hear-the-simulated-wind" },
       { label: "Here-now; absolute-elsewhere.", meta: "Close Inspection From Afar, ETA BKK, 2025", url: "/art/here-now-absolute-elsewhere" },
       { label: "Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)", meta: "Installation, 2025", url: "/art/eternal-gain-eternal-pain" },
       { label: "As if you would still be here, if I keep thinking about you.", meta: "Audiovisual performance, 2026", url: "/art/as-if-you-would-still-be-here" },
-      { label: "Poetic Garden", meta: "Un_Unsubscribe pavilion, The Wrong Biennale, 2023", url: "https://poetic-garden.netlify.app/" },
+      { label: "Poetic Garden", meta: "Un_Unsubscribe pavilion, The Wrong Biennale, 2023", url: "/art/poetic-garden" },
       { label: "Self-censored Step Sequencer", meta: "Net art, Chrome extension", url: "/art/self-censored-step-sequencer" },
       { label: "Neonatus/Neotokyo", meta: "with Nanut Thanapornrapee, Tokyo Hot Restaurant, Bangkok, 2020", url: "/art/neonatus-neotokyo" },
     ],
@@ -431,11 +431,12 @@ const BIO_SECTIONS = [
   {
     title: "Curatorial Practice & Organizing",
     items: [
-      { label: "Player 2 Has Entered The Server", meta: "co-curator w/ Pathompong Manakitsomboon, as Stack, Goethe-Institut Thailand, ongoing", url: "https://www.instagram.com/stack_xyz/" },
+      { label: "Player 2 Has Entered The Server", meta: "co-curator w/ Pathompong Manakitsomboon, as Stack, Goethe-Institut Thailand, 2025", url: "https://stackth.xyz/" },
+      { label: "PATCH NOTES THAT REFUSE A SETTLED WORLD", meta: "co-curator, as Stack, with Team Stimulant, in collaboration with Goethe-Institut Thailand, 2026", url: "https://stackth.xyz/" },
       { label: "Cornea Cochlear Club", meta: "co-organizer, curator, ongoing", url: "https://www.instagram.com/corneacochlearclub/" },
       { label: "BYOB Bangkok (Bring Your Own Beamer)", meta: "co-organizer, as JAAG, ongoing", url: "/art/byob" },
-      { label: "TouchDesigner Bangkok Meetup (TDBKK)", meta: "co-organizer, ongoing", url: "https://www.instagram.com/tdbkk.meetup/" },
-      { label: "Mal Studio", meta: "co-founder, event space, past" },
+      { label: "TouchDesigner Bangkok Meetup (TDBKK)", meta: "co-organizer, ongoing", url: "https://tdbkk.xyz/" },
+      { label: "Mal Studio", meta: "co-founder, event space, past", url: "https://www.instagram.com/mal._.bkk/" },
     ],
   },
   {
@@ -461,6 +462,8 @@ const BIO_SECTIONS = [
       { label: "Tenderness Kit", meta: "web development for Omer Wasim, with Tewprai Bualoi, 2021", url: "/art/tenderness-kit" },
       { label: 'Website for "THE IMMORTALS ARE QUITE BUSY THESE DAYS"', meta: "for Nawin Nuthong, Bangkok CityCity Gallery, 2021", url: "/art/the-immortals-are-quite-busy-these-days" },
       { label: "I will always think of you fondly.", meta: "with Tewprai Bualoi, BACC, 2019", url: "/art/i-will-always-think-of-you-fondly" },
+      { label: "Website for Stack", meta: "web development for Stack", url: "/art/website-for-stack" },
+      { label: "Website for TDBKK", meta: "web development for TouchDesigner Bangkok Meetup", url: "/art/website-for-tdbkk" },
     ],
   },
 ]
