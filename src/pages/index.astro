@@ -10,13 +10,33 @@ import HomeQuadrantView from "../components/HomeQuadrantView.jsx"
       id="home-quadrant"
       class="fixed left-0 right-0 bottom-0 bg-white"
       style="top: 2.5rem; height: calc(100vh - 2.5rem); width: 100%;"
-    />
+    >
+      <span class="home-quadrant-loading">loading selected work…</span>
+    </div>
   </HomeQuadrantView>
 </Layout>
 
 <style is:global>
   body:has(#home-quadrant) {
     overflow: hidden;
+  }
+
+  .home-quadrant-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: "403Mesapholic", monospace;
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #999;
+    animation: home-quadrant-loading-pulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes home-quadrant-loading-pulse {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 0.9; }
   }
 
   body:has(#home-quadrant) main {

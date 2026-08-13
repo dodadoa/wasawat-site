@@ -272,7 +272,19 @@ const sitemapTree = [
 
         /** @param {HTMLImageElement} img */
         function pending(img) {
-          return !img.complete
+          if (img.complete) return false
+          // Below-the-fold lazy images never start fetching while the page
+          // sits behind the loader (it can't be scrolled), so counting them
+          // would wedge the progress at a partial percentage until the max
+          // timeout. Only wait for lazy images actually in the viewport.
+          if (img.loading === "lazy") {
+            const r = img.getBoundingClientRect()
+            const inView =
+              r.bottom > 0 && r.top < window.innerHeight &&
+              r.right > 0 && r.left < window.innerWidth
+            if (!inView) return false
+          }
+          return true
         }
 
         function updateProgress() {

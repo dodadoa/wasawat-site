@@ -49,6 +49,7 @@ export const artSections = [
           {
             label: "Gimme the light, and you shall receive the praise",
             slug: "gimme-the-light",
+            image: "/images/las-vegas-sphere.jpg",
           },
           {
             label: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025",

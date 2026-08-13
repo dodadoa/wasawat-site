@@ -9,7 +9,6 @@ const performance = {
       planeLabel: "Gimme the light, and you shall receive the praise",
       slug: "gimme-the-light",
       date: "2025-10-03",
-      image: "/images/las-vegas-sphere.jpg",
       x: 0,
       y: 0,
       z: 1,

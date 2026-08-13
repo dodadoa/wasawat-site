@@ -124,6 +124,9 @@ const WorkNode = memo(function WorkNode({ work, genreId, dimmed, onHoverChange }
   const showDetail = hovered && !dimmed
   const planeLabel = work.planeLabel ?? work.label
   const key = work.slug ?? work.label
+  // pre-generated 176px thumbs (public/images/thumbs) — the node renders at
+  // 88x60, so the full-size image is wasted bandwidth here
+  const thumb = work.slug && work.image ? `/images/thumbs/${work.slug}.jpg` : work.image
 
   const setHover = (v) => {
     setHovered(v)
@@ -175,7 +178,7 @@ const WorkNode = memo(function WorkNode({ work, genreId, dimmed, onHoverChange }
                 padding: 0,
               }}
             >
-              <img src={work.image} alt="" decoding="async" />
+              <img src={thumb} alt="" decoding="async" />
             </div>
           )}
           {work.slug ? (
@@ -667,6 +670,35 @@ function ChronologyView({ layer }) {
 
 export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = layers.length > 1 }) {
   const [genreFilter, setGenreFilter] = useState(null)
+  // true once the WebGL canvas exists — until then show the same loading
+  // label as the server-rendered fallback, so there's no blank gap between
+  // hydration and the first 3d frame
+  const [canvasReady, setCanvasReady] = useState(false)
+  // true once every node thumbnail is in the browser cache, so the scene
+  // appears with its images instead of popping them in one by one
+  const [imagesReady, setImagesReady] = useState(false)
+  useEffect(() => {
+    const srcs = collectWorks()
+      .filter((w) => w.slug && w.image)
+      .map((w) => `/images/thumbs/${w.slug}.jpg`)
+    let cancelled = false
+    Promise.all(
+      srcs.map(
+        (src) =>
+          new Promise((resolve) => {
+            const img = new Image()
+            img.onload = resolve
+            img.onerror = resolve
+            img.src = src
+          }),
+      ),
+    ).then(() => {
+      if (!cancelled) setImagesReady(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
   const isMobile = useIsMobile()
   // table toggle only available on mobile; desktop always 3d
   const [mobileView, setMobileView] = useState("table") // "table" | "3d"
@@ -728,14 +760,20 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
       ) : viewMode === "table" ? (
         <Quadrant2DView genreFilter={genreFilter} />
       ) : (
-        <Canvas
-          camera={{ position: [9, 6, 13], fov: 48 }}
-          gl={{ antialias: true, alpha: true }}
-          dpr={[1, 1.5]}
-          style={{ background: "transparent", position: "relative", zIndex: 1 }}
-        >
-          <Scene genreFilter={genreFilter} />
-        </Canvas>
+        <>
+          {!(canvasReady && imagesReady) && (
+            <span className="home-quadrant-loading">loading selected work…</span>
+          )}
+          <Canvas
+            camera={{ position: [9, 6, 13], fov: 48 }}
+            gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+            dpr={[1, 1.5]}
+            style={{ background: "transparent", position: "relative", zIndex: 1 }}
+            onCreated={() => setCanvasReady(true)}
+          >
+            <Scene genreFilter={genreFilter} />
+          </Canvas>
+        </>
       )}
 
       {showDomStats && <DomStatsPanel />}

@@ -16,6 +16,12 @@ const imageBySlug = Object.fromEntries(
 )
 
 /**
+ * Small pre-generated thumbnails live in /images/thumbs/<slug>.jpg so the
+ * table doesn't load full-size images to render 44x32 thumbs.
+ */
+const thumbSrc = (slug) => `/images/thumbs/${slug}.jpg`
+
+/**
  * Split a section's groups into selected (has a page, featured) and unselected
  * rows, keeping group titles. An item can have a `slug` (and be clickable)
  * without being "selected" yet — mark it `unlisted: true` to keep it in the
@@ -74,7 +80,7 @@ function splitSection(section) {
                             {image ? (
                               <div class="dither-thumb" style="width: 44px; height: 32px; flex-shrink: 0;">
                                 <img
-                                  src={image}
+                                  src={thumbSrc(item.slug)}
                                   alt=""
                                   loading="lazy"
                                 />
@@ -121,7 +127,7 @@ function splitSection(section) {
                             {archiveImage ? (
                               <div class="dither-thumb" style="width: 44px; height: 32px; flex-shrink: 0;">
                                 <img
-                                  src={archiveImage}
+                                  src={thumbSrc(item.slug)}
                                   alt=""
                                   loading="lazy"
                                 />

@@ -25,9 +25,11 @@ export const glassBrutal = glassPlain
  * Glass surface for 3D work node labels — borderless, optional accent tint.
  *
  * These live inside the auto-rotating 3D scene, so their screen position (and
- * thus the browser's repaint of any backdrop-filter under them) is recomputed
- * every animation frame. Keep the filter cheap (small blur radius, no
- * saturate) — a heavy blur here is the main source of hover/rotation jank.
+ * thus the browser's repaint of anything under them) is recomputed every
+ * animation frame. No backdrop-filter here — even a small blur forces a
+ * per-frame readback+filter of the region under every label, which is the
+ * main source of hover/rotation jank. The near-opaque gradient reads the
+ * same without it.
  */
 export function glassNode(accent) {
   const tint = accent
@@ -37,8 +39,6 @@ export function glassNode(accent) {
   return {
     backgroundImage: `${ditherTile(0.035)}${tint}`,
     backgroundSize: "8px 8px, auto",
-    backdropFilter: "blur(4px)",
-    WebkitBackdropFilter: "blur(4px)",
     border: "none",
     boxShadow: accent
       ? `0 0 36px 10px ${rgba(accent, 0.14)}`
