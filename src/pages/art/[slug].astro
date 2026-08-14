@@ -69,7 +69,7 @@ if (!artwork || !Content) {
         <span class="back-label">Work</span>
       </a>
     </div>
-    <h1 class="font-bold text-xl lg:text-2xl mt-6 mb-3" style="color: var(--text);">{artwork.title}</h1>
+    <h1 class="art-detail-title mt-6 mb-3">{artwork.title}</h1>
     <div class="art-detail-body">
       <Content />
     </div>
@@ -77,18 +77,41 @@ if (!artwork || !Content) {
 </Layout>
 
 <style>
+  /* title sized like the news page (.news-title: 22px, normal weight) */
+  .art-detail-title {
+    font-size: calc(26px * var(--ui-scale, 1));
+    font-weight: normal;
+    letter-spacing: 0.01em;
+    line-height: 1.25;
+    color: var(--text);
+  }
+
+  /* neumorphic (soft-UI) pill: raised at rest, pressed-in on hover/active */
   .back-index-wrap {
     display: inline-flex;
     opacity: 0;
     transform: translateX(-10px);
     animation: back-link-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
-    border: 1px solid var(--border-subtle);
-    transition: border-color 0.15s ease, background 0.15s ease;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #f6f6f6, #ececec);
+    box-shadow:
+      5px 5px 10px rgba(190, 190, 190, 0.55),
+      -5px -5px 10px rgba(255, 255, 255, 0.95);
+    transition: box-shadow 0.18s ease, background 0.18s ease;
   }
 
   .back-index-wrap:has(.back-index-link:hover) {
-    border-color: var(--border);
-    background: var(--bg-elevated);
+    background: linear-gradient(145deg, #ececec, #f6f6f6);
+    box-shadow:
+      inset 4px 4px 8px rgba(190, 190, 190, 0.55),
+      inset -4px -4px 8px rgba(255, 255, 255, 0.95);
+  }
+
+  .back-index-wrap:has(.back-index-link:active) {
+    box-shadow:
+      inset 6px 6px 12px rgba(180, 180, 180, 0.6),
+      inset -6px -6px 12px rgba(255, 255, 255, 0.9);
   }
 
   .back-index-link {
@@ -138,8 +161,8 @@ if (!artwork || !Content) {
 <style is:global>
   .art-detail-body {
     font-family: "DepartureMono", monospace;
-    font-size: calc(12px * var(--ui-scale, 1));
-    line-height: 1.5;
+    font-size: calc(10px * var(--ui-scale, 1));
+    line-height: 1.65;
   }
   .art-detail-body a {
     font-weight: normal;
@@ -148,35 +171,36 @@ if (!artwork || !Content) {
   }
   .art-detail-body p,
   .art-detail-body li {
-    line-height: 1.5;
+    line-height: 1.65;
   }
-  /* topic / credits / tagline — subheader */
-  .art-detail-body p.text-sm.opacity-80 {
-    font-size: calc(14px * var(--ui-scale, 1));
-    line-height: 1.45;
+  /* topic / credits / tagline — subheader (any p.opacity-80, whatever its text-* class) */
+  .art-detail-body p.opacity-80 {
+    font-size: calc(18px * var(--ui-scale, 1));
+    line-height: 1.4;
   }
-  /* section headers */
+  /* section headers — never all-caps; keep the markup's own Title Case */
   .art-detail-body h2,
   .art-detail-body .text-xl {
     font-family: "403Mesapholic", monospace;
-    font-size: calc(20px * var(--ui-scale, 1));
+    text-transform: none;
+    font-size: calc(18px * var(--ui-scale, 1));
     font-weight: 400;
-    margin-top: 1.6rem;
-    margin-bottom: 0.5rem;
+    margin-top: 2.8rem;
+    margin-bottom: 0.6rem;
   }
   /* meta: captions, credits footer, references label */
   .art-detail-body figcaption,
   .art-detail-body p.text-sm.opacity-70,
   .art-detail-body p.text-sm:not(.opacity-80),
   .art-detail-body div.text-sm {
-    font-size: calc(11px * var(--ui-scale, 1));
+    font-size: calc(10px * var(--ui-scale, 1));
     line-height: 1.45;
   }
   .art-detail-body ul.text-sm {
-    font-size: calc(12px * var(--ui-scale, 1));
+    font-size: calc(10px * var(--ui-scale, 1));
   }
   .art-detail-body code {
-    font-size: calc(11px * var(--ui-scale, 1));
+    font-size: calc(10px * var(--ui-scale, 1));
   }
   .art-detail-body video {
     width: 100%;
@@ -199,7 +223,7 @@ if (!artwork || !Content) {
     border-top: 1px solid var(--text-dim);
   }
   .art-footnotes p {
-    font-size: calc(10.5px * var(--ui-scale, 1));
+    font-size: calc(9.5px * var(--ui-scale, 1));
     line-height: 1.55;
     color: var(--text-dim);
     padding-left: 1.4em;

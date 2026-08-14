@@ -470,9 +470,9 @@ const BIO_SECTIONS = [
 
 function WorksList() {
   return (
-    <div>
+    <div style={{ fontFamily: "'DepartureMono', monospace" }}>
       {BIO_SECTIONS.map((section) => (
-        <div key={section.title} style={{ marginBottom: "1.2rem" }}>
+        <div key={section.title} style={{ marginBottom: "2.2rem" }}>
           <p
             style={{
               fontWeight: 700,
@@ -533,15 +533,11 @@ const About = () => {
 
   return (
     <div
-      className="relative z-10 font-mono w-full mt-16 pb-16"
-      style={{ color: "var(--text-body)", fontSize: "14px", lineHeight: 1.5 }}
+      className="relative z-10 w-full mt-16 pb-16"
+      style={{ fontFamily: "Times, 'Times New Roman', serif", color: "var(--text-body)", fontSize: "15px", lineHeight: 1.5 }}
     >
-      <div className="px-8 lg:w-4/5 max-w-3xl font-thin space-y-3 mb-6">
-        <p className="uppercase text-[13px] tracking-widest mb-5 font-normal" style={{ color: "var(--text-muted)" }}>
-          ~Artist
-        </p>
-
-        <div className="flex gap-4 mb-4">
+      <div className="px-8 lg:w-4/5 max-w-3xl font-thin space-y-5 mb-10">
+        <div className="flex gap-4 mb-8">
           {[
             { href: "/cv", label: "CV" },
             { href: "/resume", label: "Resume" },
@@ -550,35 +546,32 @@ const About = () => {
               key={href}
               href={href}
               style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "11px",
-                letterSpacing: "0.1em",
+                fontFamily: "'DepartureMono', monospace",
+                fontSize: "calc(11px * var(--ui-scale, 1))",
+                letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                background: "var(--bg-elevated)",
+                background: "linear-gradient(145deg, #f6f6f6, #ececec)",
                 color: "var(--text-muted)",
-                padding: "0.55rem 1.15rem",
-                borderRadius: "10px",
-                boxShadow: "5px 5px 10px rgba(0,0,0,0.12), -5px -5px 10px rgba(255,255,255,0.9)",
-                transform: "translateY(0) scale(1)",
-                transition: "box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1), transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), color 0.15s ease",
+                padding: "0.5em 0.8em",
+                borderRadius: "14px",
+                boxShadow: "5px 5px 10px rgba(190,190,190,0.55), -5px -5px 10px rgba(255,255,255,0.95)",
+                transition: "box-shadow 0.18s ease, background 0.18s ease, color 0.15s ease",
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.boxShadow = "8px 8px 16px rgba(0,0,0,0.16), -8px -8px 16px rgba(255,255,255,1)"
+                e.currentTarget.style.background = "linear-gradient(145deg, #ececec, #f6f6f6)"
+                e.currentTarget.style.boxShadow = "inset 4px 4px 8px rgba(190,190,190,0.55), inset -4px -4px 8px rgba(255,255,255,0.95)"
                 e.currentTarget.style.color = "var(--text)"
-                e.currentTarget.style.transform = "translateY(-3px) scale(1.04)"
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.boxShadow = "5px 5px 10px rgba(0,0,0,0.12), -5px -5px 10px rgba(255,255,255,0.9)"
+                e.currentTarget.style.background = "linear-gradient(145deg, #f6f6f6, #ececec)"
+                e.currentTarget.style.boxShadow = "5px 5px 10px rgba(190,190,190,0.55), -5px -5px 10px rgba(255,255,255,0.95)"
                 e.currentTarget.style.color = "var(--text-muted)"
-                e.currentTarget.style.transform = "translateY(0) scale(1)"
               }}
               onMouseDown={e => {
-                e.currentTarget.style.boxShadow = "inset 3px 3px 6px rgba(0,0,0,0.15), inset -3px -3px 6px rgba(255,255,255,0.9)"
-                e.currentTarget.style.transform = "translateY(0) scale(0.97)"
+                e.currentTarget.style.boxShadow = "inset 6px 6px 12px rgba(180,180,180,0.6), inset -6px -6px 12px rgba(255,255,255,0.9)"
               }}
               onMouseUp={e => {
-                e.currentTarget.style.boxShadow = "8px 8px 16px rgba(0,0,0,0.16), -8px -8px 16px rgba(255,255,255,1)"
-                e.currentTarget.style.transform = "translateY(-3px) scale(1.04)"
+                e.currentTarget.style.boxShadow = "inset 4px 4px 8px rgba(190,190,190,0.55), inset -4px -4px 8px rgba(255,255,255,0.95)"
               }}
             >
               {label}
@@ -624,7 +617,7 @@ const About = () => {
             borderBottom: "1px solid var(--border-subtle)",
             padding: "0.25em 0",
             cursor: "pointer",
-            marginTop: "0.5rem",
+            marginTop: "1.6rem",
             transition: "color 0.15s",
           }}
           onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
@@ -640,7 +633,7 @@ const About = () => {
             style={{
               borderLeft: "1px solid var(--border-subtle)",
               paddingLeft: "1.2rem",
-              marginTop: "0.5rem",
+              marginTop: "1rem",
             }}
           >
             <FullBio />
@@ -665,7 +658,7 @@ const About = () => {
             borderBottom: "1px solid var(--border-subtle)",
             padding: "0.25em 0",
             cursor: "pointer",
-            marginTop: "0.5rem",
+            marginTop: "1.6rem",
             transition: "color 0.15s",
           }}
           onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
@@ -680,7 +673,7 @@ const About = () => {
             style={{
               borderLeft: "1px solid var(--border-subtle)",
               paddingLeft: "1.2rem",
-              marginTop: "0.5rem",
+              marginTop: "1rem",
             }}
           >
             <WorksList />

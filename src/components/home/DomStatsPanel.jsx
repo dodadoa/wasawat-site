@@ -4,6 +4,7 @@ import { glassPlain, DitherRamp } from "./panelChrome.jsx"
 
 const OVERLAY_ID = "dom-stats-xray-overlay"
 const mono = "'DepartureMono', monospace"
+const displayMono = "'TimesNewerRoman', Times, 'Times New Roman', serif"
 const ink = TEXT.primary
 const inkDim = TEXT.secondary
 const inkFaint = TEXT.tertiary
@@ -77,7 +78,7 @@ function DitherNumber({ value, fontSize: baseFontSize = 13, bold = false, levels
     ctx.font = fontDecl
     const metrics = ctx.measureText(text)
     const w = Math.ceil(metrics.width) + 6 * dpr
-    const h = Math.ceil(fontSize * 1.6 * dpr)
+    const h = Math.ceil(fontSize * 1.3 * dpr)
 
     canvas.width = w
     canvas.height = h
@@ -135,7 +136,7 @@ function collectStats() {
   }
   const topTags = Object.entries(tagCounts)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
+    .slice(0, 14)
 
   return { topTags }
 }
@@ -288,7 +289,8 @@ function Row({ label, value, faint = false, active = false, accentColor, onEnter
         display: "flex",
         alignItems: "baseline",
         gap: 0,
-        padding: "0.08rem 0",
+        padding: 0,
+        lineHeight: 1.25,
         cursor: onEnter ? "crosshair" : "default",
       }}
       onMouseEnter={onEnter}
@@ -327,7 +329,6 @@ function Row({ label, value, faint = false, active = false, accentColor, onEnter
 }
 
 export default function DomStatsPanel() {
-  const [open, setOpen] = useState(true)
   const [stats, setStats] = useState(null)
   const [logRows, setLogRows] = useState([])
   const [logTotals, setLogTotals] = useState({ count: 0, bytes: 0 })
@@ -352,16 +353,10 @@ export default function DomStatsPanel() {
   }, [])
 
   useEffect(() => {
-    if (!open) return
     setStats(collectStats())
     const id = setInterval(() => setStats(collectStats()), 1000)
     return () => clearInterval(id)
-  }, [open])
-
-  const toggle = () => {
-    if (open) hideXray()
-    setOpen((o) => !o)
-  }
+  }, [])
 
   useEffect(() => {
     const observer = new PerformanceObserver((list) => {
@@ -400,41 +395,21 @@ export default function DomStatsPanel() {
 
   useEffect(() => () => clearXray(), [])
 
+  // mirrors the right genre-tab panel: full-height column with its own border
   const panelShell = {
     position: "absolute",
-    left: "2rem",
-    top: "50%",
-    transform: "translateY(-50%)",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    minWidth: "clamp(260px, 24vw, 380px)",
+    paddingLeft: "2rem",
+    paddingRight: "clamp(1.5rem, 3vw, 3rem)",
+    borderRight: `1px solid ${rgba(ACCENTS.violet, 0.22)}`,
     zIndex: 16777272,
     pointerEvents: "auto",
-  }
-
-  const toggleBtnStyle = {
-    fontFamily: mono,
-    fontSize: "calc(9px * var(--ui-scale, 1))",
-    letterSpacing: "0.32em",
-    color: inkFaint,
-    textTransform: "uppercase",
-    background: "none",
-    border: "none",
-    padding: "0.65rem 0.8rem",
-    cursor: "pointer",
-    ...glassPlain,
-  }
-
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={toggle}
-        aria-expanded={false}
-        aria-label="Show stats panel"
-        className="absolute"
-        style={{ ...panelShell, ...toggleBtnStyle }}
-      >
-        [+]
-      </button>
-    )
   }
 
   if (!stats) return null
@@ -445,7 +420,7 @@ export default function DomStatsPanel() {
       className="absolute"
       style={{
         ...panelShell,
-        width: "clamp(240px, 18vw, 320px)",
+        width: "clamp(280px, 24vw, 380px)",
       }}
       aria-label="Document statistics and network log"
     >
@@ -453,6 +428,7 @@ export default function DomStatsPanel() {
         style={{
           maxHeight: "calc(100vh - 6rem)",
           overflowY: "auto",
+          width: "100%",
           padding: "0.65rem 0.8rem 0.7rem",
           ...glassPlain,
         }}
@@ -464,33 +440,10 @@ export default function DomStatsPanel() {
         }
       `}</style>
 
-      <button
-        type="button"
-        onClick={toggle}
-        aria-expanded={open}
-        style={{
-          fontFamily: mono,
-          fontSize: "calc(9px * var(--ui-scale, 1))",
-          letterSpacing: "0.32em",
-          color: inkFaint,
-          marginBottom: "0.45rem",
-          textTransform: "uppercase",
-          display: "flex",
-          justifyContent: "flex-end",
-          width: "100%",
-          background: "none",
-          border: "none",
-          padding: 0,
-          cursor: "pointer",
-        }}
-      >
-        <span style={{ color: inkFaint, letterSpacing: "0.05em" }}>[–]</span>
-      </button>
-
       <div
         style={{
-          fontFamily: mono,
-          fontSize: "calc(12px * var(--ui-scale, 1))",
+          fontFamily: displayMono,
+          fontSize: "calc(13px * var(--ui-scale, 1))",
           letterSpacing: "0.28em",
           color: inkFaint,
           marginBottom: "0.3rem",
@@ -503,8 +456,8 @@ export default function DomStatsPanel() {
 
       <div
         style={{
-          fontFamily: mono,
-          fontSize: "calc(8px * var(--ui-scale, 1))",
+          fontFamily: displayMono,
+          fontSize: "calc(9px * var(--ui-scale, 1))",
           letterSpacing: "0.28em",
           color: inkFaint,
           marginBottom: "0.3rem",
@@ -545,8 +498,8 @@ export default function DomStatsPanel() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "baseline",
-          fontFamily: mono,
-          fontSize: "calc(8px * var(--ui-scale, 1))",
+          fontFamily: displayMono,
+          fontSize: "calc(9px * var(--ui-scale, 1))",
           letterSpacing: "0.28em",
           color: inkFaint,
           textTransform: "uppercase",
@@ -560,7 +513,7 @@ export default function DomStatsPanel() {
         </span>
       </div>
 
-      <div ref={logListRef} style={{ maxHeight: "96px", overflowY: "auto" }}>
+      <div ref={logListRef} style={{ maxHeight: "clamp(160px, 28vh, 320px)", overflowY: "auto" }}>
         {logRows.map((row, i) => {
           const typeColor = REQUEST_TYPE_TEXT_COLORS[row.type] ?? REQUEST_TYPE_TEXT_COLORS.other
           return (

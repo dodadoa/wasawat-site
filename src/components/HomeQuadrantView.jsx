@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, Html, Line, Grid } from "@react-three/drei"
-import { memo, useCallback, useEffect, useMemo, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { genreLayers, XY_SCALE, Z_AXIS_LABELS, QUADRANT_LABELS } from "../data/homeQuadrant3d.js"
 import { AXIS_COLORS, AXIS_TEXT_COLORS, ACCENTS, TEXT, TEXT_ACCENTS, genreColor, genreGradient, genreTextColor, rgba } from "../data/homeColors.js"
 import { workQuadrantMeta } from "../utils/quadrantWorkMeta.js"
@@ -391,7 +391,7 @@ function CoordSpark({ value, accent }) {
   )
 }
 
-function Quadrant2DView({ genreFilter }) {
+function Quadrant2DView({ genreFilter, inset = false }) {
   const works = useMemo(() => collectWorks(), [])
   const visible = genreFilter ? works.filter((w) => w.genreId === genreFilter) : works
 
@@ -411,7 +411,13 @@ function Quadrant2DView({ genreFilter }) {
   return (
     <div
       className="absolute inset-0 overflow-y-auto"
-      style={{ zIndex: 1, paddingBottom: "3.5rem" }}
+      style={{
+        zIndex: 1,
+        paddingBottom: "3.5rem",
+        // desktop: stay clear of the document-stats panel (left) and genre tabs (right)
+        paddingLeft: inset ? "clamp(310px, 26vw, 410px)" : 0,
+        paddingRight: inset ? "clamp(240px, 20vw, 300px)" : 0,
+      }}
     >
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead style={{ position: "sticky", top: 0, background: "#fff", zIndex: 2 }}>
@@ -500,6 +506,239 @@ function Quadrant2DView({ genreFilter }) {
           })}
         </tbody>
       </table>
+    </div>
+  )
+}
+
+// ─── 2d flattened planes: the 3d space projected onto three quadrant charts ──
+// Each panel is one projection (x·y, x·z, z·y); the same work appears in all
+// three, and hovering it draws a link line connecting its dots across panels.
+
+const FLAT_PLANES = [
+  { id: "xy", ax: "x", ay: "y", title: "x · y",
+    left: "Investigative", right: "Speculative", top: "Future", bottom: "Past" },
+  { id: "xz", ax: "x", ay: "z", title: "x · z",
+    left: "Investigative", right: "Speculative", top: "Human", bottom: "Machine" },
+  { id: "zy", ax: "z", ay: "y", title: "z · y",
+    left: "Machine", right: "Human", top: "Future", bottom: "Past" },
+]
+
+const FLAT_END_LABEL = {
+  position: "absolute",
+  fontFamily: mono,
+  fontSize: "calc(8px * var(--ui-scale, 1))",
+  letterSpacing: "0.12em",
+  textTransform: "uppercase",
+  whiteSpace: "nowrap",
+  pointerEvents: "none",
+}
+
+function FlatPanel({ plane, works, genreFilter, hoverKey, setHoverKey }) {
+  const hAccent = AXIS_TEXT_COLORS[plane.ax]
+  const vAccent = AXIS_TEXT_COLORS[plane.ay]
+  return (
+    <div style={{ flex: "1 1 0", minWidth: 0 }}>
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          aspectRatio: "1 / 1",
+          border: `1px solid ${rgba(ACCENTS.violet, 0.18)}`,
+          background: "#ffffff",
+        }}
+      >
+        {/* axis lines */}
+        <div style={{ position: "absolute", left: 0, right: 0, top: "50%", height: "1px", background: rgba(AXIS_COLORS[plane.ax], 0.35) }} />
+        <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: "1px", background: rgba(AXIS_COLORS[plane.ay], 0.35) }} />
+        {/* axis end labels */}
+        <span style={{ ...FLAT_END_LABEL, left: "6px", top: "50%", transform: "translateY(-140%)", color: hAccent }}>{plane.left}</span>
+        <span style={{ ...FLAT_END_LABEL, right: "6px", top: "50%", transform: "translateY(-140%)", color: hAccent }}>{plane.right}</span>
+        <span style={{ ...FLAT_END_LABEL, left: "50%", top: "6px", transform: "translateX(8px)", color: vAccent }}>{plane.top}</span>
+        <span style={{ ...FLAT_END_LABEL, left: "50%", bottom: "6px", transform: "translateX(8px)", color: vAccent }}>{plane.bottom}</span>
+
+        {/* works scattered by this projection's two coords */}
+        {works.map((w) => {
+          const key = w.slug ?? w.label
+          const dimmed = !!genreFilter && w.genreId !== genreFilter
+          const accent = genreColor(w.genreId)
+          const hovered = hoverKey === key
+          const Tag = w.slug ? "a" : "span"
+          const thumb = w.slug && w.image ? `/images/thumbs/${w.slug}.jpg` : w.image
+          return (
+            <Tag
+              key={key}
+              data-flat-key={key}
+              href={w.slug ? `/art/${w.slug}` : undefined}
+              onMouseEnter={() => !dimmed && setHoverKey(key)}
+              onMouseLeave={() => setHoverKey(null)}
+              style={{
+                position: "absolute",
+                left: `${toPercent(w[plane.ax] ?? 0)}%`,
+                top: `${toPercent(w[plane.ay] ?? 0, true)}%`,
+                transform: "translate(-50%, -50%)",
+                display: "block",
+                zIndex: hovered ? 6 : 2,
+                pointerEvents: dimmed ? "none" : "auto",
+                opacity: dimmed ? 0.15 : 1,
+                filter: dimmed ? "grayscale(1)" : "none",
+                transition: "opacity 0.2s ease, filter 0.2s ease",
+              }}
+            >
+              {thumb ? (
+                <div
+                  className="dither-thumb"
+                  style={{
+                    width: hovered ? "54px" : "38px",
+                    height: hovered ? "37px" : "26px",
+                    ...glassNode(accent),
+                    padding: 0,
+                    boxShadow: hovered
+                      ? `0 0 24px 6px ${rgba(accent, 0.45)}`
+                      : `0 0 14px 3px ${rgba(accent, 0.22)}`,
+                    transition: "width 0.12s ease, height 0.12s ease, box-shadow 0.15s ease",
+                  }}
+                >
+                  <img src={thumb} alt="" decoding="async" />
+                </div>
+              ) : (
+                <span
+                  style={{
+                    display: "block",
+                    width: hovered ? "13px" : "9px",
+                    height: hovered ? "13px" : "9px",
+                    borderRadius: "50%",
+                    background: accent,
+                    boxShadow: hovered ? `0 0 16px 2px ${rgba(accent, 0.55)}` : "none",
+                    transition: "width 0.12s ease, height 0.12s ease",
+                  }}
+                />
+              )}
+              {hovered && (
+                <>
+                  <span
+                    style={{
+                      position: "absolute",
+                      bottom: "calc(100% + 6px)",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      fontFamily: displayMono,
+                      fontStyle: "italic",
+                      fontSize: "calc(12px * var(--ui-scale, 1))",
+                      letterSpacing: "0.04em",
+                      color: TEXT.primary,
+                      padding: "3px 10px",
+                      whiteSpace: "nowrap",
+                      zIndex: 7,
+                      ...glassNode(accent),
+                    }}
+                  >
+                    {w.planeLabel ?? w.label}
+                  </span>
+                  {/* same info card as the 3d node hover */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      width: "max-content",
+                      zIndex: 7,
+                    }}
+                  >
+                    <WorkHoverCard work={w} accent={accent} />
+                  </div>
+                </>
+              )}
+            </Tag>
+          )
+        })}
+      </div>
+      <p
+        style={{
+          marginTop: "0.6rem",
+          textAlign: "center",
+          fontFamily: mono,
+          fontSize: "calc(9px * var(--ui-scale, 1))",
+          letterSpacing: "0.24em",
+          textTransform: "uppercase",
+          color: TEXT.tertiary,
+        }}
+      >
+        {plane.title}
+      </p>
+    </div>
+  )
+}
+
+function FlatPlanesView({ genreFilter }) {
+  const works = useMemo(() => collectWorks(), [])
+  const containerRef = useRef(null)
+  const [hoverKey, setHoverKey] = useState(null)
+  const [linePts, setLinePts] = useState(null)
+
+  // Link line between the hovered work's dots across the three panels —
+  // measured from the DOM so it stays correct at any container size.
+  useEffect(() => {
+    if (!hoverKey || !containerRef.current) {
+      setLinePts(null)
+      return
+    }
+    const contRect = containerRef.current.getBoundingClientRect()
+    const els = containerRef.current.querySelectorAll(`[data-flat-key="${CSS.escape(hoverKey)}"]`)
+    const pts = [...els].map((el) => {
+      const r = el.getBoundingClientRect()
+      return [r.left + r.width / 2 - contRect.left, r.top + r.height / 2 - contRect.top]
+    })
+    setLinePts(pts.length > 1 ? pts : null)
+  }, [hoverKey])
+
+  const hoveredWork = hoverKey ? works.find((w) => (w.slug ?? w.label) === hoverKey) : null
+  const lineColor = hoveredWork ? genreColor(hoveredWork.genreId) : "#999999"
+
+  return (
+    <div className="absolute inset-0 overflow-y-auto" style={{ zIndex: 1 }}>
+      <div
+        ref={containerRef}
+        style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          height: "100%",
+          minHeight: "100%",
+          gap: "clamp(1rem, 2.5vw, 2rem)",
+          // clear the document-stats panel (left) and genre tabs (right)
+          padding: "2rem clamp(240px, 20vw, 300px) 3rem clamp(310px, 26vw, 410px)",
+        }}
+      >
+        {FLAT_PLANES.map((plane) => (
+          <FlatPanel
+            key={plane.id}
+            plane={plane}
+            works={works}
+            genreFilter={genreFilter}
+            hoverKey={hoverKey}
+            setHoverKey={setHoverKey}
+          />
+        ))}
+        {linePts && (
+          <svg
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 4 }}
+            aria-hidden="true"
+          >
+            <polyline
+              points={linePts.map((p) => p.join(",")).join(" ")}
+              fill="none"
+              stroke={lineColor}
+              strokeWidth="1.2"
+              strokeDasharray="5 4"
+              opacity="0.75"
+            />
+            {linePts.map(([x, y], i) => (
+              <circle key={i} cx={x} cy={y} r="5" fill="none" stroke={lineColor} strokeWidth="1" opacity="0.65" />
+            ))}
+          </svg>
+        )}
+      </div>
     </div>
   )
 }
@@ -700,9 +939,10 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
     }
   }, [])
   const isMobile = useIsMobile()
-  // table toggle only available on mobile; desktop always 3d
+  // mobile: table/3d toggle · desktop: 3d / 2d planes / table switcher
   const [mobileView, setMobileView] = useState("table") // "table" | "3d"
-  const viewMode = isMobile ? mobileView : "3d"
+  const [desktopView, setDesktopView] = useState("3d") // "3d" | "2d" | "table"
+  const viewMode = isMobile ? mobileView : desktopView
 
   const isSingleChronology =
     layers.length === 1 && layers[0].layout === "chronology"
@@ -758,7 +998,9 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
       {isSingleChronology ? (
         <ChronologyView layer={layers[0]} />
       ) : viewMode === "table" ? (
-        <Quadrant2DView genreFilter={genreFilter} />
+        <Quadrant2DView genreFilter={genreFilter} inset={!isMobile} />
+      ) : viewMode === "2d" ? (
+        <FlatPlanesView genreFilter={genreFilter} />
       ) : (
         <>
           {!(canvasReady && imagesReady) && (
@@ -777,6 +1019,49 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
       )}
 
       {showDomStats && <DomStatsPanel />}
+
+      {/* desktop view switcher: 3d / 2d planes / table */}
+      {showDiagram && !isMobile && (
+        <div
+          className="absolute"
+          style={{
+            bottom: "0.75rem",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 5,
+            display: "flex",
+            ...glassPlain,
+          }}
+        >
+          {[
+            { id: "3d", label: "3d" },
+            { id: "2d", label: "2d planes" },
+            { id: "table", label: "table" },
+          ].map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              onClick={() => setDesktopView(v.id)}
+              aria-pressed={viewMode === v.id}
+              style={{
+                fontFamily: mono,
+                fontSize: "calc(9px * var(--ui-scale, 1))",
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: viewMode === v.id ? TEXT.primary : TEXT.tertiary,
+                padding: "0.55rem 0.9rem",
+                cursor: "pointer",
+                background: "transparent",
+                border: "none",
+                borderBottom: viewMode === v.id ? `2px solid ${ACCENTS.violet}` : "2px solid transparent",
+                transition: "color 0.15s ease, border-color 0.15s ease",
+              }}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 2d / 3d toggle */}
       {showToggle && (
@@ -810,7 +1095,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
           className={
             isMobile
               ? "absolute left-0 right-0 bottom-0 flex flex-row justify-center gap-3 px-3 py-2"
-              : "absolute top-0 right-0 bottom-0 flex flex-col justify-center gap-2 pr-8"
+              : "absolute top-0 right-0 bottom-0 flex flex-col justify-center gap-1 pr-8"
           }
           style={
             isMobile
@@ -832,36 +1117,34 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
         >
           {[{ id: null, title: "All" }, ...genreButtons].map((item) => {
             const active = genreFilter === item.id || (item.id === null && !genreFilter)
-            const activeAccent = item.id ? genreColor(item.id) : ACCENTS.violet
-            const hoverAccent = item.id ? genreTextColor(item.id) : TEXT.secondary
             return (
               <button
                 key={item.id ?? "all"}
                 type="button"
                 onClick={() => setGenreFilter(active && item.id !== null ? null : item.id)}
                 style={{
-                  fontFamily: "'403Mesapholic', monospace",
-                  color: active ? TEXT.primary : TEXT.secondary,
+                  fontFamily: "Times, 'Times New Roman', serif",
+                  color: active ? TEXT.primary : TEXT.tertiary,
                   fontSize: active
-                    ? isMobile ? "0.85rem" : "clamp(1.1rem, 2.2vw, 1.5rem)"
-                    : isMobile ? "0.72rem" : "clamp(0.8rem, 1.4vw, 1rem)",
+                    ? isMobile ? "0.78rem" : "clamp(0.85rem, 1.5vw, 1.05rem)"
+                    : isMobile ? "0.68rem" : "clamp(0.7rem, 1.1vw, 0.85rem)",
                   fontWeight: active ? 600 : 400,
                   letterSpacing: "0.08em",
-                  lineHeight: 1.4,
-                  padding: isMobile ? "0.2rem 0" : "0.3rem 0",
-                  paddingBottom: active ? (isMobile ? "calc(0.2rem - 2px)" : "calc(0.3rem - 3px)") : (isMobile ? "0.2rem" : "0.3rem"),
+                  lineHeight: 1.1,
+                  padding: isMobile ? "0.1rem 0" : "0.12rem 0",
+                  paddingBottom: active ? (isMobile ? "calc(0.1rem - 1px)" : "calc(0.12rem - 1px)") : (isMobile ? "0.1rem" : "0.12rem"),
                   cursor: "pointer",
                   backgroundColor: "transparent",
                   borderTop: "none",
                   borderLeft: "none",
                   borderRight: "none",
-                  borderBottom: active ? `3px solid ${activeAccent}` : "none",
+                  borderBottom: active ? `1px solid ${TEXT.primary}` : "none",
                   textAlign: isMobile ? "center" : "right",
                   whiteSpace: "nowrap",
                   transition: "color 0.2s ease, font-size 0.35s ease",
                 }}
-                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = hoverAccent }}
-                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = TEXT.secondary }}
+                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = TEXT.primary }}
+                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = TEXT.tertiary }}
               >
                 {item.title}
               </button>
