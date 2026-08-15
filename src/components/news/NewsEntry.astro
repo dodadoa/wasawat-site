@@ -1,0 +1,147 @@
+---
+/**
+ * One news item. Shared by the upcoming list and the archive on /news —
+ * `past` dims it, `last` drops the trailing rule at the end of a list.
+ */
+import { formatRange } from "../../data/news.js"
+
+const { entry, past = false, last = false } = Astro.props
+---
+
+<article class:list={["news-entry", past && "news-entry--past", last && "news-entry--last"]}>
+  <div class="news-date">{formatRange(entry.start, entry.end)}</div>
+  <div class="news-body">
+    {entry.venue && (
+      <p class="news-venue">
+        {entry.venue.map((v, i) => (
+          <>
+            {i > 0 && <span> · </span>}
+            {v.href ? (
+              <a href={v.href} target="_blank" rel="noopener noreferrer">{v.label}</a>
+            ) : (
+              <span>{v.label}</span>
+            )}
+          </>
+        ))}
+        {entry.venueSuffix && <span> · {entry.venueSuffix}</span>}
+      </p>
+    )}
+
+    <h2 class="news-title">{entry.title}</h2>
+    {entry.subtitle && <p class="news-subtitle">{entry.subtitle}</p>}
+
+    {entry.body?.map((paragraph, i) => (
+      <p class="news-desc" style={i > 0 ? "margin-top: 0.5rem;" : undefined} set:html={paragraph} />
+    ))}
+
+    {entry.meta && (
+      <div class="news-meta">
+        {entry.meta.map((line) => <div set:html={line} />)}
+      </div>
+    )}
+
+    {entry.links && (
+      <div class="news-links">
+        {entry.links.map((link) => (
+          <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
+        ))}
+      </div>
+    )}
+  </div>
+</article>
+
+<style>
+  .news-entry {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0 2rem;
+    margin-bottom: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .news-entry--last {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .news-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    padding-top: 0.15rem;
+    white-space: nowrap;
+  }
+  .news-venue {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+    margin-bottom: 0.35rem;
+  }
+  .news-venue a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .news-title {
+    font-size: 22px;
+    font-weight: normal;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.35rem;
+    line-height: 1.25;
+  }
+  .news-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 0.6rem;
+    font-style: italic;
+  }
+  .news-desc {
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--text-body);
+    max-width: 64ch;
+  }
+  .news-meta {
+    margin-top: 0.9rem;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .news-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin-top: 0.8rem;
+  }
+  .news-links a {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+  }
+  .news-links a:hover {
+    color: var(--text-body);
+  }
+
+  /* Past entries sit quieter than what's coming up. */
+  .news-entry--past {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+  }
+  .news-entry--past:hover {
+    opacity: 1;
+  }
+  .news-entry--past .news-title {
+    font-size: 18px;
+  }
+
+  @media (max-width: 600px) {
+    .news-entry {
+      grid-template-columns: 1fr;
+      gap: 0.3rem;
+    }
+    .news-date {
+      font-size: 10px;
+    }
+  }
+</style>

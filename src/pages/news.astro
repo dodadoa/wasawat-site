@@ -1,5 +1,11 @@
 ---
 import Layout from "../layouts/layout.astro"
+import NewsEntry from "../components/news/NewsEntry.astro"
+import { splitNews } from "../data/news.js"
+
+// The page is server-rendered, so an event moves itself into the archive the
+// day after it ends — no edit needed. Add entries in src/data/news.js.
+const { upcoming, archive } = splitNews()
 ---
 
 <Layout title="News — Wasawat Somno" description="Upcoming events and news">
@@ -9,194 +15,70 @@ import Layout from "../layouts/layout.astro"
       ~News
     </p>
 
-    <!-- ── Aug 14 ── -->
-    <article class="news-entry">
-      <div class="news-date">14 Aug 2026</div>
-      <div class="news-body">
-        <p class="news-venue">
-          <a href="https://www.instagram.com/bangkok_kunsthalle/" target="_blank" rel="noopener noreferrer">Bangkok Kunsthalle</a>
-        </p>
-        <h2 class="news-title">Rat Section</h2>
-        <p class="news-desc">
-          Bangkok Kunsthalle presents Rat Section for a one-night performance joined by
-          Wasawat Somno + Niwit Lertsawaengkit and Medulla Spinalis.
-        </p>
-        <p class="news-desc" style="margin-top: 0.5rem;">
-          Rat Section is a music and performance project currently based in London that treats
-          choreography, set design, and the specific qualities of each space as integral parts of
-          every show. Their work moves between experimental electronic, pop, spoken word and club
-          music, constructing a mythology that deliberately blurs the line between biography and
-          fiction.
-        </p>
-        <p class="news-desc" style="margin-top: 0.5rem;">
-          The night focuses on unstable dichotomies, with each performance blurring lines between
-          reality and fiction, mundanity and metaphysical, science and ritual. Across three
-          performances, familiar formats are distorted and transformed.
-        </p>
-        <div class="news-meta">
-          <span>Friday, 14 August 2026 · 7:30 PM – 10:00 PM</span><br/>
-          <span>THB 400 online / THB 450 at door</span>
-        </div>
-        <div class="news-links">
-          <a href="https://www.instagram.com/p/Dbam_roj7Nk/" target="_blank" rel="noopener noreferrer">↗ Instagram</a>
-          <a href="https://www.ticketmelon.com/th/bangkok-kunsthalle/ratsection" target="_blank" rel="noopener noreferrer">↗ Tickets (Ticketmelon)</a>
-        </div>
-      </div>
-    </article>
+    {upcoming.length === 0 && (
+      <p class="news-empty">Nothing scheduled at the moment — past events are in the archive below.</p>
+    )}
 
-    <!-- ── Aug 21 (Tokyo exhibition) ── -->
-    <article class="news-entry">
-      <div class="news-date">21–23 Aug 2026</div>
-      <div class="news-body">
-        <p class="news-venue">
-          <a href="https://www.instagram.com/threespacetokyo/" target="_blank" rel="noopener noreferrer">Three Space Tokyo</a>
-          · Asakusabashi 3-6-6, Taito-ku, Tokyo
-        </p>
-        <h2 class="news-title">Sound Performance for SUPPOSE WE COUNTED EVERY EDGE OF THE GRID</h2>
-        <p class="news-subtitle">An exhibition by Timotej Janko</p>
-        <p class="news-desc">
-          Through analogue image-making and spoken word, the project explores how perception
-          gradually becomes memory, and how memory remains unstable, continuously reshapes itself
-          over time. The title proposes an impossible gesture — resisting the constant impulse to
-          search for something new, asking instead what might happen if we gave sustained attention
-          to what already surrounds us.
-        </p>
-        <p class="news-desc" style="margin-top: 0.5rem;">
-          The exhibition brings together silver gelatin prints and 8mm film shot in Tokyo,
-          accompanied by a live soundtrack composed from intimate monologues recorded during
-          Timotej's travels — transformed into a sound composition in collaboration with
-          Wasawat Somno, who will perform the work live at the opening.
-        </p>
-        <div class="news-meta">
-          <span><strong>Reception &amp; live performance</strong> — Friday, 21 Aug · 18:00–21:00</span><br/>
-          <span>Live sound: Wasawat Somno (Bangkok) &amp; Naoki Nomoto (Japan)</span><br/>
-          <span><strong>Exhibition</strong> — 22–23 Aug · 12:00–20:00</span>
-        </div>
-        <div class="news-links">
-          <a href="https://www.instagram.com/p/Dbnw6HmkTnF/" target="_blank" rel="noopener noreferrer">↗ Instagram</a>
-        </div>
-      </div>
-    </article>
+    {upcoming.map((entry, i) => (
+      <NewsEntry entry={entry} last={archive.length === 0 && i === upcoming.length - 1} />
+    ))}
 
-    <!-- ── Aug 21 (Tokyo club) ── -->
-    <article class="news-entry">
-      <div class="news-date">21 Aug 2026</div>
-      <div class="news-body">
-        <p class="news-venue">
-          <a href="https://www.instagram.com/midnight_east/" target="_blank" rel="noopener noreferrer">Midnight East</a>
-          · O-EAST 3F, Tokyo
-        </p>
-        <h2 class="news-title">Safety Trance / Cardopusher</h2>
-        <p class="news-desc">
-          VJ set at Midnight East alongside Cardopusher, NTsKi B2B Romy Mats, MUNÉO B2B Rosa,
-          and no heavenly B2B Yves Misa Ghost. VJ alongside JACKSON kaki.
-        </p>
-        <div class="news-meta">
-          <span>Friday, 21 August 2026 · Open 24:00</span><br/>
-          <span>Door ¥3,500 / Adv ¥3,000 / U23 ¥2,000</span>
+    {archive.length > 0 && (
+      <details class="news-archive">
+        <summary>
+          <span class="news-archive-label">~Archive</span>
+          <span class="news-archive-count">{archive.length} past {archive.length === 1 ? "event" : "events"}</span>
+        </summary>
+        <div class="news-archive-list">
+          {archive.map((entry, i) => (
+            <NewsEntry entry={entry} past last={i === archive.length - 1} />
+          ))}
         </div>
-        <div class="news-links">
-          <a href="https://www.instagram.com/p/DbvJaAdkqXX/" target="_blank" rel="noopener noreferrer">↗ Instagram</a>
-          <a href="https://ra.co/events/2507676" target="_blank" rel="noopener noreferrer">↗ RA</a>
-          <a href="https://midnighteast.zaiko.io/e/safety-trance-cardopusher" target="_blank" rel="noopener noreferrer">↗ Tickets (Zaiko)</a>
-        </div>
-      </div>
-    </article>
-
-    <!-- ── Sep 19–20 ── -->
-    <article class="news-entry">
-      <div class="news-date">19–20 Sep 2026</div>
-      <div class="news-body">
-        <p class="news-venue">
-          <a href="https://www.instagram.com/odc.networks/" target="_blank" rel="noopener noreferrer">@odc.networks</a>
-          ·
-          <a href="https://www.instagram.com/ldk_roomservice/" target="_blank" rel="noopener noreferrer">@ldk_roomservice</a>
-        </p>
-        <h2 class="news-title">TBA</h2>
-        <p class="news-desc">More details coming soon.</p>
-      </div>
-    </article>
+      </details>
+    )}
 
   </div>
 </Layout>
 
 <style>
-  .news-entry {
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    gap: 0 2rem;
-    margin-bottom: 3rem;
-    padding-bottom: 3rem;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-  .news-entry:last-child {
-    border-bottom: none;
-  }
-  .news-date {
-    font-size: 11px;
-    color: var(--text-muted);
-    letter-spacing: 0.04em;
-    padding-top: 0.15rem;
-    white-space: nowrap;
-  }
-  .news-venue {
-    font-size: 11px;
-    color: var(--text-muted);
-    letter-spacing: 0.03em;
-    margin-bottom: 0.35rem;
-  }
-  .news-venue a {
-    color: inherit;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  .news-title {
-    font-size: 22px;
-    font-weight: normal;
-    letter-spacing: 0.01em;
-    margin-bottom: 0.35rem;
-    line-height: 1.25;
-  }
-  .news-subtitle {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 0.6rem;
-    font-style: italic;
-  }
-  .news-desc {
+  .news-empty {
     font-size: 12px;
-    line-height: 1.65;
-    color: var(--text-body);
-    max-width: 64ch;
-  }
-  .news-meta {
-    margin-top: 0.9rem;
-    font-size: 11px;
     color: var(--text-muted);
-    line-height: 1.6;
+    margin-bottom: 3rem;
   }
-  .news-links {
+
+  .news-archive summary {
+    cursor: pointer;
+    list-style: none;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.5rem;
-    margin-top: 0.8rem;
-  }
-  .news-links a {
-    font-size: 11px;
+    align-items: baseline;
+    gap: 0.75rem;
     color: var(--text-muted);
-    text-decoration: none;
+  }
+  .news-archive summary::-webkit-details-marker {
+    display: none;
+  }
+  .news-archive summary:hover {
+    color: var(--text-body);
+  }
+  .news-archive summary::after {
+    content: "[+]";
+    font-size: 11px;
     letter-spacing: 0.04em;
   }
-  .news-links a:hover {
-    color: var(--text-body);
+  .news-archive[open] summary::after {
+    content: "[–]";
   }
-  @media (max-width: 600px) {
-    .news-entry {
-      grid-template-columns: 1fr;
-      gap: 0.3rem;
-    }
-    .news-date {
-      font-size: 10px;
-    }
+  .news-archive-label {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  .news-archive-count {
+    font-size: 11px;
+    opacity: 0.7;
+  }
+  .news-archive-list {
+    margin-top: 2.5rem;
   }
 </style>
