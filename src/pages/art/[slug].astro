@@ -161,57 +161,68 @@ if (!artwork || !Content) {
 <style is:global>
   .art-detail-body {
     font-family: "DepartureMono", monospace;
-    font-size: calc(10px * var(--ui-scale, 1));
-    line-height: 1.65;
+    font-size: calc(11px * var(--ui-scale, 1));
+    line-height: 1.5;
   }
   .art-detail-body a {
     font-weight: normal;
     text-decoration: underline;
     text-underline-offset: 3px;
   }
+  /* keep the measure readable: mono at 11px runs ~160 chars across max-w-3xl */
   .art-detail-body p,
   .art-detail-body li {
-    line-height: 1.65;
+    line-height: 1.5;
+    max-width: 72ch;
   }
-  /* topic / credits / tagline — subheader (any p.opacity-80, whatever its text-* class) */
-  .art-detail-body p.opacity-80 {
-    font-size: calc(18px * var(--ui-scale, 1));
-    line-height: 1.4;
+  /* pages with long-form essay text opt into a wider measure */
+  .art-detail-body .art-wide p,
+  .art-detail-body .art-wide li {
+    max-width: 100ch;
   }
-  /* section headers — never all-caps; keep the markup's own Title Case */
+  /* section headers - never all-caps; keep the markup's own Title Case */
   .art-detail-body h2,
   .art-detail-body .text-xl {
     font-family: "403Mesapholic", monospace;
     text-transform: none;
-    font-size: calc(18px * var(--ui-scale, 1));
+    font-size: calc(16px * var(--ui-scale, 1));
     font-weight: 400;
-    margin-top: 2.8rem;
-    margin-bottom: 0.6rem;
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+    margin-top: 2.4rem;
+    margin-bottom: 0.7rem;
   }
-  /* meta: captions, credits footer, references label */
+  /* meta: captions, credits footer, inline labels ("References", "Line-up") */
   .art-detail-body figcaption,
-  .art-detail-body p.text-sm.opacity-70,
-  .art-detail-body p.text-sm:not(.opacity-80),
-  .art-detail-body div.text-sm {
+  .art-detail-body p.text-sm,
+  .art-detail-body div.text-sm,
+  .art-detail-body ul.text-sm,
+  .art-detail-body ol.text-sm {
     font-size: calc(10px * var(--ui-scale, 1));
-    line-height: 1.45;
+    line-height: 1.4;
   }
-  .art-detail-body ul.text-sm {
-    font-size: calc(10px * var(--ui-scale, 1));
+  /* the one tagline under the title - opted in per page, never inferred from
+     .opacity-80, which also tags small labels and footnotes */
+  .art-detail-body .art-lead {
+    font-size: calc(13px * var(--ui-scale, 1));
+    line-height: 1.35;
+    color: var(--text-muted);
+    margin-bottom: 1.7rem;
+    max-width: 62ch;
   }
   .art-detail-body code {
-    font-size: calc(10px * var(--ui-scale, 1));
+    font-size: calc(10.5px * var(--ui-scale, 1));
   }
   .art-detail-body video {
     width: 100%;
-    max-width: min(480px, 85%);
+    max-width: min(720px, 100%);
     height: auto;
     display: block;
   }
   /* academic footnotes (P.S. notes) */
   .art-footnotes {
     position: relative;
-    margin-top: 2.2rem;
+    margin-top: 2.4rem;
     padding-top: 0.7rem;
   }
   .art-footnotes::before {
@@ -223,13 +234,13 @@ if (!artwork || !Content) {
     border-top: 1px solid var(--text-dim);
   }
   .art-footnotes p {
-    font-size: calc(9.5px * var(--ui-scale, 1));
-    line-height: 1.55;
+    font-size: calc(10px * var(--ui-scale, 1));
+    line-height: 1.45;
     color: var(--text-dim);
     padding-left: 1.4em;
     text-indent: -1.4em;
-    margin: 0 0 0.35rem;
-    max-width: 60ch;
+    margin: 0 0 0.4rem;
+    max-width: 62ch;
   }
   .art-footnotes sup {
     font-size: 0.75em;

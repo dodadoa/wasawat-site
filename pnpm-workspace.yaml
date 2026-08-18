@@ -1,0 +1,7 @@
+# Supply-chain hardening for pnpm installs.
+# minimumReleaseAge: wait 7 days (10080 minutes) before installing a newly
+# published version, so compromised releases have time to be caught+unpublished.
+minimumReleaseAge: 10080
+# trustPolicy: fail the install if a package's trust signals (provenance,
+# signatures) weaken compared to previously installed releases.
+trustPolicy: no-downgrade
