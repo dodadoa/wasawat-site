@@ -1009,7 +1009,9 @@ const sitemapTree = [
           const labelText = document.getElementById("cursor-label-text")
           if (labelText) {
             const anchor = t && t.closest("a")
-            labelText.textContent = anchor ? (anchor.getAttribute("aria-label") || "open") : (t ? "click" : "")
+            labelText.textContent = anchor
+              ? (anchor.getAttribute("aria-label") || "open")
+              : (t ? (t.getAttribute("aria-label") || "click") : "")
           }
         })
       })

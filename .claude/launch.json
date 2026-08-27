@@ -3,8 +3,12 @@
   "configurations": [
     {
       "name": "astro-dev",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["dev"],
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PATH=/Users/wasawat.som.adm/.nvm/versions/node/v22.21.0/bin:/opt/homebrew/bin:/usr/bin:/bin",
+        "pnpm",
+        "dev"
+      ],
       "port": 4321,
       "autoPort": true
     }

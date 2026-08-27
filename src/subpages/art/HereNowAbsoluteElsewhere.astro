@@ -18,16 +18,6 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
     { label: "Duration", value: "Variable" },
   ]} />
 
-  <figure class="my-8">
-    <img
-      src="/images/Here-Now-Installation-Daylight.jpg"
-      alt="Here-now; absolute-elsewhere installation at ETAK BKK with screens, floral elements, and orbital display"
-      class="w-full"
-      loading="lazy"
-    />
-    <figcaption class="mt-2 text-sm opacity-70">Installation view, ETAK BKK</figcaption>
-  </figure>
-
   <p class="mb-4">
     This project uses the three-body problem as a metaphor for global relationships. Three celestial
     bodies represent countries: when they move too close it suggests conflict, when they drift apart it
@@ -49,26 +39,36 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
     OSC data.
   </p>
 
-  <figure class="my-8">
-    <video controls class="w-full" preload="metadata">
-      <source src="/video/here-now-Archive.mp4" type="video/mp4" />
-    </video>
-    <figcaption class="mt-2 text-sm opacity-70">Archive documentation</figcaption>
-  </figure>
-
-  <figure class="my-8 art-diagram">
-    <img
-      src="/images/Here-Now-Diagrams.jpg"
-      alt="Conceptual diagram of the three celestial bodies system, exhibits, and here-now light cone"
-      class="w-full"
-      loading="lazy"
-    />
-    <figcaption class="mt-2 text-sm opacity-70">System diagram</figcaption>
-  </figure>
-
   <p>
     A metallic flower arrangement accompanies the installation, growing or wilting by the end of the
     exhibition — a metaphor for minor powers orbiting larger ones, present yet with little influence on
     the global scale.
   </p>
+
+  <div class="art-media-grid">
+    <figure class="art-media-full">
+      <img
+        src="/images/Here-Now-Installation-Daylight.jpg"
+        alt="Here-now; absolute-elsewhere installation at ETAK BKK with screens, floral elements, and orbital display"
+        loading="lazy"
+      />
+      <figcaption class="mt-2 text-sm opacity-70">Installation view, ETAK BKK</figcaption>
+    </figure>
+
+    <figure>
+      <video controls preload="metadata">
+        <source src="/video/here-now-Archive.mp4" type="video/mp4" />
+      </video>
+      <figcaption class="mt-2 text-sm opacity-70">Archive documentation</figcaption>
+    </figure>
+
+    <figure>
+      <img
+        src="/images/Here-Now-Diagrams.jpg"
+        alt="Conceptual diagram of the three celestial bodies system, exhibits, and here-now light cone"
+        loading="lazy"
+      />
+      <figcaption class="mt-2 text-sm opacity-70">System diagram</figcaption>
+    </figure>
+  </div>
 </div>

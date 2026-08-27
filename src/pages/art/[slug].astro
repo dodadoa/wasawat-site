@@ -76,6 +76,64 @@ if (!artwork || !Content) {
   </div>
 </Layout>
 
+<script>
+  const grids = document.querySelectorAll(".art-media-grid")
+  if (grids.length) {
+    const overlay = document.createElement("div")
+    overlay.className = "art-lightbox"
+    overlay.setAttribute("role", "button")
+    overlay.setAttribute("aria-label", "close")
+    const full = document.createElement("img")
+    overlay.appendChild(full)
+
+    const close = () => {
+      overlay.classList.remove("is-open")
+      overlay.addEventListener(
+        "transitionend",
+        () => {
+          overlay.remove()
+          full.removeAttribute("src")
+        },
+        { once: true }
+      )
+    }
+
+    overlay.addEventListener("click", close)
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && overlay.isConnected) close()
+    })
+
+    const open = (img: HTMLImageElement) => {
+      full.src = img.currentSrc || img.src
+      full.alt = img.alt || ""
+      document.body.appendChild(overlay)
+      requestAnimationFrame(() => overlay.classList.add("is-open"))
+    }
+
+    grids.forEach((grid) => {
+      // mark images clickable for the custom cursor (it expands over
+      // a/button/[role=button]/[tabindex] targets) and for keyboards
+      grid.querySelectorAll("img").forEach((img) => {
+        img.setAttribute("role", "button")
+        img.setAttribute("tabindex", "0")
+        img.setAttribute("aria-label", "enlarge")
+      })
+      grid.addEventListener("click", (e) => {
+        const img = e.target instanceof Element ? e.target.closest("img") : null
+        if (img && grid.contains(img)) open(img)
+      })
+      grid.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" && e.key !== " ") return
+        const img = e.target instanceof Element ? e.target.closest("img") : null
+        if (img && grid.contains(img)) {
+          e.preventDefault()
+          open(img)
+        }
+      })
+    })
+  }
+</script>
+
 <style>
   /* title sized like the news page (.news-title: 22px, normal weight) */
   .art-detail-title {
@@ -161,7 +219,7 @@ if (!artwork || !Content) {
 <style is:global>
   .art-detail-body {
     font-family: "DepartureMono", monospace;
-    font-size: calc(11px * var(--ui-scale, 1));
+    font-size: calc(12px * var(--ui-scale, 1));
     line-height: 1.5;
   }
   .art-detail-body a {
@@ -169,7 +227,7 @@ if (!artwork || !Content) {
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  /* keep the measure readable: mono at 11px runs ~160 chars across max-w-3xl */
+  /* keep the measure readable: mono at 13px runs wide across max-w-3xl */
   .art-detail-body p,
   .art-detail-body li {
     line-height: 1.5;
@@ -198,20 +256,20 @@ if (!artwork || !Content) {
   .art-detail-body div.text-sm,
   .art-detail-body ul.text-sm,
   .art-detail-body ol.text-sm {
-    font-size: calc(10px * var(--ui-scale, 1));
+    font-size: calc(11px * var(--ui-scale, 1));
     line-height: 1.4;
   }
   /* the one tagline under the title - opted in per page, never inferred from
      .opacity-80, which also tags small labels and footnotes */
   .art-detail-body .art-lead {
-    font-size: calc(13px * var(--ui-scale, 1));
+    font-size: calc(15px * var(--ui-scale, 1));
     line-height: 1.35;
     color: var(--text-muted);
     margin-bottom: 1.7rem;
     max-width: 62ch;
   }
   .art-detail-body code {
-    font-size: calc(10.5px * var(--ui-scale, 1));
+    font-size: calc(12px * var(--ui-scale, 1));
   }
   .art-detail-body video {
     width: 100%;
@@ -234,7 +292,7 @@ if (!artwork || !Content) {
     border-top: 1px solid var(--text-dim);
   }
   .art-footnotes p {
-    font-size: calc(10px * var(--ui-scale, 1));
+    font-size: calc(11px * var(--ui-scale, 1));
     line-height: 1.45;
     color: var(--text-dim);
     padding-left: 1.4em;
@@ -245,6 +303,60 @@ if (!artwork || !Content) {
   .art-footnotes sup {
     font-size: 0.75em;
     margin-right: 0.45em;
+  }
+  /* media section: all images/videos gathered in a grid below the text */
+  .art-detail-body .art-media-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    align-items: start;
+    margin-top: 2.5rem;
+  }
+  .art-detail-body .art-media-grid figure {
+    margin: 0;
+  }
+  .art-detail-body .art-media-grid img,
+  .art-detail-body .art-media-grid video {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+  .art-detail-body .art-media-grid .art-media-full {
+    grid-column: 1 / -1;
+  }
+  /* click-to-enlarge: hint on the thumbnail, overlay to view */
+  .art-detail-body .art-media-grid img {
+    cursor: zoom-in;
+  }
+  .art-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4vmin;
+    background: rgba(10, 10, 10, 0.88);
+    cursor: zoom-out;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+  .art-lightbox.is-open {
+    opacity: 1;
+  }
+  .art-lightbox img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    display: block;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+  @media (max-width: 640px) {
+    .art-detail-body .art-media-grid {
+      grid-template-columns: 1fr;
+    }
   }
   .art-detail-body .art-diagram img {
     width: 100%;

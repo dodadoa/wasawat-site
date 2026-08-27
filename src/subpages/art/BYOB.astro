@@ -40,21 +40,23 @@ const images = [
     with support from Bangkok CityCity Gallery.
   </p>
 
-  <figure class="my-8">
-    <img
-      src="/images/byob/poster.jpg"
-      alt="BYOB BKK 2023 — Poster"
-      style="width: 100%; max-width: 24rem; height: auto; display: block;"
-      loading="lazy"
-    />
-    <figcaption class="mt-2 text-sm opacity-70">BYOB Bangkok, 2023 — Poster</figcaption>
-  </figure>
-
-  <div class="my-8" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-    {images.map((src) => (
-      <img src={src} alt="BYOB BKK 2023" style="width: 100%; height: 140px; object-fit: cover; display: block;" loading="lazy" />
-    ))}
-  </div>
-
   <p class="text-sm opacity-70">BYOB Bangkok, 2023. Bangkok CityCity Gallery.</p>
+
+  <div class="art-media-grid">
+    <figure class="art-media-full">
+      <img
+        src="/images/byob/poster.jpg"
+        alt="BYOB BKK 2023 — Poster"
+        style="max-width: 24rem;"
+        loading="lazy"
+      />
+      <figcaption class="mt-2 text-sm opacity-70">BYOB Bangkok, 2023 — Poster</figcaption>
+    </figure>
+
+    <div class="art-media-full" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+      {images.map((src) => (
+        <img src={src} alt="BYOB BKK 2023" style="width: 100%; height: 140px; object-fit: cover; display: block;" loading="lazy" />
+      ))}
+    </div>
+  </div>
 </div>

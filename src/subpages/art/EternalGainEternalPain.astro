@@ -41,27 +41,6 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
   </p>
 
   <figure class="my-8">
-    <BenatarMatrix client:only="react" />
-    <figcaption class="mt-2 text-sm opacity-70">
-      Adapted from David Benatar, <em>Better Never to Have Been</em> (2006). See <a href="https://en.wikipedia.org/wiki/Benatar%27s_asymmetry_argument" target="_blank" rel="noopener noreferrer">Wikipedia</a>.
-    </figcaption>
-  </figure>
-
-  <div class="my-8" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-    {Array.from({ length: 4 }, (_, i) => {
-      const n = String(i + 1).padStart(2, "0")
-      return (
-        <img
-          src={`/images/eternal-gain/eternal-gain-${n}.jpg`}
-          alt={`Eternal Gain, Eternal Pain — installation documentation ${n}`}
-          style="width: 100%; height: 280px; object-fit: cover; display: block;"
-          loading="lazy"
-        />
-      )
-    })}
-  </div>
-
-  <figure class="my-8">
     <a
       href="https://www.instagram.com/p/DQ1qmdckzvY/?img_index=1"
       target="_blank"
@@ -78,5 +57,26 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
     <p class="text-sm" set:html={text4}></p>
     <p class="text-sm" set:html={text5}></p>
     <p class="text-sm" set:html={text6}></p>
+  </div>
+
+  <div class="art-media-grid">
+    <figure class="art-media-full">
+      <BenatarMatrix client:only="react" />
+      <figcaption class="mt-2 text-sm opacity-70">
+        Adapted from David Benatar, <em>Better Never to Have Been</em> (2006). See <a href="https://en.wikipedia.org/wiki/Benatar%27s_asymmetry_argument" target="_blank" rel="noopener noreferrer">Wikipedia</a>.
+      </figcaption>
+    </figure>
+
+    {Array.from({ length: 4 }, (_, i) => {
+      const n = String(i + 1).padStart(2, "0")
+      return (
+        <img
+          src={`/images/eternal-gain/eternal-gain-${n}.jpg`}
+          alt={`Eternal Gain, Eternal Pain — installation documentation ${n}`}
+          style="height: 280px; object-fit: cover;"
+          loading="lazy"
+        />
+      )
+    })}
   </div>
 </div>
