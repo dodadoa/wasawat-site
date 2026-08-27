@@ -62,7 +62,7 @@ if (!artwork || !Content) {
 ---
 
 <Layout title={artwork.title}>
-  <div class="relative z-10 p-8 pb-20 max-w-4xl">
+  <div class="relative z-10 p-8 pb-20 max-w-4xl lg:max-w-[max(56rem,70vw)]">
     <div class="back-index-wrap">
       <a href="/work" class="back-index-link">
         <span class="back-arrow" aria-hidden="true">←</span>
@@ -229,12 +229,12 @@ if (!artwork || !Content) {
   .art-detail-body p,
   .art-detail-body li {
     line-height: 1.5;
-    max-width: 72ch;
+    max-width: 90ch;
   }
   /* pages with long-form essay text opt into a wider measure */
   .art-detail-body .art-wide p,
   .art-detail-body .art-wide li {
-    max-width: 100ch;
+    max-width: 115ch;
   }
   /* section headers - never all-caps; keep the markup's own Title Case */
   .art-detail-body h2,
