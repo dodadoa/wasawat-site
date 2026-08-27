@@ -19,7 +19,23 @@ const thanks3 = linkInstagramMentions("<strong>Clips by</strong><br />@pin_natth
     { label: "Event", value: "Mutant Club" },
   ]} />
 
-  <p class="mb-6 art-lead" style="font-family: '403Mesapholic', monospace;">Post-screen strategy for low-tech rooms</p>
+  <div class="art-callout-row">
+    <p class="mb-6 art-lead" style="font-family: '403Mesapholic', monospace;">
+      <span class="art-callout">Post-screen strategy for no screen room</span>
+    </p>
+    <span class="art-callout-arrow" aria-hidden="true"></span>
+    <figure class="art-callout-figure">
+      <img
+        src="/images/las-vegas-sphere.jpg"
+        alt="Las Vegas Sphere, a large LED dome venue in the US"
+        class="art-zoomable"
+        loading="lazy"
+      />
+      <figcaption class="mt-2 text-sm opacity-70">
+        Las Vegas Sphere. Photo: Matt Walter, CC BY 2.0 via Wikimedia Commons
+      </figcaption>
+    </figure>
+  </div>
 
   <p class="mb-4">
     This piece grows directly from a practical question: what if the venue has no projector, and
@@ -71,18 +87,5 @@ const thanks3 = linkInstagramMentions("<strong>Clips by</strong><br />@pin_natth
     <p class="text-sm" set:html={thanks1}></p>
     <p class="text-sm" set:html={thanks2}></p>
     <p class="text-sm" set:html={thanks3}></p>
-  </div>
-
-  <div class="art-media-grid">
-    <figure>
-      <img
-        src="/images/las-vegas-sphere.jpg"
-        alt="Las Vegas Sphere, a large LED dome venue in the US"
-        loading="lazy"
-      />
-      <figcaption class="mt-2 text-sm opacity-70">
-        Las Vegas Sphere. Photo: Matt Walter, CC BY 2.0 via Wikimedia Commons
-      </figcaption>
-    </figure>
   </div>
 </div>

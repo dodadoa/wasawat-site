@@ -38,6 +38,10 @@ function splitSection(section) {
       else unselected.push(row)
     }
   }
+  const rowDate = ({ item }) => (item.slug ? dateBySlug[item.slug] : undefined) ?? item.date
+  const byYearDesc = (a, b) => (rowDate(b) ?? "0000").localeCompare(rowDate(a) ?? "0000")
+  selected.sort(byYearDesc)
+  unselected.sort(byYearDesc)
   return { selected, unselected }
 }
 ---
@@ -50,7 +54,6 @@ function splitSection(section) {
     {
       artSections.map((section) => {
         const { selected, unselected } = splitSection(section)
-        const hasCommissioner = selected.some(({ item }) => item.commissioner)
         return (
           <section class="mb-14">
             <h2 class="font-bold text-xl mb-4 uppercase tracking-wide" style="color: var(--text);">{section.title}</h2>
@@ -58,15 +61,20 @@ function splitSection(section) {
             {selected.length > 0 && (
               <>
                 <p class="text-[11px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">Selected</p>
-                <table class="w-full text-[13px] border-collapse mb-8">
+                <table class="work-table w-full text-[13px] border-collapse mb-8">
+                  <colgroup>
+                    <col style="width: 56px;" />
+                    <col />
+                    <col style="width: 180px;" />
+                    <col style="width: 170px;" />
+                    <col style="width: 60px;" />
+                  </colgroup>
                   <thead>
                     <tr style="border-bottom: 1px solid var(--border-subtle);">
-                      <th class="text-left font-normal py-2 pr-4" style="width: 56px;"></th>
+                      <th class="text-left font-normal py-2 pr-4"></th>
                       <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Title</th>
                       <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Group</th>
-                      {hasCommissioner && (
-                        <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Commissioner</th>
-                      )}
+                      <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Commissioner</th>
                       <th class="text-right font-normal uppercase tracking-widest py-2" style="color: var(--text-dim); font-size: 11px;">Year</th>
                     </tr>
                   </thead>
@@ -97,11 +105,9 @@ function splitSection(section) {
                           <td class="py-2 pr-4" style="color: var(--text-dim);">
                             {groupTitle ?? "—"}
                           </td>
-                          {hasCommissioner && (
-                            <td class="py-2 pr-4" style="color: var(--text-dim);">
-                              {item.commissioner ?? "—"}
-                            </td>
-                          )}
+                          <td class="py-2 pr-4" style="color: var(--text-dim);">
+                            {item.commissioner ?? "—"}
+                          </td>
                           <td class="py-2 text-right" style="color: var(--text-dim);">
                             {date ? date.slice(0, 4) : "—"}
                           </td>
@@ -116,14 +122,21 @@ function splitSection(section) {
             {unselected.length > 0 && (
               <>
                 <p class="text-[11px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">Archive</p>
-                <table class="w-full text-[13px] border-collapse">
+                <table class="work-table w-full text-[13px] border-collapse">
+                  <colgroup>
+                    <col style="width: 56px;" />
+                    <col />
+                    <col style="width: 180px;" />
+                    <col style="width: 170px;" />
+                    <col style="width: 60px;" />
+                  </colgroup>
                   <tbody>
                     {unselected.map(({ item, groupTitle }) => {
                       const archiveDate = (item.slug ? dateBySlug[item.slug] : undefined) ?? item.date
                       const archiveImage = (item.slug ? imageBySlug[item.slug] : undefined) ?? item.image
                       return (
                         <tr style="border-bottom: 1px solid var(--border-subtle);">
-                          <td class="py-2 pr-4" style="width: 56px;">
+                          <td class="py-2 pr-4">
                             {archiveImage ? (
                               <div class="dither-thumb" style="width: 44px; height: 32px; flex-shrink: 0;">
                                 <img
@@ -149,10 +162,13 @@ function splitSection(section) {
                               item.label
                             )}
                           </td>
-                          <td class="py-2 pr-4" style="color: var(--text-dim); width: 180px;">
+                          <td class="py-2 pr-4" style="color: var(--text-dim);">
                             {groupTitle ?? "—"}
                           </td>
-                          <td class="py-2 text-right" style="color: var(--text-dim); width: 60px;">
+                          <td class="py-2 pr-4" style="color: var(--text-dim);">
+                            {item.commissioner ?? "—"}
+                          </td>
+                          <td class="py-2 text-right" style="color: var(--text-dim);">
                             {archiveDate ? archiveDate.slice(0, 4) : "—"}
                           </td>
                         </tr>
@@ -170,6 +186,13 @@ function splitSection(section) {
 </Layout>
 
 <style>
+  .work-table {
+    table-layout: fixed;
+  }
+  .work-table th,
+  .work-table td {
+    overflow-wrap: anywhere;
+  }
   .work-piece-title {
     font-family: "DepartureMono", monospace;
     font-size: 13px;

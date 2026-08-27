@@ -69,7 +69,7 @@ if (!artwork || !Content) {
         <span class="back-label">Work</span>
       </a>
     </div>
-    <h1 class="art-detail-title mt-6 mb-3">{artwork.title}</h1>
+    <h1 class="art-detail-title mt-6 mb-2">{artwork.title}</h1>
     <div class="art-detail-body">
       <Content />
     </div>
@@ -77,8 +77,10 @@ if (!artwork || !Content) {
 </Layout>
 
 <script>
-  const grids = document.querySelectorAll(".art-media-grid")
-  if (grids.length) {
+  const zoomables = document.querySelectorAll<HTMLImageElement>(
+    ".art-media-grid img, img.art-zoomable"
+  )
+  if (zoomables.length) {
     const overlay = document.createElement("div")
     overlay.className = "art-lightbox"
     overlay.setAttribute("role", "button")
@@ -110,25 +112,17 @@ if (!artwork || !Content) {
       requestAnimationFrame(() => overlay.classList.add("is-open"))
     }
 
-    grids.forEach((grid) => {
+    zoomables.forEach((img) => {
       // mark images clickable for the custom cursor (it expands over
       // a/button/[role=button]/[tabindex] targets) and for keyboards
-      grid.querySelectorAll("img").forEach((img) => {
-        img.setAttribute("role", "button")
-        img.setAttribute("tabindex", "0")
-        img.setAttribute("aria-label", "enlarge")
-      })
-      grid.addEventListener("click", (e) => {
-        const img = e.target instanceof Element ? e.target.closest("img") : null
-        if (img && grid.contains(img)) open(img)
-      })
-      grid.addEventListener("keydown", (e) => {
+      img.setAttribute("role", "button")
+      img.setAttribute("tabindex", "0")
+      img.setAttribute("aria-label", "enlarge")
+      img.addEventListener("click", () => open(img))
+      img.addEventListener("keydown", (e) => {
         if (e.key !== "Enter" && e.key !== " ") return
-        const img = e.target instanceof Element ? e.target.closest("img") : null
-        if (img && grid.contains(img)) {
-          e.preventDefault()
-          open(img)
-        }
+        e.preventDefault()
+        open(img)
       })
     })
   }
@@ -222,6 +216,10 @@ if (!artwork || !Content) {
     font-size: calc(12px * var(--ui-scale, 1));
     line-height: 1.5;
   }
+  /* every subpage root carries mt-4; keep title and content close instead */
+  .art-detail-body > .mt-4 {
+    margin-top: 0;
+  }
   .art-detail-body a {
     font-weight: normal;
     text-decoration: underline;
@@ -243,7 +241,7 @@ if (!artwork || !Content) {
   .art-detail-body .text-xl {
     font-family: "403Mesapholic", monospace;
     text-transform: none;
-    font-size: calc(16px * var(--ui-scale, 1));
+    font-size: calc(20px * var(--ui-scale, 1));
     font-weight: 400;
     letter-spacing: 0.02em;
     line-height: 1.25;
@@ -262,7 +260,7 @@ if (!artwork || !Content) {
   /* the one tagline under the title - opted in per page, never inferred from
      .opacity-80, which also tags small labels and footnotes */
   .art-detail-body .art-lead {
-    font-size: calc(15px * var(--ui-scale, 1));
+    font-size: calc(14px * var(--ui-scale, 1));
     line-height: 1.35;
     color: var(--text-muted);
     margin-bottom: 1.7rem;
@@ -326,8 +324,113 @@ if (!artwork || !Content) {
     grid-column: 1 / -1;
   }
   /* click-to-enlarge: hint on the thumbnail, overlay to view */
-  .art-detail-body .art-media-grid img {
+  .art-detail-body .art-media-grid img,
+  .art-detail-body .art-zoomable {
     cursor: zoom-in;
+  }
+  /* annotation callout: a boxed phrase in the text pointing at a small
+     image to its right (clickable to enlarge) */
+  .art-detail-body .art-callout-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    /* reserve the margin-note column; the figure hangs there absolutely so
+       the row is only as tall as the phrase and content follows right away */
+    padding-right: 166px;
+    margin-bottom: 0.7rem;
+  }
+  /* let the note sit past the text column, at the page's right margin */
+  @media (min-width: 64rem) {
+    .art-detail-body .art-callout-row {
+      margin-right: -4rem;
+    }
+  }
+  .art-detail-body .art-callout-row .art-lead {
+    margin-bottom: 0;
+    flex: 0 0 auto;
+    font-size: calc(20px * var(--ui-scale, 1));
+  }
+  .art-detail-body .art-callout {
+    display: inline-block;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: var(--text-muted);
+    text-underline-offset: 4px;
+  }
+  /* connector stretches so the figure lands flush right, footnote-style;
+     hidden until the reader hovers the row */
+  .art-detail-body .art-callout-arrow {
+    flex: 1 1 auto;
+    min-width: 2.5rem;
+    height: 0;
+    border-top: 1px solid var(--text-muted);
+    position: relative;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .art-detail-body .art-callout-row:hover .art-callout-arrow {
+    opacity: 1;
+  }
+  .art-detail-body .art-callout-arrow::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-top: 1px solid var(--text-muted);
+    border-right: 1px solid var(--text-muted);
+    transform: translateY(-58%) rotate(45deg);
+  }
+  .art-detail-body .art-callout-figure {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 150px;
+    margin: 0;
+  }
+  .art-detail-body .art-callout-figure img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .art-detail-body .art-callout-figure figcaption {
+    font-size: calc(9px * var(--ui-scale, 1));
+    line-height: 1.4;
+  }
+  /* tall margin note (interactive diagrams): floats right so text wraps
+     beside it and grids/blocks below clear it on their own */
+  .art-detail-body .art-margin-note {
+    float: right;
+    width: 240px;
+    margin: 0 0 1rem 2rem;
+  }
+  @media (min-width: 64rem) {
+    .art-detail-body .art-margin-note {
+      margin-right: -4rem;
+    }
+  }
+  @media (max-width: 640px) {
+    .art-detail-body .art-margin-note {
+      float: none;
+      width: 100%;
+      margin: 1rem 0;
+    }
+  }
+  @media (max-width: 640px) {
+    .art-detail-body .art-callout-row {
+      flex-wrap: wrap;
+      padding-right: 0;
+      margin-bottom: 1.2rem;
+    }
+    .art-detail-body .art-callout-arrow {
+      display: none;
+    }
+    .art-detail-body .art-callout-figure {
+      position: static;
+      margin-top: 0.7rem;
+    }
   }
   .art-lightbox {
     position: fixed;
