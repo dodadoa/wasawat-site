@@ -358,6 +358,20 @@ if (!artwork || !Content) {
     text-decoration-color: var(--text-muted);
     text-underline-offset: 4px;
   }
+  /* inline callouts (mid-paragraph, pointing at a floated margin note) get
+     the same chevron as the row connector, always visible */
+  .art-detail-body p .art-callout::after {
+    content: "";
+    display: inline-block;
+    vertical-align: middle;
+    width: 7px;
+    height: 7px;
+    margin-left: 0.45rem;
+    margin-bottom: 0.15em;
+    border-top: 1px solid var(--text-muted);
+    border-right: 1px solid var(--text-muted);
+    transform: rotate(45deg);
+  }
   /* connector stretches so the figure lands flush right, footnote-style;
      hidden until the reader hovers the row */
   .art-detail-body .art-callout-arrow {
@@ -404,11 +418,17 @@ if (!artwork || !Content) {
   .art-detail-body .art-margin-note {
     float: right;
     width: 240px;
-    margin: 0 0 1rem 2rem;
+    margin: 0 0 1rem 4rem;
   }
   @media (min-width: 64rem) {
     .art-detail-body .art-margin-note {
-      margin-right: -4rem;
+      margin-left: 6rem;
+      margin-right: -12rem;
+    }
+  }
+  @media (min-width: 80rem) {
+    .art-detail-body .art-margin-note {
+      margin-right: -16rem;
     }
   }
   @media (max-width: 640px) {

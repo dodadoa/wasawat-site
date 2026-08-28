@@ -2,6 +2,8 @@ import { useState, useRef, useCallback } from "react"
 
 const mono = "'DepartureMono', monospace"
 const display = "'403Mesapholic', monospace"
+// match .art-detail-body: 12px body text scaled by --ui-scale
+const fs = (px) => `calc(${px}px * var(--ui-scale, 1))`
 
 function useSoftPress() {
   const ref = useRef(null)
@@ -70,7 +72,7 @@ function SoftButton({ onClick, disabled, children, accent = "#8b8be9" }) {
       style={{
         position: "relative",
         fontFamily: mono,
-        fontSize: "11px",
+        fontSize: fs(9),
         letterSpacing: "0.12em",
         color: disabled ? disabledColor : "#1a1a1a",
         background: "none",
@@ -187,10 +189,10 @@ export default function BenatarMatrix() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "#dddddd", border: "1px solid #dddddd", marginBottom: "1px" }}>
 
         {/* column headers */}
-        <div style={{ background: "#ffffff", padding: "8px 12px", fontSize: "11px", letterSpacing: "0.14em", color: "#777", textTransform: "uppercase" }}>
+        <div style={{ background: "#ffffff", padding: "8px 12px", fontSize: fs(9), letterSpacing: "0.14em", color: "#777", textTransform: "uppercase" }}>
           Scenario A · exists
         </div>
-        <div style={{ background: "#ffffff", padding: "8px 12px", fontSize: "11px", letterSpacing: "0.14em", color: "#777", textTransform: "uppercase" }}>
+        <div style={{ background: "#ffffff", padding: "8px 12px", fontSize: fs(9), letterSpacing: "0.14em", color: "#777", textTransform: "uppercase" }}>
           Scenario B · never exists
         </div>
 
@@ -218,16 +220,16 @@ export default function BenatarMatrix() {
                   outlineOffset: "-2px",
                 }}
               >
-                <div style={{ fontSize: "10px", letterSpacing: "0.22em", color: "#999", marginBottom: "6px", textTransform: "uppercase" }}>
+                <div style={{ fontSize: fs(8), letterSpacing: "0.22em", color: "#999", marginBottom: "6px", textTransform: "uppercase" }}>
                   ({id})
                 </div>
-                <div style={{ fontSize: "13px", color: "#222", marginBottom: "8px", lineHeight: 1.35 }}>
+                <div style={{ fontSize: fs(10), color: "#222", marginBottom: "8px", lineHeight: 1.35 }}>
                   {cell.label}
                 </div>
                 <div style={{
                   display: "inline-block",
                   fontFamily: display,
-                  fontSize: "11px",
+                  fontSize: fs(9),
                   letterSpacing: "0.1em",
                   color: active ? cell.color : "#999",
                   borderBottom: active ? `1px solid ${cell.color}` : "1px solid transparent",
@@ -246,7 +248,7 @@ export default function BenatarMatrix() {
                     background: "#ffffff",
                     color: "#1a1a1a",
                     border: "1px solid #ccc",
-                    fontSize: "11px",
+                    fontSize: fs(9),
                     lineHeight: 1.6,
                     padding: "8px 10px",
                     zIndex: 10,
@@ -266,7 +268,7 @@ export default function BenatarMatrix() {
       {/* asymmetry annotation */}
       {isAsymmetry && (
         <div style={{
-          fontSize: "11px",
+          fontSize: fs(9),
           letterSpacing: "0.08em",
           color: "#8b8be9",
           padding: "5px 12px",
@@ -280,10 +282,10 @@ export default function BenatarMatrix() {
 
       {/* step text */}
       <div style={{ padding: "14px 0 12px", borderTop: "1px solid #ddd", marginTop: "12px" }}>
-        <div style={{ fontFamily: display, fontSize: "13px", letterSpacing: "0.06em", color: "#1a1a1a", marginBottom: "7px" }}>
+        <div style={{ fontFamily: display, fontSize: fs(10), letterSpacing: "0.06em", color: "#1a1a1a", marginBottom: "7px" }}>
           {current.title}
         </div>
-        <div style={{ fontSize: "13px", color: "#555", lineHeight: 1.65 }}>
+        <div style={{ fontSize: fs(10), color: "#555", lineHeight: 1.65 }}>
           {current.body}
         </div>
       </div>
