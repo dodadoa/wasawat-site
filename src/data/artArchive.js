@@ -64,7 +64,6 @@ export const artSections = [
           {
             label: "OperationSéance: Purifying the AI Spirits in Latent Space Salon",
             slug: "operation-seance",
-            unlisted: true,
             date: "2026-01-01",
           },
         ],
@@ -117,19 +116,19 @@ export const artSections = [
       {
         title: "Printing",
         items: [
-          { label: "Neonatus/Neotokyo", slug: "neonatus-neotokyo" },
+          { label: "Neonatus/Neotokyo", slug: "neonatus-neotokyo", commissioner: "Nanut Thanapornrapee" },
         ],
       },
       {
         title: "Installation",
         items: [
-          { label: "Tentacular Territoria", slug: "tentacular-territoria", date: "2020-01-01" },
+          { label: "Tentacular Territoria", slug: "tentacular-territoria", date: "2020-01-01", commissioner: "Humanist.us" },
         ],
       },
       {
         title: "Event/Installation",
         items: [
-          { label: "BYOB (as JAAG)", slug: "byob", date: "2023-01-01", image: "/images/byob/byob-1.jpg" },
+          { label: "BYOB (as JAAG)", slug: "byob", date: "2023-01-01", image: "/images/byob/byob-1.jpg", commissioner: "JAAG & ZonZon.Studio" },
         ],
       },
     ],
