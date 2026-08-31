@@ -61,20 +61,19 @@ function splitSection(section) {
             {selected.length > 0 && (
               <>
                 <p class="text-[11px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">Selected</p>
-                <table class="work-table w-full text-[13px] border-collapse mb-8">
+                <div class="neu-panel mb-8">
+                <table class="work-table w-full text-[13px] border-collapse">
                   <colgroup>
                     <col style="width: 56px;" />
                     <col />
                     <col style="width: 180px;" />
-                    <col style="width: 170px;" />
                     <col style="width: 60px;" />
                   </colgroup>
                   <thead>
-                    <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <tr>
                       <th class="text-left font-normal py-2 pr-4"></th>
                       <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Title</th>
-                      <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Group</th>
-                      <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">{section.title === "Collaboration" ? "Collaborator" : "Commissioner"}</th>
+                      <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Medium</th>
                       <th class="text-right font-normal uppercase tracking-widest py-2" style="color: var(--text-dim); font-size: 11px;">Year</th>
                     </tr>
                   </thead>
@@ -83,10 +82,10 @@ function splitSection(section) {
                       const date = dateBySlug[item.slug] ?? item.date
                       const image = imageBySlug[item.slug] ?? item.image
                       return (
-                        <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <tr class="row-link" data-href={`/art/${item.slug}`}>
                           <td class="py-2 pr-4">
                             {image ? (
-                              <div class="dither-thumb" style="width: 44px; height: 32px; flex-shrink: 0;">
+                              <div class="dither-thumb neu-thumb" style="width: 44px; height: 32px; flex-shrink: 0;">
                                 <img
                                   src={thumbSrc(item.slug)}
                                   alt=""
@@ -94,7 +93,7 @@ function splitSection(section) {
                                 />
                               </div>
                             ) : (
-                              <div style="width: 44px; height: 32px; background: var(--border-subtle);" />
+                              <div class="neu-thumb" style="width: 44px; height: 32px;" />
                             )}
                           </td>
                           <td class="py-2 pr-4 work-piece-title" style="color: var(--text-muted);">
@@ -105,9 +104,6 @@ function splitSection(section) {
                           <td class="py-2 pr-4" style="color: var(--text-dim);">
                             {groupTitle ?? "—"}
                           </td>
-                          <td class="py-2 pr-4" style="color: var(--text-dim);">
-                            {item.commissioner ?? "—"}
-                          </td>
                           <td class="py-2 text-right" style="color: var(--text-dim);">
                             {date ? date.slice(0, 4) : "—"}
                           </td>
@@ -116,29 +112,35 @@ function splitSection(section) {
                     })}
                   </tbody>
                 </table>
+                </div>
               </>
             )}
 
             {unselected.length > 0 && (
               <>
                 <p class="text-[11px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">Archive</p>
+                <div class="neu-panel">
                 <table class="work-table w-full text-[13px] border-collapse">
                   <colgroup>
                     <col style="width: 56px;" />
                     <col />
                     <col style="width: 180px;" />
-                    <col style="width: 170px;" />
                     <col style="width: 60px;" />
                   </colgroup>
                   <tbody>
                     {unselected.map(({ item, groupTitle }) => {
                       const archiveDate = (item.slug ? dateBySlug[item.slug] : undefined) ?? item.date
                       const archiveImage = (item.slug ? imageBySlug[item.slug] : undefined) ?? item.image
+                      const href = item.slug ? `/art/${item.slug}` : item.url
                       return (
-                        <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <tr
+                          class={href ? "row-link" : undefined}
+                          data-href={href || undefined}
+                          data-external={!item.slug && item.url ? "true" : undefined}
+                        >
                           <td class="py-2 pr-4">
                             {archiveImage ? (
-                              <div class="dither-thumb" style="width: 44px; height: 32px; flex-shrink: 0;">
+                              <div class="dither-thumb neu-thumb" style="width: 44px; height: 32px; flex-shrink: 0;">
                                 <img
                                   src={thumbSrc(item.slug)}
                                   alt=""
@@ -146,7 +148,7 @@ function splitSection(section) {
                                 />
                               </div>
                             ) : (
-                              <div style="width: 44px; height: 32px; background: var(--border-subtle);" />
+                              <div class="neu-thumb" style="width: 44px; height: 32px;" />
                             )}
                           </td>
                           <td class="py-2 pr-4 work-piece-title" style="color: var(--text-muted);">
@@ -165,9 +167,6 @@ function splitSection(section) {
                           <td class="py-2 pr-4" style="color: var(--text-dim);">
                             {groupTitle ?? "—"}
                           </td>
-                          <td class="py-2 pr-4" style="color: var(--text-dim);">
-                            {item.commissioner ?? "—"}
-                          </td>
                           <td class="py-2 text-right" style="color: var(--text-dim);">
                             {archiveDate ? archiveDate.slice(0, 4) : "—"}
                           </td>
@@ -176,6 +175,7 @@ function splitSection(section) {
                     })}
                   </tbody>
                 </table>
+                </div>
               </>
             )}
           </section>
@@ -186,6 +186,18 @@ function splitSection(section) {
 </Layout>
 
 <style>
+  .neu-panel {
+    --neu-bg: var(--bg-elevated, #f5f5f5);
+    --neu-light: #ffffff;
+    --neu-dark: #dcdce0;
+    background: var(--neu-bg);
+    border-radius: 12px;
+    padding: 4px 16px;
+    box-shadow:
+      3px 3px 6px var(--neu-dark),
+      -3px -3px 6px var(--neu-light);
+  }
+
   .work-table {
     table-layout: fixed;
   }
@@ -193,9 +205,50 @@ function splitSection(section) {
   .work-table td {
     overflow-wrap: anywhere;
   }
+  .work-table thead tr {
+    box-shadow: inset 0 -1px 0 var(--neu-dark, #d1d1d6);
+  }
+  .work-table tbody tr {
+    transition: background 0.15s ease;
+    border-radius: 10px;
+  }
+  .work-table tbody tr:not(:last-child) {
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  }
+  .work-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.35);
+  }
+  .work-table tbody tr.row-link {
+    cursor: pointer;
+  }
   .work-piece-title {
     font-family: "DepartureMono", monospace;
     font-size: 13px;
     letter-spacing: 0.03em;
   }
+  .neu-thumb {
+    border-radius: 5px;
+    background: var(--neu-bg, #f5f5f5);
+    box-shadow:
+      1.5px 1.5px 3px var(--neu-dark, #dcdce0),
+      -1.5px -1.5px 3px var(--neu-light, #ffffff);
+    overflow: hidden;
+  }
 </style>
+
+<script>
+  // Clicking anywhere in a "row-link" row navigates like clicking its title
+  // link, except when the click is on an actual <a> (let that handle itself).
+  document.querySelectorAll(".work-table tbody tr.row-link").forEach((row) => {
+    const href = row.dataset.href
+    if (!href) return
+    row.addEventListener("click", (e) => {
+      if (e.target instanceof Element && e.target.closest("a")) return
+      if (row.dataset.external === "true") {
+        window.open(href, "_blank", "noopener")
+      } else {
+        window.location.href = href
+      }
+    })
+  })
+</script>

@@ -166,62 +166,87 @@ const WorkNode = memo(function WorkNode({ work, genreId, dimmed, onHoverChange }
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
         >
-          {work.image && (
-            <div
-              className="dither-thumb"
-              style={{
-                width: "88px",
-                height: "60px",
-                marginBottom: "4px",
-                flexShrink: 0,
-                ...glassNode(accent),
-                padding: 0,
-              }}
-            >
-              <img src={thumb} alt="" decoding="async" />
-            </div>
-          )}
           {work.slug ? (
             <a
               href={`/art/${work.slug}`}
               style={{
-                display: "block",
-                fontFamily: "'403Mesapholic', monospace",
-                fontSize: "calc(15px * var(--ui-scale, 1))",
-                fontWeight: 400,
-                fontStyle: "italic",
-                letterSpacing: "0.04em",
-                color: "#0a0a0a",
-                padding: "5px 14px",
+                display: "inline-flex",
+                flexDirection: "column",
+                alignItems: "center",
                 textDecoration: "none",
-                width: "max-content",
-                maxWidth: "min(92vw, 640px)",
-                whiteSpace: "nowrap",
-                lineHeight: 1.35,
-                ...glassNode(accent),
               }}
             >
-              {planeLabel}
+              {work.image && (
+                <div
+                  className="dither-thumb"
+                  style={{
+                    width: "88px",
+                    height: "60px",
+                    marginBottom: "4px",
+                    flexShrink: 0,
+                    ...glassNode(accent),
+                    padding: 0,
+                  }}
+                >
+                  <img src={thumb} alt="" decoding="async" />
+                </div>
+              )}
+              <span
+                style={{
+                  display: "block",
+                  fontFamily: "'403Mesapholic', monospace",
+                  fontSize: "calc(15px * var(--ui-scale, 1))",
+                  fontWeight: 400,
+                  fontStyle: "italic",
+                  letterSpacing: "0.04em",
+                  color: "#0a0a0a",
+                  padding: "5px 14px",
+                  width: "max-content",
+                  maxWidth: "min(92vw, 640px)",
+                  whiteSpace: "nowrap",
+                  lineHeight: 1.35,
+                  ...glassNode(accent),
+                }}
+              >
+                {planeLabel}
+              </span>
             </a>
           ) : (
-            <span
-              style={{
-                display: "block",
-                fontFamily: "'403Mesapholic', monospace",
-                fontSize: "calc(15px * var(--ui-scale, 1))",
-                fontWeight: 300,
-                letterSpacing: "0.04em",
-                color: "#2a2a2a",
-                padding: "5px 14px",
-                width: "max-content",
-                maxWidth: "min(92vw, 640px)",
-                whiteSpace: "nowrap",
-                lineHeight: 1.35,
-                ...glassNode(null),
-              }}
-            >
-              {planeLabel}
-            </span>
+            <>
+              {work.image && (
+                <div
+                  className="dither-thumb"
+                  style={{
+                    width: "88px",
+                    height: "60px",
+                    marginBottom: "4px",
+                    flexShrink: 0,
+                    ...glassNode(accent),
+                    padding: 0,
+                  }}
+                >
+                  <img src={thumb} alt="" decoding="async" />
+                </div>
+              )}
+              <span
+                style={{
+                  display: "block",
+                  fontFamily: "'403Mesapholic', monospace",
+                  fontSize: "calc(15px * var(--ui-scale, 1))",
+                  fontWeight: 300,
+                  letterSpacing: "0.04em",
+                  color: "#2a2a2a",
+                  padding: "5px 14px",
+                  width: "max-content",
+                  maxWidth: "min(92vw, 640px)",
+                  whiteSpace: "nowrap",
+                  lineHeight: 1.35,
+                  ...glassNode(null),
+                }}
+              >
+                {planeLabel}
+              </span>
+            </>
           )}
           {showDetail && (
             <div
@@ -543,8 +568,11 @@ function FlatPanel({ plane, works, genreFilter, hoverKey, setHoverKey }) {
           position: "relative",
           width: "100%",
           aspectRatio: "1 / 1",
-          border: `1px solid ${rgba(ACCENTS.violet, 0.18)}`,
-          background: "#ffffff",
+          borderRadius: "18px",
+          border: "none",
+          background: "#f0f0f3",
+          boxShadow:
+            "inset 7px 7px 14px rgba(163,163,168,0.45), inset -7px -7px 14px rgba(255,255,255,0.85)",
         }}
       >
         {/* axis lines */}
@@ -916,6 +944,9 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
   // true once every node thumbnail is in the browser cache, so the scene
   // appears with its images instead of popping them in one by one
   const [imagesReady, setImagesReady] = useState(false)
+  // grab/grabbing cursor on the 3d canvas — signals it's draggable to orbit,
+  // same affordance as the "drag to orbit" hint below it
+  const [isDragging, setIsDragging] = useState(false)
   useEffect(() => {
     const srcs = collectWorks()
       .filter((w) => w.slug && w.image)
@@ -1010,8 +1041,16 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
             camera={{ position: [9, 6, 13], fov: 48 }}
             gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
             dpr={[1, 1.5]}
-            style={{ background: "transparent", position: "relative", zIndex: 1 }}
+            style={{
+              background: "transparent",
+              position: "relative",
+              zIndex: 1,
+              cursor: isDragging ? "grabbing" : "grab",
+            }}
             onCreated={() => setCanvasReady(true)}
+            onPointerDown={() => setIsDragging(true)}
+            onPointerUp={() => setIsDragging(false)}
+            onPointerLeave={() => setIsDragging(false)}
           >
             <Scene genreFilter={genreFilter} />
           </Canvas>
@@ -1156,7 +1195,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
       {/* hint */}
       {showDiagram && viewMode === "3d" && !isMobile && (
         <div
-          className="absolute bottom-3 left-4 pointer-events-none"
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none"
           style={{
             fontFamily: "'403Mesapholic', monospace",
             fontSize: "calc(10px * var(--ui-scale, 1))",

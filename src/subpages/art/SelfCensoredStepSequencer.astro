@@ -1,4 +1,6 @@
 ---
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
+
 // hand-built anchor: the shared mention map renders @karnpapon as "Anu"
 // (display name), which would collide with the artwork title "Anu" here
 const inspiration =
@@ -6,6 +8,11 @@ const inspiration =
 ---
 
 <div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2026" },
+    { label: "Medium", value: "Net art · Chrome extension, website" },
+  ]} />
+
   <p class="mb-6 art-lead">What cannot be said becomes the beat</p>
 
   <p class="mb-4">

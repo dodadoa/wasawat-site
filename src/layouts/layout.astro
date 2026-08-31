@@ -976,7 +976,13 @@ const sitemapTree = [
 
       let raf = null
 
-      const HOVER_SELECTOR = "a, button, [role=button], input, textarea, select, label, [tabindex]"
+      // Elements clickable only via a JS listener (a row whose whole area
+      // navigates, an image with a click-to-enlarge handler) don't carry a
+      // native interactive tag, so they need an explicit hook here too —
+      // otherwise the cursor never signals they're clickable.
+      const HOVER_SELECTOR =
+        "a, button, [role=button], input, textarea, select, label, [tabindex], " +
+        "[data-href], [data-cursor-click], .art-zoomable, .art-media-grid img"
       // Sample a small ring of points around the cursor (not just the exact
       // pixel under it) so hovering "near" a clickable target — its padding,
       // an icon's edge, a thin link — still registers as clickable. Widens
@@ -1016,8 +1022,12 @@ const sitemapTree = [
           const labelText = document.getElementById("cursor-label-text")
           if (labelText) {
             const anchor = t && t.closest("a")
-            labelText.textContent = anchor
-              ? (anchor.getAttribute("aria-label") || "open")
+            const navigatesLikeLink = anchor || (t && t.hasAttribute("data-href"))
+            const zoomable = t && (t.matches(".art-zoomable") || t.matches(".art-media-grid img"))
+            labelText.textContent = navigatesLikeLink
+              ? ((anchor || t).getAttribute("aria-label") || "open")
+              : zoomable
+              ? "enlarge"
               : (t ? (t.getAttribute("aria-label") || "click") : "")
           }
         })

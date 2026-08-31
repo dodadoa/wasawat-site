@@ -13,6 +13,18 @@ const lineup = [
   { role: "live coding performance", name: "Varut_0 (kolab.bkk)" },
   { role: "live coding performance", name: "3rd.order (kolab.bkk)" },
 ]
+
+const ratSectionCredits = linkInstagramMentions(
+  "@bangkok_kunsthalle presents Rat Section for a one-night performance joined by Wasawat Somno + Niwit Lertsawaengkit and Medulla Spinalis"
+)
+const ratSectionBy = linkInstagramMentions("@rat.section")
+const ratSectionPresenters = linkInstagramMentions("@giang_ws + @niwit_lertsawaengkit")
+const ratSectionMedulla = linkInstagramMentions("@medullaspinalisart")
+const ratSectionWasawat = linkInstagramMentions("@giang_ws, 1994, Thailand")
+const ratSectionNiwit = linkInstagramMentions("@niwit_lertsawaengkit")
+const ratSectionMedullaHandle = linkInstagramMentions("@medullaspinalisart")
+const ratSectionSupporter = linkInstagramMentions("@fuzionbkk")
+const ratSectionCurator = linkInstagramMentions("@mcheara")
 ---
 
 <div class="mt-4 max-w-3xl">
@@ -23,10 +35,7 @@ const lineup = [
     { label: "Presented as part of", value: metaPartOf, html: true },
   ]} />
 
-  <p
-    class="mb-6"
-    style="font-family: '403Mesapholic', monospace; font-size: calc(30px * var(--ui-scale, 1)); font-weight: 400; line-height: 1.25; color: var(--text);"
-  >
+  <p class="mb-6 art-lead" style="font-family: '403Mesapholic', monospace; font-size: calc(20px * var(--ui-scale, 1));">
     In collaboration with Niwit Lertsawaengkit, with Live Haircut
   </p>
 
@@ -82,6 +91,65 @@ const lineup = [
           ticketmelon.com/bangkok-kunsthalle/qrlink
         </a>
       </p>
+    </div>
+  </div>
+
+  <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle);">
+    <p class="mb-2" style="font-size: calc(9px * var(--ui-scale, 1)); text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.6;">As part of</p>
+    <h2 class="font-light text-xl mb-3">Rat Section</h2>
+
+    <p class="mb-2 text-sm" set:html={ratSectionCredits} />
+    <p class="mb-4 text-sm" style="color: var(--text-dim);">
+      Friday, 14 August 2026 &middot; 7:30 PM – 10:00 PM
+    </p>
+
+    <div class="text-sm space-y-1 mb-4">
+      <p set:html={ratSectionBy} />
+      <p set:html={ratSectionPresenters} />
+      <p set:html={ratSectionMedulla} />
+    </div>
+
+    <p class="mb-4">
+      Rat Section is a music and performance project currently based in London that treats
+      choreography, set design, and the specific qualities of each space as integral parts of
+      every show. Their work moves between experimental electronic, pop, spoken word and club
+      music, constructing a mythology that deliberately blurs the line between biography and
+      fiction.
+    </p>
+
+    <p class="text-sm opacity-80 mb-2">Wasawat + Niwit Present</p>
+    <p class="mb-4 font-light">OperationSéance: Purifying the AI Spirits in Latent Space Salon</p>
+
+    <p class="mb-4">
+      <span set:html={ratSectionWasawat} /> is an artist working with code, audiovisual/sound
+      performance, and installation. His practice is organized around the act of mapping —
+      holding two planes of context in tension and tracing what passes between them. A
+      computational system and the ethical questions it quietly carries. A simulation and the
+      physical world it stands in for. An interface and the body that encounters it.
+    </p>
+
+    <p class="mb-4">
+      <span set:html={ratSectionNiwit} /> is a Bangkok-based performance artist specializing in
+      live action and hair performance art. Collaborated with Mexican artist Ruth Vigueras Bravo
+      at the International Performance Festival (2018 – "Artists Army", 2019 – "Eco Art") under
+      the Rebel Live Action series. Presented HOS (Hair On Stage) in Manila in 2019.
+    </p>
+
+    <p class="mb-1"><span set:html={ratSectionMedullaHandle} /></p>
+    <p class="mb-4 italic" style="color: var(--text-dim);">
+      There are places within us that language never quite reaches.<br />
+      Sometimes they appear as dreams.<br />
+      Sometimes as memories that never happened.<br />
+      Sometimes as a feeling that quietly refuses to leave.<br />
+      What does your mind sound like when nobody else is listening?
+    </p>
+
+    <div class="text-sm space-y-1">
+      <p>Date • time: 14.08.2026 • 19:30–22:00</p>
+      <p>Location: Bangkok Kunsthalle</p>
+      <p>Tickets: 400 THB online • 450 THB at door</p>
+      <p>Supporter: <span set:html={ratSectionSupporter} /></p>
+      <p>Curator / Promoter: <span set:html={ratSectionCurator} /></p>
     </div>
   </div>
 </div>

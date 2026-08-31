@@ -1,7 +1,22 @@
 ---
+import { linkInstagramMentions } from "../../utils/instagramMentions"
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
+
+const metaPartOf = linkInstagramMentions("Overflow and Coding tools at Infra Practice")
+
+const overflowLineup = [
+  { name: "ARBOR", origin: "Canada" },
+  { name: "LUIS SANZ", origin: "Peru / Switzerland", handle: "@luissanz___" },
+  { name: "WASAMAT", origin: "Thailand", handle: "@giang_ws" },
+  { name: "MUZEIAN", origin: "Indonesia", handle: "@muzeian" },
+]
 ---
 
 <div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Presented as part of", value: metaPartOf, html: true },
+  ]} />
+
   <p class="mb-6 art-lead">90% fiction. 10% confession.</p>
 
   <p class="mb-4">
@@ -47,6 +62,48 @@
           morakana — <em>Paramecium Diner</em>
         </a>
       </li>
+    </ul>
+  </div>
+
+  <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle);">
+    <p class="mb-2" style="font-size: calc(9px * var(--ui-scale, 1)); text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.6;">As part of</p>
+    <h2 class="font-light text-xl mb-3">Overflow and Coding tools</h2>
+    <p class="mb-4 opacity-80">Coding Tools and Practices for Experimental Media</p>
+
+    <p class="mb-4">
+      Artist talks + live performances exploring code, sound, image, and generative processes
+      through systems, signals, feedback, and real-time transformation.
+    </p>
+
+    <p class="mb-4 text-sm" style="color: var(--text-dim);">May 27 &middot; 7–10 PM at Infra Practice</p>
+
+    <p class="mb-4">
+      How are digital tools shaped by cultural memory, local histories, and ways of listening?
+      What relationships emerge between experimental media practices and the cultural contexts
+      they are developed from?
+    </p>
+
+    <p class="mb-4">
+      This evening brings together artists from Canada, Peru/Switzerland, Thailand, and Indonesia
+      through live coding, audiovisual performance, and generative systems. Across different
+      practices and backgrounds, the program explores how code, sound, and image become sites for
+      experimentation, translation, and cultural expression.
+    </p>
+
+    <p class="text-sm opacity-80 mb-2">Line-up</p>
+    <ul class="text-sm space-y-1">
+      {overflowLineup.map((item) => (
+        <li>
+          <span style="color: var(--text-muted);">{item.name}</span>{" "}
+          <span style="color: var(--text-dim);">({item.origin})</span>
+          {item.handle && (
+            <>
+              {" "}
+              <span set:html={linkInstagramMentions(item.handle)} />
+            </>
+          )}
+        </li>
+      ))}
     </ul>
   </div>
 

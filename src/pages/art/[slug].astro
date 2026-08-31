@@ -126,6 +126,70 @@ if (!artwork || !Content) {
       })
     })
   }
+
+  // inline "art-callout" links mid-paragraph pointing at a floated
+  // .art-margin-note: the note can land anywhere in the flow (unlike the
+  // row pattern's fixed-position arrow), so draw a curved connector in JS
+  // from the underline to the note on hover/focus.
+  const body = document.querySelector<HTMLElement>(".art-detail-body")
+  const inlineCallouts = document.querySelectorAll<HTMLAnchorElement>(
+    ".art-detail-body p .art-callout[href^='#']"
+  )
+  if (body && inlineCallouts.length) {
+    const svgNs = "http://www.w3.org/2000/svg"
+    const svg = document.createElementNS(svgNs, "svg")
+    svg.setAttribute("class", "art-callout-connector")
+    svg.setAttribute("aria-hidden", "true")
+    const path = document.createElementNS(svgNs, "path")
+    const head = document.createElementNS(svgNs, "circle")
+    head.setAttribute("class", "art-callout-connector-head")
+    head.setAttribute("r", "2")
+    svg.append(path, head)
+    body.appendChild(svg)
+
+    let active: { link: HTMLAnchorElement; target: HTMLElement } | null = null
+
+    const draw = () => {
+      if (!active) return
+      const bodyRect = body.getBoundingClientRect()
+      const linkRect = active.link.getBoundingClientRect()
+      const targetRect = active.target.getBoundingClientRect()
+      svg.setAttribute("width", String(bodyRect.width))
+      svg.setAttribute("height", String(bodyRect.height))
+      const x1 = linkRect.right - bodyRect.left
+      const y1 = linkRect.bottom - bodyRect.top
+      const x2 = targetRect.left - bodyRect.left
+      const y2 = targetRect.top - bodyRect.top + 14
+      // right-angle connector: horizontal off the text, then a straight
+      // vertical drop into the margin note — axis-aligned, no diagonal
+      path.setAttribute("d", `M ${x1} ${y1} L ${x2} ${y1} L ${x2} ${y2}`)
+      head.setAttribute("cx", String(x2))
+      head.setAttribute("cy", String(y2))
+    }
+
+    const show = (link: HTMLAnchorElement, target: HTMLElement) => {
+      active = { link, target }
+      draw()
+      svg.classList.add("is-visible")
+    }
+    const hide = () => {
+      active = null
+      svg.classList.remove("is-visible")
+    }
+
+    inlineCallouts.forEach((link) => {
+      const id = link.getAttribute("href")?.slice(1)
+      const target = id ? document.getElementById(id) : null
+      if (!target || !target.classList.contains("art-margin-note")) return
+      link.addEventListener("mouseenter", () => show(link, target))
+      link.addEventListener("mouseleave", hide)
+      link.addEventListener("focus", () => show(link, target))
+      link.addEventListener("blur", hide)
+    })
+
+    window.addEventListener("resize", draw)
+    window.addEventListener("scroll", draw, { passive: true })
+  }
 </script>
 
 <style>
@@ -212,6 +276,7 @@ if (!artwork || !Content) {
 
 <style is:global>
   .art-detail-body {
+    position: relative;
     font-family: "DepartureMono", monospace;
     font-size: calc(12px * var(--ui-scale, 1));
     line-height: 1.5;
@@ -358,20 +423,6 @@ if (!artwork || !Content) {
     text-decoration-color: var(--text-muted);
     text-underline-offset: 4px;
   }
-  /* inline callouts (mid-paragraph, pointing at a floated margin note) get
-     the same chevron as the row connector, always visible */
-  .art-detail-body p .art-callout::after {
-    content: "";
-    display: inline-block;
-    vertical-align: middle;
-    width: 7px;
-    height: 7px;
-    margin-left: 0.45rem;
-    margin-bottom: 0.15em;
-    border-top: 1px solid var(--text-muted);
-    border-right: 1px solid var(--text-muted);
-    transform: rotate(45deg);
-  }
   /* connector stretches so the figure lands flush right, footnote-style;
      hidden until the reader hovers the row */
   .art-detail-body .art-callout-arrow {
@@ -419,6 +470,49 @@ if (!artwork || !Content) {
     float: right;
     width: 240px;
     margin: 0 0 1rem 4rem;
+    outline: 1px solid transparent;
+    outline-offset: 8px;
+    transition: outline-color 0.25s ease;
+  }
+  /* hovering (or focusing) an inline callout that links to a margin note
+     highlights the note it refers to, on the right */
+  .art-detail-body:has(.art-callout:hover) .art-margin-note,
+  .art-detail-body:has(.art-callout:focus-visible) .art-margin-note {
+    outline-color: var(--text-muted);
+  }
+  a.art-callout {
+    cursor: pointer;
+  }
+  /* curved connector from an inline callout to its margin note, drawn in
+     JS since the note can land anywhere in the flow (unlike the row
+     pattern's fixed-position arrow); shown on hover/focus */
+  .art-detail-body .art-callout-connector {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    z-index: 1;
+  }
+  .art-detail-body .art-callout-connector.is-visible {
+    opacity: 1;
+  }
+  .art-detail-body .art-callout-connector path {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 1;
+  }
+  .art-detail-body .art-callout-connector .art-callout-connector-head {
+    fill: var(--text-muted);
+  }
+  @media (max-width: 640px) {
+    .art-detail-body .art-callout-connector {
+      display: none;
+    }
   }
   @media (min-width: 64rem) {
     .art-detail-body .art-margin-note {

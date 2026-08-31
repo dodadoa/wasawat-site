@@ -35,7 +35,7 @@ const INSTAGRAM_NAMES: Record<string, string> = {
   "toeeyt": "toeeyt",
   "msyves": "msyves",
   "roma_or_am_i": "Roman Solodkov",
-  "nomonument": "nomonument",
+  "nomonument": "Nuttapon Sawasdee",
   "nowheredweller": "Thanapat Ogaslert",
   "nanut.t": "nanut.t",
   "gracenaholic": "gracenaholic",

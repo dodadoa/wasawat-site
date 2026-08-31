@@ -2,6 +2,8 @@ import { useState, useRef, useCallback } from "react"
 
 const mono = "'DepartureMono', monospace"
 const display = "'403Mesapholic', monospace"
+// match the top nav (navigator.astro) for the step title/description
+const navFont = "'JetBrains Mono', monospace"
 // match .art-detail-body: 12px body text scaled by --ui-scale
 const fs = (px) => `calc(${px}px * var(--ui-scale, 1))`
 
@@ -282,10 +284,10 @@ export default function BenatarMatrix() {
 
       {/* step text */}
       <div style={{ padding: "14px 0 12px", borderTop: "1px solid #ddd", marginTop: "12px" }}>
-        <div style={{ fontFamily: display, fontSize: fs(10), letterSpacing: "0.06em", color: "#1a1a1a", marginBottom: "7px" }}>
+        <div style={{ fontFamily: navFont, fontSize: fs(10), letterSpacing: "0.06em", color: "#1a1a1a", marginBottom: "7px" }}>
           {current.title}
         </div>
-        <div style={{ fontSize: fs(10), color: "#555", lineHeight: 1.65 }}>
+        <div style={{ fontFamily: navFont, fontSize: fs(10), color: "#555", lineHeight: 1.65 }}>
           {current.body}
         </div>
       </div>
