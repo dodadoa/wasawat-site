@@ -422,6 +422,9 @@ const BIO_SECTIONS = [
       { label: "From Scratch Live Coding From Scratch — evals", meta: "Bangkok Kunsthalle, 2025", url: "/art/from-scratch-live-coding" },
       { label: "From Scratch Live Coding From Scratch — Para Cartography", meta: "Nina Next Space, Ho Chi Minh City, 2025", url: "/art/from-scratch-live-coding#vina-v" },
       { label: "UNFEST2025", meta: "with Pasuth Sa-ingthong, Unformat, Bangkok, 2025", url: "/art/unfest2025" },
+      { label: "Algorapture", meta: "Jakarta, 2025" },
+      { label: "Interlude", meta: "Ho Chi Minh City, 2025" },
+      { label: "AlgoSeoul", meta: "Seoul, 2025" },
       { label: "Diage Festival", meta: "with CRSRCRSR, ShowDC, Bangkok, 2023" },
       { label: "Road to Diage & Diage Festival", meta: "with CRSRCRSR, Bangkok CityCity Gallery, 2023" },
       { label: "Synecdoche, Synesthesia", meta: "Live coding & AV showcase, Bangkok Kunsthalle, w/ Goethe-Institut Thailand, 2026" },
@@ -430,7 +433,7 @@ const BIO_SECTIONS = [
       { label: "UNBOUND", meta: "sound artist, Theatre Night (Bad Vibes Battle), Host Bangkok" },
       { label: "RE:SYNC 2023", meta: "VJ, People of Ari, Bangkok, 2023" },
     ],
-    footnote: "Also: Ghost2565 (Bangkok) · NonNonNon Bangkok · Algorapture (Jakarta) · Interlude (Ho Chi Minh City) · AlgoSeoul (Seoul)",
+    footnote: "Also: Ghost2565 (Bangkok) · NonNonNon Bangkok",
   },
   {
     title: "Curatorial Practice & Organizing",

@@ -1,11 +1,15 @@
 ---
 import Layout from "../layouts/layout.astro"
-let allPosts: Record<string, any>[] = [];
+let mdPosts: Record<string, any>[] = [];
 try {
-  allPosts = await Astro.glob("./blog/posts/*.md");
+  mdPosts = await Astro.glob("./blog/posts/*.md");
 } catch (error) {
   console.error(error);
 }
+
+// interactive posts live as React pages under src/pages/blog/
+const pagePosts = [{ url: "/blog/field-notes-stone", frontmatter: { title: "field notes / stone" } }];
+const allPosts = [...pagePosts, ...mdPosts];
 ---
 
 <Layout title="Wasawat Somno's blog" description="blogs">
