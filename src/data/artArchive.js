@@ -66,6 +66,18 @@ export const artSections = [
             slug: "operation-seance",
             date: "2026-01-01",
           },
+          {
+            label: "Business As Usual: The Abstraction of violence",
+            slug: "the-abstraction-of-violence",
+            date: "2026-10-10",
+            image: "/images/the-abstraction-of-violence/field-note-1.jpg",
+          },
+          {
+            label: "QUERY",
+            slug: "query",
+            date: "2026-09-20",
+            image: "/images/query/query-cover.jpg",
+          },
         ],
       },
       {
@@ -122,7 +134,7 @@ export const artSections = [
       {
         title: "Installation",
         items: [
-          { label: "Tentacular Territoria", slug: "tentacular-territoria", date: "2020-01-01", commissioner: "Humanist.us" },
+          { label: "Tentacular Territoria", slug: "tentacular-territoria", date: "2020-01-01", image: "/images/tentacular-territoria/tentacular-territoria-1.jpg", commissioner: "Humanist.us" },
         ],
       },
       {
@@ -194,6 +206,8 @@ export const artworkPages = {
   "as-if-you-would-still-be-here": {
     title: "As if you would still be here, if I keep thinking about you.",
   },
+  "the-abstraction-of-violence": { title: "Business As Usual: The Abstraction of violence" },
+  query: { title: "QUERY" },
   "tentacular-territoria": { title: "Tentacular Territoria" },
   "i-will-always-think-of-you-fondly": {
     title: "I will always think of you fondly. (with Tewprai Bualoi)",

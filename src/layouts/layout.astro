@@ -456,6 +456,9 @@ const sitemapTree = [
       <slot />
     </main>
 
+    <!-- bottom-of-page spacer -->
+    <footer class="site-foot" aria-hidden="true"></footer>
+
     <!-- ── right-click sitemap menu — replaces the native context menu with
          a small, in-world navigation tree so you can jump between pages
          (and expand into their subpages) without leaving the cursor ── -->
@@ -465,6 +468,46 @@ const sitemapTree = [
       <div class="scm-sep"></div>
       <p class="scm-here">you are here: <span id="scm-here-path">/</span></p>
     </div>
+    <script is:inline>
+      // scrollbars stay hidden until something scrolls: tag the scrolling
+      // element with .is-scrolling, and drop it shortly after it settles
+      (() => {
+        const timers = new WeakMap()
+        const show = (el, ms) => {
+          el.classList.add("is-scrolling")
+          clearTimeout(timers.get(el))
+          timers.set(el, setTimeout(() => el.classList.remove("is-scrolling"), ms))
+        }
+        document.addEventListener(
+          "scroll",
+          (e) => show(e.target === document ? document.documentElement : e.target, 900),
+          { capture: true, passive: true }
+        )
+        // nudging the pointer to the right edge brings the page's scrollbar back
+        document.addEventListener(
+          "pointermove",
+          (e) => {
+            if (e.clientX >= window.innerWidth - 16) show(document.documentElement, 900)
+          },
+          { passive: true }
+        )
+        // the big pages — work, about, and anything over two screens tall —
+        // keep theirs on show the whole time
+        const root = document.documentElement
+        const measure = () => {
+          const h = root.scrollHeight
+          const vh = window.innerHeight
+          const big = /^\/(work|about)(\/|$)/.test(location.pathname)
+          root.classList.toggle("is-long", h > vh && (big || h > vh * 2))
+        }
+        new ResizeObserver(measure).observe(document.body)
+        window.addEventListener("resize", measure, { passive: true })
+        window.addEventListener("load", measure)
+        document.addEventListener("astro:page-load", measure)
+        measure()
+      })()
+    </script>
+
     <script type="application/json" id="sitemap-data" set:html={JSON.stringify(sitemapTree)} />
 
     <style is:global>
@@ -527,9 +570,66 @@ const sitemapTree = [
         overflow-y: scroll;
       }
 
+      /* ── scrollbar ──
+         Nothing at rest on short pages. While the element is scrolling
+         (.is-scrolling) or the page is a long one (.is-long) — both set by
+         the script above — a hairline rail appears with a 4px dithered
+         sliver riding on it for the thumb; under the cursor the thumb goes
+         solid so it can be grabbed. */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track,
+      ::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+
+      .is-long::-webkit-scrollbar-track,
+      .is-scrolling::-webkit-scrollbar-track {
+        background: linear-gradient(var(--line), var(--line)) center / 1px 100% no-repeat;
+      }
+
+      .is-long::-webkit-scrollbar-track:horizontal,
+      .is-scrolling::-webkit-scrollbar-track:horizontal {
+        background-size: 100% 1px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        min-height: 48px;
+        border: solid transparent;
+        border-width: 0 2px;
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb:horizontal {
+        min-width: 48px;
+        border-width: 2px 0;
+      }
+
+      .is-long::-webkit-scrollbar-thumb,
+      .is-scrolling::-webkit-scrollbar-thumb {
+        background: repeating-conic-gradient(var(--soft) 0 25%, transparent 0 50%) 0 0 / 4px 4px
+          padding-box;
+      }
+
+      ::-webkit-scrollbar-thumb:hover,
+      ::-webkit-scrollbar-thumb:active {
+        background: var(--soft) padding-box;
+      }
+
+      /* Firefox can't paint scrollbar parts — fall back to a thin flat grey */
+      @supports not selector(::-webkit-scrollbar) {
+        html {
+          scrollbar-color: var(--line) transparent;
+          scrollbar-width: thin;
+        }
+      }
+
       html,
       body {
-        font-size: 18px;
+        font-size: 16px;
         background-color: var(--bg);
         color: var(--ink);
         font-family: var(--f-body);
@@ -544,7 +644,7 @@ const sitemapTree = [
 
         html,
         body {
-          font-size: 21px;
+          font-size: 19px;
         }
       }
 
@@ -737,6 +837,21 @@ const sitemapTree = [
         font-size: clamp(22px, 2.2vw, 28px);
         line-height: 1.3;
         letter-spacing: -0.01em;
+      }
+
+      /* ── page footer ── */
+      .site-foot {
+        position: relative;
+        z-index: 10;
+        margin: 2rem 2rem 0;
+        padding-bottom: 2.5rem;
+        color: var(--ink);
+      }
+
+      body:has(#home-quadrant) .site-foot,
+      body:has(#home-rogue) .site-foot,
+      body:has(.art-page) .site-foot {
+        display: none;
       }
 
       /* ── ink-bleed, three sizes ── */
@@ -1249,7 +1364,7 @@ const sitemapTree = [
       // native interactive tag, so they need an explicit hook here too —
       // otherwise the cursor never signals they're clickable.
       const HOVER_SELECTOR =
-        "a, button, [role=button], input, textarea, select, label, [tabindex], " +
+        "a, button:not(:disabled), [role=button], input, textarea, select, label, [tabindex], " +
         "[data-href], [data-cursor-click], .art-zoomable, .art-media-grid img"
       // Sample a small ring of points around the cursor (not just the exact
       // pixel under it) so hovering "near" a clickable target — its padding,
@@ -1280,9 +1395,11 @@ const sitemapTree = [
         if (raf) cancelAnimationFrame(raf)
         raf = requestAnimationFrame(() => {
           el.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`
-          // label sits centered below the cursor (inner .cursor-label handles
-          // the horizontal -50% centering via CSS)
-          thought.style.transform = `translate(${e.clientX}px, ${e.clientY + 24}px)`
+          // label sits centered below the hover ring (inner .cursor-label
+          // handles the horizontal -50% centering via CSS). The crosshair is
+          // drawn at the middle of the 24px #custom-cursor box, so its center
+          // is +12/+12 from the pointer; the 56px hover ring ends 28px below.
+          thought.style.transform = `translate(${e.clientX + 12}px, ${e.clientY + 12 + 28 + 6}px)`
 
           const t = findClickableNear(e.clientX, e.clientY)
           el.classList.toggle("cursor--hover", !!t)
@@ -1300,6 +1417,24 @@ const sitemapTree = [
           }
         })
       })
+
+      // The cursor reads "clickable" anywhere inside that ring, so a click
+      // there has to land too: when the pointer isn't exactly on a target but
+      // the ring reaches one, forward the click to it.
+      document.addEventListener("click", (e) => {
+        if (!e.isTrusted || e.button !== 0) return
+        if (e.target instanceof Element && e.target.closest(HOVER_SELECTOR)) return
+        const t = findClickableNear(e.clientX, e.clientY)
+        if (!(t instanceof HTMLElement)) return
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        if (t.matches("input, textarea, select")) t.focus()
+        t.dispatchEvent(new MouseEvent("click", {
+          bubbles: true, cancelable: true, view: window,
+          clientX: e.clientX, clientY: e.clientY,
+          ctrlKey: e.ctrlKey, metaKey: e.metaKey, shiftKey: e.shiftKey, altKey: e.altKey,
+        }))
+      }, true)
     }
 
     setupCursor()

@@ -1,25 +1,15 @@
 import { useState } from "react"
 
-// ── Panopticon plan drawing ─────────────────────────────────────────────
-// Circular cell block: central inspection tower with radiating sightlines,
-// a catwalk ring, and a perimeter ring of 9 cells — practice areas mapped
-// onto Bentham's panopticon, redrawn as a CAD sheet.
+// ── Plan drawing ────────────────────────────────────────────────────────
+// A CAD sheet in two parts, one building. Below, the plan: Bentham's
+// inspection house kept as a round kernel, the nine practices accreted
+// around it as rooms on a 2 m grid, one wing rotated into the rest, one wing
+// never rendered. Above, its south elevation and a section through the kernel.
 
-const W = 1000
-// extra right-hand margin so the hover label (positioned past x1) has room
-// to sit at its own size without being clipped by the SVG viewBox edge
-const ELEV_VB_W = W + 170
-const H = 700
 const mono = "'DepartureMono', monospace"
 const pixel = "var(--f-pixel)"
 const dataMono = "var(--f-data)"
-const CX = 500
-const CY = 360
-const R_TOWER = 68
-const R_CATWALK = 102
-const R_CELL_IN = 112
-const R_CELL_OUT = 252
-const N_CELLS = 9
+const SOFT = "var(--soft)"
 
 const WORDS = [
   "bio simulation",
@@ -33,265 +23,667 @@ const WORDS = [
   "interface design",
 ]
 
-// thick poché wall
-const Wl = ({ x1, y1, x2, y2, w = 2.4, o = 0.85 }) => (
-  <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth={w} opacity={o} />
-)
-// thin drawing line
-const Ln = ({ x1, y1, x2, y2, w = 0.7, o = 0.5, dash }) => (
-  <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth={w} opacity={o} strokeDasharray={dash} />
-)
+// ── Floor plan ──────────────────────────────────────────────────────────
+// Drawn in grid units (1 U = 2 m), origin at the building's north-west
+// corner. Rooms are closed polygons stroked as walls; everything else
+// (doors, windows, the rotunda) is painted over them back to front.
 
-const pol = (cx, cy, r, a) => [cx + r * Math.cos(a), cy + r * Math.sin(a)]
+const U = 60
+const OX = 70
+const OY = 150
+const PW = 1240
+const PH = 910
+const WALL = 4
+const MID = 3
+const THIN = 2
+// kernel centre, and the later wing that was rotated into the east end
+const KX = 8.5
+const KY = 6.3
+const R_ROTUNDA = 2.5
+const R_KERNEL = 1.5
+const BOX = { cx: 15.3, cy: 8.3, hw: 3, hh: 1.9, rot: -18 }
 
-function sectorPath(cx, cy, rIn, rOut, a0, a1) {
-  const [x1, y1] = pol(cx, cy, rOut, a0)
-  const [x2, y2] = pol(cx, cy, rOut, a1)
-  const [x3, y3] = pol(cx, cy, rIn, a1)
-  const [x4, y4] = pol(cx, cy, rIn, a0)
-  const large = a1 - a0 > Math.PI ? 1 : 0
-  return `M ${x1} ${y1} A ${rOut} ${rOut} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${large} 0 ${x4} ${y4} Z`
+const px = (n) => n * U
+const pts2str = (pts) => pts.map(([x, y]) => `${px(x)},${px(y)}`).join(" ")
+const pad2 = (n) => String(n).padStart(2, "0")
+const hex2 = (n) => n.toString(16).toUpperCase().padStart(2, "0")
+const label = (size) => ({ fontFamily: mono, fontSize: `${size}px` })
+
+// box-local → plan coordinates
+const boxPt = (x, y) => {
+  const a = (BOX.rot * Math.PI) / 180
+  return [BOX.cx + x * Math.cos(a) - y * Math.sin(a), BOX.cy + x * Math.sin(a) + y * Math.cos(a)]
 }
 
-function CellDoor({ am, r = R_CELL_IN }) {
-  const [x, y] = pol(CX, CY, r, am)
-  const rot = (am * 180) / Math.PI + 90
+// the assembly's apse: a semicircle rasterised onto the quarter-unit grid
+const APSE = Array.from({ length: 12 }, (_, i) => {
+  const xm = -1.5 + 0.25 * (i + 0.5)
+  const h = Math.round(Math.sqrt(2.25 - xm * xm) * 4) / 4
+  return [[8.5 + 0.25 * i, -h], [8.5 + 0.25 * (i + 1), -h]]
+}).flat()
+
+// one room per entry in WORDS, same order
+const ROOMS = [
+  { code: "WET_LAB", pts: [[0, 0], [5, 0], [5, 3.8], [0, 3.8]], tag: [0.3, 3.1] },
+  { code: "TRIBUNAL", pts: [[5, 0], [8, 0], [8, 3], [5, 3]], tag: [5.25, 0.25] },
+  { code: "ASSEMBLY", pts: [[8, 3], [8, 0], [8.5, 0], ...APSE, [11.5, 0], [12, 0], [12, 3]], tag: [8.25, 2.35] },
+  { code: "EVIDENCE", pts: [[12, 0], [15.5, 0], [15.5, 3], [12, 3]], tag: [12.25, 2.35] },
+  { code: "ATELIER", pts: [[0, 3.8], [3.6, 3.8], [3.6, 5.6], [5, 5.6], [5, 8.8], [0, 8.8]], tag: [0.3, 5.15] },
+  { code: "WORKSHOP", pts: [[0, 8.8], [5, 8.8], [5, 12], [0, 12]], tag: [0.3, 9.05] },
+  { code: "CELLS", pts: [[5, 9.6], [11.5, 9.6], [11.5, 12], [5, 12]], tag: [5.2, 10.9], stack: true },
+  {
+    code: "BLACK_BOX",
+    pts: [boxPt(-BOX.hw, -BOX.hh), boxPt(BOX.hw, -BOX.hh), boxPt(BOX.hw, BOX.hh), boxPt(-BOX.hw, BOX.hh)],
+    tag: boxPt(-2.7, 1.1),
+    rot: BOX.rot,
+  },
+  { code: "CONTROL", pts: [[12, 3.8], [15.5, 3.8], [15.5, 6.6], [12, 6.6]], tag: [12.25, 5.95] },
+]
+const BOX_ROOM = 7
+
+// everything under a roof, less the box (which paints its own floor)
+const FOOTPRINT = [
+  [0, 0], [8.5, 0], ...APSE, [11.5, 0], [15.5, 0], [15.5, 6.6], [14.4, 6.6],
+  boxPt(-BOX.hw, -BOX.hh), [12.57, 9.6], [11.5, 9.6], [11.5, 12], [0, 12],
+]
+
+// shoelace, in m²
+const roomArea = (pts) =>
+  Math.abs(pts.reduce((s, [x, y], i) => {
+    const [x2, y2] = pts[(i + 1) % pts.length]
+    return s + x * y2 - x2 * y
+  }, 0)) * 2
+
+// hinge at (x, y); the opening runs along the rotated +x axis, the leaf swings to −y
+function Door({ x, y, rot = 0, flip, w = 0.7 }) {
+  const d = px(w)
   return (
-    <g transform={`rotate(${rot} ${x} ${y})`}>
-      <rect x={x - 2} y={y - 14} width={4} height={14} fill="var(--bg, #fff)" />
-      <line x1={x} y1={y} x2={x} y2={y - 14} stroke="currentColor" strokeWidth={0.8} opacity={0.6} />
-      <path d={`M ${x} ${y - 14} A 14 14 0 0 1 ${x + 14} ${y}`} fill="none" stroke="currentColor" strokeWidth={0.5} opacity={0.4} />
+    <g transform={`translate(${px(x)} ${px(y)}) rotate(${rot}) scale(1 ${flip ? -1 : 1})`}>
+      <rect x={0} y={-WALL} width={d} height={WALL * 2} fill="var(--bg, #fff)" />
+      <line x1={0} y1={0} x2={0} y2={-d} stroke="currentColor" strokeWidth={MID} />
+      <path d={`M 0 ${-d} A ${d} ${d} 0 0 1 ${d} 0`} fill="none" stroke="currentColor" strokeWidth={THIN} />
     </g>
   )
 }
 
-function CellFittings({ am, rMid }) {
-  const [cx, cy] = pol(CX, CY, rMid, am)
-  const rot = (am * 180) / Math.PI + 90
+// glazing: the wall opens into a hollow segment
+function Win({ x, y, len, v }) {
+  const l = px(len)
   return (
-    <g transform={`rotate(${rot} ${cx} ${cy})`} stroke="currentColor" fill="none" opacity={0.5}>
-      <rect x={cx - 20} y={cy - 7} width={40} height={14} strokeWidth={0.6} />
-      <line x1={cx - 20} y1={cy} x2={cx + 20} y2={cy} strokeWidth={0.35} />
-      <circle cx={cx} cy={cy + 20} r={5} strokeWidth={0.5} />
+    <g transform={`translate(${px(x)} ${px(y)}) rotate(${v ? 90 : 0})`}>
+      <rect x={0} y={-WALL / 2 - 1} width={l} height={WALL + 2} fill="var(--bg, #fff)" />
+      <rect x={0} y={-4} width={l} height={8} fill="none" stroke="currentColor" strokeWidth={THIN} />
     </g>
   )
 }
 
-// HUD-style leader: dot on cell centroid → past ring → elbow → uppercase label
-function Cell({ idx, a0, a1, label, hovered, onHover }) {
-  const am = (a0 + a1) / 2
-  const rMid = (R_CELL_IN + R_CELL_OUT) / 2
-  const [px, py] = pol(CX, CY, rMid, am)
-  const [ex, ey] = pol(CX, CY, R_CELL_OUT + 18, am)
-  const dir = Math.cos(am) >= 0 ? 1 : -1
-  const elbowX = ex + dir * 80
+// room tag: inverted number chip + code name, on a paper backing so it
+// stays legible over the hover screen
+function Tag({ n, room }) {
+  const [x, y] = room.tag
+  const tw = room.code.length * 11.5 + 8
+  return (
+    <g transform={`translate(${px(x)} ${px(y)}) rotate(${room.rot || 0})`}>
+      <rect width={34} height={24} fill="currentColor" />
+      <text x={17} y={18} textAnchor="middle" fill="var(--bg, #fff)" style={label(18)}>{pad2(n + 1)}</text>
+      <rect x={room.stack ? 0 : 36} y={room.stack ? 26 : 0} width={tw} height={24} fill="var(--bg, #fff)" />
+      <text x={room.stack ? 2 : 42} y={room.stack ? 44 : 18} fill="currentColor" style={label(18)}>{room.code}</text>
+    </g>
+  )
+}
+
+function Fittings() {
+  const R = (x, y, w, h, k) => <rect key={k} x={px(x)} y={px(y)} width={px(w)} height={px(h)} />
+  const C = (x, y, r, k) => <circle key={k} cx={px(x)} cy={px(y)} r={px(r)} />
+  const L = (x1, y1, x2, y2, k) => <line key={k} x1={px(x1)} y1={px(y1)} x2={px(x2)} y2={px(y2)} />
+  return (
+    <g stroke={SOFT} strokeWidth={THIN} fill="none">
+      {/* 01 wet lab: wall bench, island, culture dish with its worm */}
+      {R(0.3, 0.3, 3.2, 0.55)}
+      {R(0.6, 0.4, 0.45, 0.35)}
+      {R(1, 1.6, 2.4, 0.8)}
+      {L(1, 2, 3.4, 2)}
+      {C(4.1, 1.3, 0.55)}
+      {C(4.1, 1.3, 0.4)}
+      <path d={`M ${px(3.85)} ${px(1.3)} q 7 -16 15 0 t 15 0`} strokeWidth={MID} />
+
+      {/* 02 tribunal: two facing benches, one chair between them */}
+      {R(5.5, 1, 2, 0.25)}
+      {R(5.5, 2, 2, 0.25)}
+      {C(6.5, 1.62, 0.14)}
+
+      {/* 03 assembly: hemicycle tiers in the apse, rostrum */}
+      {[0.5, 0.85, 1.2].map((r) => (
+        <path key={r} d={`M ${px(10 - r)} ${px(0.3)} A ${px(r)} ${px(r)} 0 0 1 ${px(10 + r)} ${px(0.3)}`} />
+      ))}
+      {R(9.6, 1.2, 0.8, 0.3)}
+
+      {/* 04 evidence: compact shelving, reading desk */}
+      {Array.from({ length: 5 }, (_, i) => R(12.35 + i * 0.4, 0.3, 0.22, 1.5, i))}
+      {R(14.6, 0.4, 0.6, 1.3)}
+      {C(14.38, 1.05, 0.14)}
+
+      {/* 05 atelier: dress forms, cutting table, rail */}
+      {[0.6, 1.3, 2].map((x) => (
+        <g key={x}>
+          {C(x, 4.45, 0.18)}
+          {L(x - 0.18, 4.45, x + 0.18, 4.45)}
+          {L(x, 4.27, x, 4.63)}
+        </g>
+      ))}
+      {R(0.9, 6.3, 2.6, 1.1)}
+      <line x1={px(0.9)} y1={px(7.4)} x2={px(3.5)} y2={px(6.3)} strokeDasharray="6 6" />
+      <line x1={px(0.4)} y1={px(8.35)} x2={px(3.6)} y2={px(8.35)} strokeWidth={MID} />
+      {Array.from({ length: 11 }, (_, i) => L(0.5 + i * 0.3, 8.22, 0.5 + i * 0.3, 8.48, i))}
+
+      {/* stair, open to the west corridor */}
+      {Array.from({ length: 6 }, (_, i) => L(3.8 + i * 0.2, 3.8, 3.8 + i * 0.2, 5.6, i))}
+      <line x1={px(3.8)} y1={px(4.7)} x2={px(5)} y2={px(4.7)} strokeWidth={MID} />
+      <path d={`M ${px(4.9)} ${px(4.25)} L ${px(3.95)} ${px(4.25)} m 9 -7 l -9 7 l 9 7`} />
+
+      {/* 06 workshop: assembly table, bench, one machine */}
+      {R(1, 9.9, 1.8, 0.9)}
+      {L(1, 9.9, 2.8, 10.8)}
+      {L(2.8, 9.9, 1, 10.8)}
+      {R(0.3, 11.2, 3, 0.5)}
+      {R(3.9, 10.8, 0.75, 0.75)}
+      {C(4.275, 11.175, 0.25)}
+
+      {/* 07 cells: five identical rooms off a day room */}
+      {Array.from({ length: 5 }, (_, i) => (
+        <g key={i}>
+          <line x1={px(6.5 + i)} y1={px(9.6)} x2={px(6.5 + i)} y2={px(12)} strokeWidth={MID + 1} />
+          {R(7.02 + i, 10.5, 0.36, 1.2)}
+          {L(7.02 + i, 10.8, 7.38 + i, 10.8)}
+        </g>
+      ))}
+
+      {/* 09 control: monitor wall, curved console */}
+      {Array.from({ length: 5 }, (_, i) => R(15.1, 4.05 + i * 0.4, 0.2, 0.3, i))}
+      {[1, 0.8].map((r) => {
+        const a = (115 * Math.PI) / 180
+        const dx = r * Math.cos(a), dy = r * Math.sin(a)
+        return <path key={r} d={`M ${px(15.2 + dx)} ${px(5 + dy)} A ${px(r)} ${px(r)} 0 0 1 ${px(15.2 + dx)} ${px(5 - dy)}`} />
+      })}
+      {C(13.9, 5, 0.14)}
+    </g>
+  )
+}
+
+// the old inspection house, kept: poché square, ring walk, kernel
+function Rotunda() {
+  const s = R_ROTUNDA
+  return (
+    <g>
+      <rect x={px(KX - s)} y={px(KY - s)} width={px(s * 2)} height={px(s * 2)} fill="url(#planChk)" stroke="currentColor" strokeWidth={WALL} />
+      <circle cx={px(KX)} cy={px(KY)} r={px(s)} fill="var(--bg, #fff)" stroke="currentColor" strokeWidth={WALL} />
+      {/* risers in the four leftover corners */}
+      {[[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy], i) => {
+        const x = px(KX + sx * (s - 0.14) - (sx > 0 ? 0.45 : 0))
+        const y = px(KY + sy * (s - 0.14) - (sy > 0 ? 0.45 : 0))
+        const d = px(0.45)
+        return (
+          <g key={i} stroke="currentColor" strokeWidth={THIN}>
+            <rect x={x} y={y} width={d} height={d} fill="var(--bg, #fff)" />
+            <path d={`M ${x} ${y} l ${d} ${d} M ${x + d} ${y} l ${-d} ${d}`} fill="none" />
+          </g>
+        )
+      })}
+      {/* openings where the ring touches the four corridors */}
+      {[[0, -1], [0, 1], [-1, 0], [1, 0]].map(([sx, sy], i) => (
+        <rect
+          key={i}
+          x={px(KX + sx * s - (sx ? 0.12 : 0.4))} y={px(KY + sy * s - (sy ? 0.12 : 0.4))}
+          width={px(sx ? 0.24 : 0.8)} height={px(sy ? 0.24 : 0.8)}
+          fill="var(--bg, #fff)"
+        />
+      ))}
+      <circle cx={px(KX)} cy={px(KY)} r={px(2)} fill="none" stroke={SOFT} strokeWidth={THIN} strokeDasharray="2 8" />
+    </g>
+  )
+}
+
+function Kernel() {
+  const arc = (r, a0, a1) => {
+    const [x0, y0] = [px(KX + r * Math.cos(a0)), px(KY + r * Math.sin(a0))]
+    const [x1, y1] = [px(KX + r * Math.cos(a1)), px(KY + r * Math.sin(a1))]
+    return `M ${x0} ${y0} A ${px(r)} ${px(r)} 0 0 1 ${x1} ${y1}`
+  }
+  return (
+    <g>
+      <circle cx={px(KX)} cy={px(KY)} r={px(R_KERNEL)} fill="var(--bg, #fff)" stroke="currentColor" strokeWidth={WALL} />
+      {/* its one opening */}
+      <path d={arc(R_KERNEL, 0.72, 1.06)} fill="none" stroke="var(--bg, #fff)" strokeWidth={WALL + 6} />
+      {/* rack ring */}
+      {Array.from({ length: 16 }, (_, i) => {
+        const a = (i * Math.PI) / 8 + Math.PI / 16
+        return (
+          <line
+            key={i}
+            x1={px(KX + 1.02 * Math.cos(a))} y1={px(KY + 1.02 * Math.sin(a))}
+            x2={px(KX + 1.3 * Math.cos(a))} y2={px(KY + 1.3 * Math.sin(a))}
+            stroke="currentColor" strokeWidth={WALL}
+          />
+        )
+      })}
+      <circle cx={px(KX)} cy={px(KY)} r={px(0.45)} fill="none" stroke="currentColor" strokeWidth={MID} />
+      <circle cx={px(KX)} cy={px(KY)} r={px(0.12)} fill="currentColor" />
+      <text x={px(KX)} y={px(KY + 0.86)} textAnchor="middle" fill="currentColor" style={label(16)}>KERNEL</text>
+    </g>
+  )
+}
+
+// the wing that was dropped onto the east end at −18°
+function BlackBox({ hovered, hit }) {
+  const w = px(BOX.hw), h = px(BOX.hh)
+  return (
+    <g transform={`translate(${px(BOX.cx)} ${px(BOX.cy)}) rotate(${BOX.rot})`}>
+      <rect x={-w} y={-h} width={w * 2} height={h * 2} fill="var(--bg, #fff)" />
+      <rect x={-w} y={-h} width={w * 2} height={h * 2} fill="url(#planTone)" />
+      <rect x={-w} y={-h} width={w * 2} height={h * 2} fill={hovered ? "url(#planD12)" : "transparent"} stroke="currentColor" strokeWidth={WALL} {...hit} />
+      <g stroke={SOFT} strokeWidth={THIN} fill="none" pointerEvents="none">
+        {/* screen, projector and its throw, seating rows, speakers */}
+        <line x1={px(2.75)} y1={px(-1.4)} x2={px(2.75)} y2={px(1.4)} stroke="currentColor" strokeWidth={WALL} />
+        <rect x={px(-2.3)} y={px(-0.17)} width={px(0.34)} height={px(0.34)} fill="var(--bg, #fff)" />
+        <path d={`M ${px(-1.96)} 0 L ${px(2.75)} ${px(-1.4)} M ${px(-1.96)} 0 L ${px(2.75)} ${px(1.4)}`} strokeDasharray="6 6" />
+        {[-0.9, -0.4, 0.1].map((x) => (
+          <line key={x} x1={px(x)} y1={px(-1.2)} x2={px(x)} y2={px(0.9)} strokeWidth={WALL} strokeDasharray="10 6" />
+        ))}
+        <rect x={px(2.3)} y={px(-1.75)} width={px(0.25)} height={px(0.25)} fill="var(--bg, #fff)" />
+        <rect x={px(2.3)} y={px(1.5)} width={px(0.25)} height={px(0.25)} fill="var(--bg, #fff)" />
+        <Door x={-BOX.hw} y={0} rot={-90} />
+      </g>
+    </g>
+  )
+}
+
+// phase two: drawn, never rendered — and the one sealed room it contains
+function GhostWing() {
   return (
     <g>
       <path
-        d={sectorPath(CX, CY, R_CELL_IN, R_CELL_OUT, a0, a1)}
-        // hovered cell fills with a 12% screen; a hard cut, no fade
-        fill={hovered ? "url(#planD12)" : "transparent"}
-        style={{ cursor: "crosshair" }}
-        onMouseEnter={() => onHover(idx)}
-        onMouseLeave={() => onHover(null)}
+        d={`M ${px(15.5)} 0 L ${px(18.5)} 0 L ${px(18.5)} ${px(5)} L ${px(15.5)} ${px(5)} M ${px(15.5)} ${px(2.5)} L ${px(18.5)} ${px(2.5)}`}
+        fill="none" stroke={SOFT} strokeWidth={THIN} strokeDasharray="6 8"
       />
-      <CellFittings am={am} rMid={rMid} />
-      <CellDoor am={am} />
-      {hovered && (
-        <g pointerEvents="none">
-          {/* hover leader: the overlay line is the spot red */}
-          <circle cx={px} cy={py} r={2.4} fill="var(--red)" />
-          <polyline
-            points={`${px},${py} ${ex},${ey} ${elbowX},${ey}`}
-            fill="none" stroke="var(--red)" strokeWidth={1.6}
-          />
-          <text
-            x={elbowX + dir * 6} y={ey + 5}
-            textAnchor={dir > 0 ? "start" : "end"}
-            fill="currentColor" opacity={0.92}
-            style={{ fontFamily: mono, fontSize: "22px", letterSpacing: "0.12em" }}
-          >
-            {label.toUpperCase()}
-          </text>
+      <rect x={px(16.3)} y={px(0.7)} width={px(1.4)} height={px(1.2)} fill="url(#planChk)" stroke="currentColor" strokeWidth={WALL} />
+      <text x={px(16.3)} y={px(2.28)} fill="currentColor" style={label(16)}>NULL</text>
+      <text x={px(16.4)} y={px(4.1)} fill="currentColor" style={label(16)}>PHASE_02</text>
+      <text x={px(16.4)} y={px(4.5)} fill="currentColor" style={label(16)}>NOT RENDERED</text>
+    </g>
+  )
+}
+
+function Rulers() {
+  const ty = px(-2.1), lx = px(-0.75)
+  return (
+    <g stroke={SOFT} strokeWidth={THIN} color={SOFT}>
+      <line x1={0} y1={ty} x2={px(19)} y2={ty} />
+      {Array.from({ length: 20 }, (_, i) => (
+        <g key={i}>
+          <line x1={px(i)} y1={ty} x2={px(i)} y2={ty + (i % 2 ? 6 : 12)} />
+          {i % 2 === 0 && <text x={px(i) + 5} y={ty + 22} fill="currentColor" stroke="none" style={label(16)}>{hex2(i)}</text>}
         </g>
-      )}
+      ))}
+      <line x1={lx} y1={0} x2={lx} y2={px(12)} />
+      {Array.from({ length: 13 }, (_, i) => (
+        <g key={i}>
+          <line x1={lx} y1={px(i)} x2={lx + (i % 2 ? 6 : 12)} y2={px(i)} />
+          {i % 2 === 0 && <text x={lx + 5} y={px(i) + 22} fill="currentColor" stroke="none" style={label(16)}>{hex2(i)}</text>}
+        </g>
+      ))}
     </g>
   )
 }
 
-// ── Elevation (facade) + Section ───────────────────────────────────────
-
-const EH = 380
-const N_FLOORS = 5
-const FLOOR_H = 40
-const STORE_TOP = 60
-const BASE_Y = STORE_TOP + N_FLOORS * FLOOR_H
-const FACADE_BAYS = 5
-
-const FACADE_ROWS = [
-  { top: 10, h: 14, arched: false },
-  { top: 6, h: 27, arched: true },
-  { top: 6, h: 27, arched: true },
-  { top: 7, h: 25, arched: true },
-  { top: 8, h: 24, arched: false },
-]
-
-function FacadeWindow({ x, y, w, h, arched }) {
-  const r = w / 2
-  const d = arched
-    ? `M ${x} ${y + h} L ${x} ${y + r} A ${r} ${r} 0 0 1 ${x + w} ${y + r} L ${x + w} ${y + h} Z`
-    : `M ${x} ${y} L ${x + w} ${y} L ${x + w} ${y + h} L ${x} ${y + h} Z`
+// status line: what the cursor has selected, read off the model
+function Readout({ hov }) {
+  const room = hov != null ? ROOMS[hov] : null
+  const ray = room ? Math.hypot(room.tag[0] - KX, room.tag[1] - KY) * 2 : 0
   return (
-    <g>
-      <path d={d} fill="url(#winHatch)" stroke="currentColor" strokeWidth={0.6} opacity={0.8} />
-      <Ln x1={x - 2} y1={y + h} x2={x + w + 2} y2={y + h} w={0.8} o={0.55} />
+    <g fill="currentColor">
+      <text x={0} y={-68} style={label(18)}>
+        {room
+          ? `SEL ${pad2(hov + 1)} / ${room.code} / ${roomArea(room.pts).toFixed(1)} M2 / RAY ${ray.toFixed(1)} M`
+          : "SEL -- / ROOMS 09 / KERNEL 01 / EXITS 00"}
+      </text>
+      <text x={0} y={-24} opacity={room ? 1 : 0} style={{ ...label(30), letterSpacing: "0.12em" }}>
+        {room ? WORDS[hov].toUpperCase() : ""}
+      </text>
+      <text x={px(19)} y={-68} textAnchor="end" style={label(18)}>PLAN_L00.DWG / REV 0x09</text>
+      <text x={px(19)} y={-40} textAnchor="end" style={label(18)}>1 U = 2 M / 1:200</text>
     </g>
   )
 }
 
-function Facade() {
-  const xL = 16, xR = CX - 6
-  const bayW = (xR - xL) / FACADE_BAYS
+// hover: the room is selected the way a modelling tool selects it —
+// bounding box with handles, a ray back to the kernel, coordinates on the rulers
+function Selection({ room }) {
+  const xs = room.pts.map((p) => p[0]), ys = room.pts.map((p) => p[1])
+  const x0 = px(Math.min(...xs)) - 10, x1 = px(Math.max(...xs)) + 10
+  const y0 = px(Math.min(...ys)) - 10, y1 = px(Math.max(...ys)) + 10
+  const [tx, ty] = room.tag
+  const d = Math.hypot(tx - KX, ty - KY)
   return (
-    <g>
-      <path d={`M ${xL} ${STORE_TOP - 4} L ${xL + 96} 16 L ${xR - 24} 16 L ${xR} ${STORE_TOP - 4} Z`} fill="currentColor" opacity={0.035} />
-      <path d={`M ${xL} ${STORE_TOP - 4} L ${xL + 96} 16 L ${xR - 24} 16 L ${xR} ${STORE_TOP - 4} Z`} fill="none" stroke="currentColor" strokeWidth={1.1} opacity={0.7} />
-      <g clipPath="url(#roofClip)" opacity={0.35}>
-        {Array.from({ length: 24 }, (_, i) => <Ln key={`v${i}`} x1={xL + 4 + i * 13} y1={12} x2={xL + 4 + i * 13} y2={STORE_TOP} w={0.35} o={0.6} />)}
-        {Array.from({ length: 6 }, (_, i) => <Ln key={`h${i}`} x1={xL} y1={20 + i * 7} x2={xL + 320} y2={20 + i * 7} w={0.35} o={0.6} />)}
+    <g pointerEvents="none" stroke="var(--red)" fill="none">
+      <line
+        x1={px(KX + ((tx - KX) * R_KERNEL) / d)} y1={px(KY + ((ty - KY) * R_KERNEL) / d)}
+        x2={px(tx)} y2={px(ty)} strokeWidth={MID}
+      />
+      <rect x={x0} y={y0} width={x1 - x0} height={y1 - y0} strokeWidth={THIN} strokeDasharray="8 6" />
+      {[[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([x, y], i) => (
+        <rect key={i} x={x - 6} y={y - 6} width={12} height={12} strokeWidth={THIN} fill="var(--bg, #fff)" />
+      ))}
+      <path d={`M ${x0} ${px(-2.1) - 8} v 16 M ${x1} ${px(-2.1) - 8} v 16 M ${px(-0.75) - 8} ${y0} h 16 M ${px(-0.75) - 8} ${y1} h 16`} strokeWidth={MID} />
+    </g>
+  )
+}
+
+function FloorPlan({ hov, onHover }) {
+  const hit = (i) => ({
+    style: { cursor: "crosshair" },
+    onMouseEnter: () => onHover(i),
+    onMouseLeave: () => onHover(null),
+  })
+  return (
+    <svg viewBox={`0 0 ${PW} ${PH}`} style={{ width: "100%", height: "auto", display: "block" }}>
+      <defs>
+        {/* halftone screens on a 45° grid: hover, poché, dark room */}
+        <pattern id="planD12" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <circle cx="3.5" cy="3.5" r="1.2" fill="currentColor" />
+        </pattern>
+        <pattern id="planChk" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <circle cx="2.5" cy="2.5" r="1.5" fill="currentColor" />
+        </pattern>
+        <pattern id="planTone" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <circle cx="4.5" cy="4.5" r="1" fill="currentColor" />
+        </pattern>
+        {/* one point per grid intersection */}
+        <pattern id="planGrid" width={U} height={U} patternUnits="userSpaceOnUse">
+          <rect width="3" height="3" fill="var(--line)" />
+        </pattern>
+      </defs>
+      <g transform={`translate(${OX} ${OY})`}>
+        <g pointerEvents="none">
+          <rect x={0} y={px(-1.5)} width={px(19.3)} height={px(14)} fill="url(#planGrid)" />
+          <polygon points={pts2str(FOOTPRINT)} fill="var(--bg, #fff)" />
+        </g>
+
+        {ROOMS.map((room, i) => i !== BOX_ROOM && (
+          <polygon
+            key={room.code}
+            points={pts2str(room.pts)}
+            // hovered room fills with a halftone screen; a hard cut, no fade
+            fill={hov === i ? "url(#planD12)" : "transparent"}
+            stroke="currentColor" strokeWidth={WALL}
+            {...hit(i)}
+          />
+        ))}
+
+        <g pointerEvents="none">
+          <Fittings />
+          <Rotunda />
+          {/* sightlines, inherited: one ray from the kernel to every room */}
+          {ROOMS.map((room) => (
+            <line
+              key={room.code}
+              x1={px(KX)} y1={px(KY)} x2={px(room.tag[0])} y2={px(room.tag[1])}
+              stroke={SOFT} strokeWidth={THIN} strokeDasharray="2 10"
+            />
+          ))}
+          <Kernel />
+
+          {/* corridor ends: one closed by a door onto nothing, one by the box */}
+          <line x1={px(15.5)} y1={px(3)} x2={px(15.5)} y2={px(3.8)} stroke="currentColor" strokeWidth={WALL} />
+          <line x1={px(11.5)} y1={px(9.6)} x2={px(12.7)} y2={px(9.6)} stroke="currentColor" strokeWidth={WALL} />
+
+          <Door x={5} y={3.75} rot={-90} />
+          <Door x={6} y={3} />
+          <Door x={10.9} y={3} />
+          <Door x={14.5} y={3} />
+          <Door x={5} y={7.3} rot={-90} />
+          <Door x={5} y={9.55} rot={-90} />
+          <Door x={5.3} y={9.6} flip w={0.6} />
+          {Array.from({ length: 5 }, (_, i) => <Door key={i} x={6.65 + i} y={9.6} flip w={0.5} />)}
+          <Door x={12} y={4.6} rot={90} />
+          <Door x={15.5} y={3.05} rot={90} />
+
+          <Win x={0.8} y={0} len={1.2} />
+          <Win x={2.8} y={0} len={1.2} />
+          <Win x={0} y={1.2} len={1.4} v />
+          <Win x={5.9} y={0} len={1.2} />
+          <Win x={12.5} y={0} len={0.8} />
+          <Win x={14.1} y={0} len={0.8} />
+          <Win x={0} y={4.6} len={1.2} v />
+          <Win x={0} y={6.6} len={1.4} v />
+          <Win x={0} y={9.8} len={1.4} v />
+          <Win x={0.8} y={12} len={1.2} />
+          <Win x={2.8} y={12} len={1.2} />
+          <Win x={5.4} y={12} len={0.7} />
+          {Array.from({ length: 5 }, (_, i) => <Win key={i} x={6.75 + i} y={12} len={0.5} />)}
+        </g>
+
+        <BlackBox hovered={hov === BOX_ROOM} hit={hit(BOX_ROOM)} />
+
+        <g pointerEvents="none">
+          {/* the control room's corner, still on file under the box */}
+          <path
+            d={`M ${px(14.4)} ${px(6.6)} L ${px(15.5)} ${px(6.6)} L ${px(15.5)} ${px(6.24)}`}
+            fill="none" stroke="currentColor" strokeWidth={THIN} strokeDasharray="6 6"
+          />
+          {[[14.4, 6.6], [15.5, 6.24]].map(([x, y], i) => (
+            <g key={i} transform={`translate(${px(x)} ${px(y)})`} stroke="currentColor" strokeWidth={MID}>
+              <circle r={13} fill="var(--bg, #fff)" strokeWidth={THIN} />
+              <path d="M -6 -6 L 6 6 M 6 -6 L -6 6" />
+            </g>
+          ))}
+          <text x={px(15.75)} y={px(5.62)} fill="currentColor" style={label(16)}>CLASH_02</text>
+
+          <GhostWing />
+          {ROOMS.map((room, i) => <Tag key={room.code} n={i} room={room} />)}
+          <Rulers />
+
+          {/* where section A–A cuts */}
+          {[-0.62, 12.25].map((y) => (
+            <g key={y}>
+              <line x1={px(KX)} y1={px(y)} x2={px(KX)} y2={px(y + 0.3)} stroke="currentColor" strokeWidth={MID} />
+              <text x={px(KX) - 18} y={px(y + 0.3)} fill="currentColor" style={label(16)}>A</text>
+            </g>
+          ))}
+
+          {/* axes */}
+          <g transform={`translate(${px(12)} ${px(11.8)})`} stroke="currentColor" strokeWidth={MID} fill="none">
+            <path d={`M 0 0 V ${-px(0.8)} m -7 9 l 7 -9 l 7 9 M 0 0 H ${px(0.7)} m -9 -7 l 9 7 l -9 7`} />
+            <rect x={-5} y={-5} width={10} height={10} fill="currentColor" stroke="none" />
+            <text x={12} y={-px(0.8) + 4} fill="currentColor" stroke="none" style={label(16)}>N</text>
+            <text x={px(0.7) - 12} y={26} fill="currentColor" stroke="none" style={label(16)}>X</text>
+          </g>
+          {/* scale bar, in powers of two */}
+          <g transform={`translate(${px(14.6)} ${px(11.85)})`}>
+            <rect x={0} y={0} width={px(1)} height={8} fill="currentColor" />
+            <rect x={px(2)} y={0} width={px(2)} height={8} fill="currentColor" />
+            <rect x={0} y={0} width={px(4)} height={8} fill="none" stroke="currentColor" strokeWidth={THIN} />
+            {[[0, "0"], [1, "2"], [2, "4"], [4, "8 M"]].map(([x, t]) => (
+              <text key={t} x={px(x)} y={-8} fill="currentColor" style={label(16)}>{t}</text>
+            ))}
+          </g>
+
+          <Readout hov={hov} />
+        </g>
+        {hov != null && <Selection room={ROOMS[hov]} />}
       </g>
-      <text x={xL + 44} y={11} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px" }}>B</text>
-      <Wl x1={xL - 3} y1={STORE_TOP - 4} x2={xR + 3} y2={STORE_TOP - 4} w={1} o={0.55} />
-      <Wl x1={xL - 2} y1={STORE_TOP} x2={xR + 2} y2={STORE_TOP} w={2.2} o={0.85} />
-      <Wl x1={xL} y1={STORE_TOP} x2={xL} y2={BASE_Y} w={2} o={0.8} />
-      <Wl x1={xR} y1={STORE_TOP} x2={xR} y2={BASE_Y} w={2} o={0.8} />
-      {Array.from({ length: FACADE_BAYS - 1 }, (_, i) => <Ln key={i} x1={xL + (i + 1) * bayW} y1={STORE_TOP + 3} x2={xL + (i + 1) * bayW} y2={BASE_Y - 2} w={0.4} o={0.18} />)}
-      {FACADE_ROWS.map((row, r) => {
-        const y0 = STORE_TOP + r * FLOOR_H
-        const winW = bayW * (r === 0 ? 0.16 : 0.2)
-        return (
-          <g key={r}>
-            {r > 0 && <><Wl x1={xL} y1={y0} x2={xR} y2={y0} w={1} o={0.5} /><Ln x1={xL} y1={y0 + 2.5} x2={xR} y2={y0 + 2.5} w={0.4} o={0.3} /></>}
-            {Array.from({ length: FACADE_BAYS }, (_, c) => {
-              if (r === 4 && c === 2) return null
-              const bayX = xL + c * bayW
-              return <g key={c}><FacadeWindow x={bayX + bayW * 0.26 - winW / 2} y={y0 + row.top} w={winW} h={row.h} arched={row.arched} /><FacadeWindow x={bayX + bayW * 0.74 - winW / 2} y={y0 + row.top} w={winW} h={row.h} arched={row.arched} /></g>
-            })}
-          </g>
-        )
-      })}
-      <FacadeWindow x={xL + 2.5 * bayW - 14} y={BASE_Y - 33} w={28} h={33} arched />
-      <Wl x1={xL - 4} y1={BASE_Y} x2={xR + 4} y2={BASE_Y} w={2.4} o={0.85} />
-    </g>
+    </svg>
   )
 }
 
-function Section({ hov }) {
-  const x0 = CX + 6, x1 = W - 44, towerX = CX + 160, cellX = x1 - 116
+// ── Elevation + Section ─────────────────────────────────────────────────
+// Projected from the plan at a smaller scale: the south elevation shares the
+// plan's x axis, section A–A its y axis (cut north–south through the kernel,
+// looking east). Heights are in the same units, 1 U = 2 m.
+
+const E = 34
+const EH = 350
+const GY = 270
+const SX = 797
+const ex = (x) => OX + x * E
+const sy = (y) => SX + y * E
+const ez = (z) => GY - z * E
+// rect from its lower-left corner, in elevation (x, z) or section (y, z)
+const eBox = (h, a, z, w, t) => ({ x: h(a), y: ez(z + t), width: w * E, height: t * E })
+
+const H_ROOF = 2
+const H_CELLS = 1.7
+const H_HALL = 3
+const H_BOX = 3.5
+const H_KERNEL = 6
+const H_MAST = 7.2
+// box corners in plan order: west, north, east, south
+const [BOX_W, BOX_N, BOX_E, BOX_S] = ROOMS[BOX_ROOM].pts
+
+function SouthElevation({ hov }) {
+  const lit = (i) => (hov === i ? "url(#planD12)" : "none")
+  const solid = { fill: "var(--bg, #fff)", stroke: "currentColor", strokeWidth: MID }
   return (
     <g>
-      <rect x={towerX - 11} y={4} width={22} height={14} fill="none" stroke="currentColor" strokeWidth={1} opacity={0.7} />
-      <Ln x1={towerX - 6} y1={7} x2={towerX - 6} y2={15} w={0.4} o={0.5} />
-      <Ln x1={towerX + 6} y1={7} x2={towerX + 6} y2={15} w={0.4} o={0.5} />
-      <text x={towerX - 18} y={12} textAnchor="end" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px" }}>K</text>
-      <path d={`M ${x0} ${STORE_TOP - 4} L ${towerX} 18 L ${x1} ${STORE_TOP - 4}`} fill="none" stroke="currentColor" strokeWidth={1.4} opacity={0.75} />
-      <Ln x1={x0 + 12} y1={STORE_TOP - 5} x2={towerX} y2={24} w={0.5} o={0.35} />
-      {Array.from({ length: 7 }, (_, i) => { const t = (i + 1) / 8; const px = towerX + t * (x1 - towerX); const py = 18 + t * (STORE_TOP - 4 - 18); return <Ln key={i} x1={px} y1={py + 1} x2={px} y2={py + 8} w={0.45} o={0.4} /> })}
-      <text x={(towerX + x1) / 2 + 10} y={26} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px" }}>C</text>
-      <Wl x1={x0} y1={STORE_TOP - 4} x2={x0} y2={BASE_Y} w={2} o={0.8} />
-      <Wl x1={x1} y1={STORE_TOP - 4} x2={x1} y2={BASE_Y} w={2} o={0.8} />
-      <path d={`M ${x0 + 4} 50 Q ${towerX - 90} 30 ${towerX - 26} 116`} fill="none" stroke="currentColor" strokeWidth={0.7} opacity={0.35} />
-      <path d={`M ${x0 + 4} 84 Q ${towerX - 80} 62 ${towerX - 26} 140`} fill="none" stroke="currentColor" strokeWidth={0.6} opacity={0.25} />
-      <text x={(x0 + towerX) / 2 - 20} y={52} textAnchor="middle" fill="currentColor" opacity={0.4} style={{ fontFamily: mono, fontSize: "7px" }}>I</text>
-      <text x={(x0 + towerX - 26) / 2} y={152} textAnchor="middle" fill="currentColor" opacity={0.42} style={{ fontFamily: mono, fontSize: "7px" }}>G</text>
-      {Array.from({ length: N_FLOORS }, (_, r) => {
-        const yb = STORE_TOP + (r + 1) * FLOOR_H
-        const n = Math.floor((towerX - 34 - (x0 + 8)) / 26)
-        return <g key={r} opacity={0.22}><Ln x1={x0 + 2} y1={yb} x2={towerX - 28} y2={yb} w={0.5} o={0.9} />{Array.from({ length: n }, (_, i) => { const ax = x0 + 8 + i * 26; return <path key={i} d={`M ${ax} ${yb} L ${ax} ${yb - 14} A 9 9 0 0 1 ${ax + 18} ${yb - 14} L ${ax + 18} ${yb}`} fill="none" stroke="currentColor" strokeWidth={0.5} /> })}</g>
-      })}
-      <Wl x1={towerX - 26} y1={18} x2={towerX - 26} y2={BASE_Y} w={1.2} o={0.7} />
-      <Wl x1={towerX + 26} y1={18} x2={towerX + 26} y2={BASE_Y} w={1.2} o={0.7} />
-      {Array.from({ length: 16 }, (_, i) => { const y = 28 + i * 14.4; return i % 2 === 0 ? <Ln key={i} x1={towerX - 22} y1={y} x2={towerX + 22} y2={y - 9} w={0.45} o={0.4} /> : <Ln key={i} x1={towerX - 22} y1={y - 9} x2={towerX + 22} y2={y} w={0.45} o={0.4} /> })}
-      {Array.from({ length: N_FLOORS + 1 }, (_, r) => {
-        const y = STORE_TOP + r * FLOOR_H
-        return <g key={r}><Wl x1={towerX + 26} y1={y} x2={x1} y2={y} w={1.5} o={0.75} />{r > 0 && <g opacity={0.55}><Ln x1={towerX + 27} y1={y - 9} x2={towerX + 61} y2={y - 9} w={0.6} o={0.9} />{Array.from({ length: 9 }, (_, t) => <Ln key={t} x1={towerX + 28 + t * 4} y1={y} x2={towerX + 28 + t * 4} y2={y - 9} w={0.45} o={0.8} />)}</g>}</g>
-      })}
-      {Array.from({ length: N_FLOORS }, (_, r) => {
-        const y = STORE_TOP + r * FLOOR_H
-        const lit = hov != null && hov % N_FLOORS === r
-        return (
-          <g key={r}>
-            <rect x={cellX + 1.5} y={y + 1.5} width={x1 - cellX - 3} height={FLOOR_H - 3} fill={lit ? "url(#planD12)" : "none"} pointerEvents="none" />
-            <Wl x1={cellX} y1={y} x2={cellX} y2={y + 16} w={1.3} o={0.7} />
-            <path d={`M ${cellX} ${y + 16} A 8 8 0 0 0 ${cellX - 8} ${y + 24}`} fill="none" stroke="currentColor" strokeWidth={0.6} opacity={0.5} />
-            <Ln x1={cellX} y1={y + FLOOR_H} x2={cellX - 9} y2={y + FLOOR_H - 9} w={0.5} o={0.4} />
-            <g stroke="currentColor" fill="none" opacity={0.45}><rect x={x1 - 32} y={y + FLOOR_H - 9} width={22} height={7} strokeWidth={0.5} /><line x1={x1 - 32} y1={y + FLOOR_H - 5.5} x2={x1 - 10} y2={y + FLOOR_H - 5.5} strokeWidth={0.3} /></g>
-            <rect x={x1 + 1} y={y + 8} width={7} height={11} fill="currentColor" fillOpacity={0.06} stroke="currentColor" strokeWidth={0.6} opacity={0.5} />
-            <text x={(cellX + x1) / 2} y={y + 22} textAnchor="middle" fill="currentColor" opacity={0.5} style={{ fontFamily: mono, fontSize: "7.5px" }}>A</text>
-            {r < N_FLOORS - 1 && <text x={towerX + 88} y={y + 22} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px" }}>D</text>}
-          </g>
-        )
-      })}
-      {hov != null && (() => {
-        const r = hov % N_FLOORS
-        const y = STORE_TOP + r * FLOOR_H
-        const sx = cellX + (x1 - cellX) / 2, sy = y + FLOOR_H / 2
-        const skyY = 50, elbowX = sx + 26
-        return (
-          <g pointerEvents="none">
-            <circle cx={sx} cy={sy} r={2.4} fill="var(--red)" />
-            <polyline points={`${sx},${sy} ${elbowX},${skyY} ${x1 + 30},${skyY}`} fill="none" stroke="var(--red)" strokeWidth={1.6} />
-            <text x={x1 + 55} y={skyY - 6} textAnchor="start" fill="currentColor" opacity={0.92} style={{ fontFamily: mono, fontSize: "13px", letterSpacing: "0.1em" }}>
-              {WORDS[hov].toUpperCase()}
-            </text>
-          </g>
-        )
-      })()}
-      <path d={`M ${towerX + 26} ${BASE_Y} Q ${(towerX + 26 + cellX) / 2} ${BASE_Y - 62} ${cellX} ${BASE_Y}`} fill="none" stroke="currentColor" strokeWidth={0.8} opacity={0.5} />
-      <text x={(towerX + 26 + cellX) / 2} y={BASE_Y - 16} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7.5px" }}>H</text>
-      <Wl x1={x0 - 4} y1={BASE_Y} x2={x1 + 8} y2={BASE_Y} w={2.4} o={0.85} />
-      <text x={x1 + 22} y={BASE_Y - 6} textAnchor="middle" fill="currentColor" opacity={0.4} style={{ fontFamily: mono, fontSize: "7px" }}>E</text>
-      <g opacity={0.45}>
-        <Ln x1={x1 + 32} y1={STORE_TOP} x2={x1 + 32} y2={BASE_Y} w={0.5} />
-        {Array.from({ length: N_FLOORS + 1 }, (_, r) => { const y = STORE_TOP + r * FLOOR_H; return <g key={r}><Ln x1={x1 + 28} y1={y} x2={x1 + 36} y2={y} w={0.6} /><Ln x1={x1 + 29} y1={y + 3} x2={x1 + 35} y2={y - 3} w={0.6} /></g> })}
+      {/* behind everything: the kernel tower and its mast, then the rotunda drum */}
+      <g stroke={SOFT} strokeWidth={THIN} fill="none">
+        <line x1={ex(KX)} y1={ez(H_KERNEL)} x2={ex(KX)} y2={ez(H_MAST)} />
+        <line x1={ex(KX - 0.25)} y1={ez(6.5)} x2={ex(KX + 0.25)} y2={ez(6.5)} />
+        <line x1={ex(KX - 0.15)} y1={ez(6.85)} x2={ex(KX + 0.15)} y2={ez(6.85)} />
       </g>
+      <rect {...eBox(ex, KX - R_KERNEL, 0, R_KERNEL * 2, H_KERNEL)} {...solid} />
+      {Array.from({ length: 5 }, (_, i) => (
+        <line key={i} x1={ex(7.2)} y1={ez(3.5 + i * 0.5)} x2={ex(9.8)} y2={ez(3.5 + i * 0.5)} stroke={SOFT} strokeWidth={THIN} />
+      ))}
+      <rect {...eBox(ex, KX - R_ROTUNDA, 0, R_ROTUNDA * 2, H_HALL)} {...solid} />
+      {Array.from({ length: 9 }, (_, i) => (
+        <rect key={i} {...eBox(ex, 6.36 + i * 0.5, 2.25, 0.28, 0.4)} fill="none" stroke={SOFT} strokeWidth={THIN} />
+      ))}
+      {/* the foyer wall, seen in the gap between the cells and the box */}
+      <rect {...eBox(ex, 11.5, 0, 1, H_ROOF)} {...solid} />
+
+      {/* front: the workshop under a sawtooth roof, then the cells */}
+      {Array.from({ length: 4 }, (_, i) => (
+        <path key={i} d={`M ${ex(i * 1.25)} ${ez(H_ROOF)} V ${ez(2.6)} L ${ex((i + 1) * 1.25)} ${ez(H_ROOF)}`} {...solid} />
+      ))}
+      <rect {...eBox(ex, 0, 0, 5, H_ROOF)} {...solid} />
+      <rect {...eBox(ex, 0, 0, 5, H_ROOF)} fill={lit(5)} />
+      <rect {...eBox(ex, 5, 0, 6.5, H_CELLS)} {...solid} />
+      <rect {...eBox(ex, 5, 0, 6.5, H_CELLS)} fill={lit(6)} />
+      <g stroke={SOFT} strokeWidth={THIN} fill="var(--bg, #fff)">
+        {[0.8, 2.8].map((x) => (
+          <g key={x}>
+            <rect {...eBox(ex, x, 0.6, 1.2, 0.9)} />
+            <line x1={ex(x + 0.6)} y1={ez(0.6)} x2={ex(x + 0.6)} y2={ez(1.5)} />
+          </g>
+        ))}
+        <rect {...eBox(ex, 5.4, 0.9, 0.7, 0.5)} />
+        {Array.from({ length: 5 }, (_, i) => <rect key={i} {...eBox(ex, 6.75 + i, 0.9, 0.5, 0.5)} />)}
+      </g>
+
+      {/* the box, turned 18°: a short face and a long one, the long one in tone */}
+      <rect {...eBox(ex, BOX_W[0], 0, BOX_S[0] - BOX_W[0], H_BOX)} {...solid} />
+      <rect {...eBox(ex, BOX_S[0], 0, BOX_E[0] - BOX_S[0], H_BOX)} {...solid} />
+      <rect {...eBox(ex, BOX_S[0], 0, BOX_E[0] - BOX_S[0], H_BOX)} fill="url(#planTone)" />
+      <rect {...eBox(ex, BOX_W[0], 0, BOX_E[0] - BOX_W[0], H_BOX)} fill={lit(BOX_ROOM)} />
+
+      <line x1={ex(-0.5)} y1={GY} x2={ex(19.3)} y2={GY} stroke="currentColor" strokeWidth={WALL} />
     </g>
   )
 }
 
-function ScaleBar() {
-  const y = BASE_Y + 32, x = 350, seg = 50
+function SectionAA({ hov }) {
+  const lit = (i) => (hov === i ? "url(#planD12)" : "none")
+  const P = (pts) => pts.map(([y, z]) => `${sy(y)},${ez(z)}`).join(" ")
+  const V = (y, z0, z1) => <line x1={sy(y)} y1={ez(z0)} x2={sy(y)} y2={ez(z1)} />
+  const Hz = (z, y0, y1) => <line x1={sy(y0)} y1={ez(z)} x2={sy(y1)} y2={ez(z)} />
+  // roofline, north to south: apse and hall, corridor, drum, tower, drum, corridor, cells
+  const profile = [
+    [-1.5, 0], [-1.5, H_HALL], [3, H_HALL], [3, H_ROOF], [3.8, H_ROOF], [3.8, H_HALL],
+    [KY - R_KERNEL, H_HALL], [KY - R_KERNEL, H_KERNEL], [KY + R_KERNEL, H_KERNEL], [KY + R_KERNEL, H_HALL],
+    [8.8, H_HALL], [8.8, H_ROOF], [9.6, H_ROOF], [9.6, H_CELLS], [12, H_CELLS], [12, 0],
+  ]
+  const tiers = Array.from({ length: 5 }, (_, k) => [[0.3 - 0.36 * k, 0.18 * (k + 1)], [0.3 - 0.36 * (k + 1), 0.18 * (k + 1)]]).flat()
   return (
     <g>
-      <text x={x - 12} y={y + 5} textAnchor="end" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px", fontStyle: "italic" }}>scale of</text>
-      {Array.from({ length: 6 }, (_, i) => i % 2 === 0 && <rect key={i} x={x + i * seg} y={y} width={seg} height={4} fill="currentColor" opacity={0.55} />)}
-      <rect x={x} y={y} width={seg * 6} height={4} fill="none" stroke="currentColor" strokeWidth={0.7} opacity={0.7} />
-      {Array.from({ length: 7 }, (_, i) => <text key={i} x={x + i * seg} y={y - 4} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "6.5px" }}>{i * 10}</text>)}
-      <text x={x + seg * 6 + 12} y={y + 5} textAnchor="start" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7px", fontStyle: "italic" }}>feet</text>
+      {/* beyond the cut: the box and the mast */}
+      <g stroke={SOFT} strokeWidth={THIN} fill="none">
+        <rect {...eBox(sy, BOX_N[1], 0, BOX_S[1] - BOX_N[1], H_BOX)} />
+        {V(BOX_W[1], 0, H_BOX)}
+        {V(KY, H_KERNEL, H_MAST)}
+        {Hz(6.5, KY - 0.25, KY + 0.25)}
+        {Hz(6.85, KY - 0.15, KY + 0.15)}
+      </g>
+      <polygon points={P(profile)} fill="var(--bg, #fff)" />
+      <rect {...eBox(sy, -1.5, 0, 4.5, H_HALL)} fill={lit(2)} />
+      <rect {...eBox(sy, 9.6, 0, 2.4, H_CELLS)} fill={lit(6)} />
+
+      {/* ground, and the kernel's shaft carrying on below it */}
+      <rect x={sy(-2)} y={GY} width={14.5 * E} height={10} fill="url(#planChk)" />
+      <g stroke={SOFT} strokeWidth={THIN} fill="none">
+        <g strokeDasharray="6 6">
+          {V(KY - 0.45, 0, -1.4)}
+          {V(KY + 0.45, 0, -1.4)}
+        </g>
+        {/* shaft, racks on every level of the tower */}
+        {V(KY - 0.45, 0, H_KERNEL)}
+        {V(KY + 0.45, 0, H_KERNEL)}
+        {Array.from({ length: 5 }, (_, f) => (
+          <g key={f}>
+            <rect {...eBox(sy, 5.05, f * 1.2 + 0.06, 0.55, 0.85)} />
+            <rect {...eBox(sy, 7, f * 1.2 + 0.06, 0.55, 0.85)} />
+          </g>
+        ))}
+        {/* raked tiers in the apse, rostrum, a bed */}
+        <polyline points={P([[0.3, 0], ...tiers])} />
+        <rect {...eBox(sy, 1.2, 0, 0.3, 0.5)} />
+        <rect {...eBox(sy, 10.5, 0.2, 1.2, 0.16)} />
+      </g>
+      <text x={sy(7.05)} y={GY + 44} fill={SOFT} style={label(16)}>DEPTH: NULL</text>
+
+      <g stroke="currentColor" strokeWidth={MID}>
+        {[1.2, 2.4, 3.6, 4.8].map((z) => (
+          <g key={z}>
+            {Hz(z, KY - R_KERNEL, KY - 0.45)}
+            {Hz(z, KY + 0.45, KY + R_KERNEL)}
+          </g>
+        ))}
+        {/* gallery round the ring walk */}
+        {Hz(1.5, 3.8, KY - R_KERNEL)}
+        {Hz(1.5, KY + R_KERNEL, 8.8)}
+      </g>
+      {/* everything the plane cuts */}
+      <g stroke="currentColor" strokeWidth={WALL} fill="none">
+        <polyline points={P(profile)} />
+        {V(3, 1.1, H_ROOF)}
+        {V(3.8, 1.2, H_ROOF)}
+        {V(KY - R_KERNEL, 0, H_HALL)}
+        {V(KY + R_KERNEL, 0, H_HALL)}
+        {V(8.8, 1.2, H_ROOF)}
+        {V(9.6, 1.1, H_CELLS)}
+      </g>
+      {/* the cell's window */}
+      <rect x={sy(12) - 4} y={ez(1.4)} width={8} height={0.5 * E} fill="var(--bg, #fff)" stroke="currentColor" strokeWidth={THIN} />
+      <line x1={sy(-2)} y1={GY} x2={sy(12.5)} y2={GY} stroke="currentColor" strokeWidth={WALL} />
     </g>
   )
 }
 
 function ElevationSection({ hov }) {
+  const room = hov != null ? ROOMS[hov] : null
+  // hover: the selected room's extent, projected onto each view's ground line
+  const bracket = (h, i) => {
+    const v = room.pts.map((p) => p[i])
+    const a = h(Math.min(...v)), b = h(Math.max(...v))
+    return <path d={`M ${a} ${GY + 14} v 12 M ${b} ${GY + 14} v 12 M ${a} ${GY + 20} H ${b}`} fill="none" stroke="var(--red)" strokeWidth={MID} />
+  }
   return (
-    <svg viewBox={`0 0 ${ELEV_VB_W} ${EH}`} style={{ width: "100%", height: "auto", display: "block", marginBottom: "0.4rem" }}>
-      <defs>
-        <pattern id="winHatch" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="3.2" stroke="currentColor" strokeWidth="0.5" opacity="0.45" />
-        </pattern>
-        <clipPath id="roofClip">
-          <path d={`M 16 ${STORE_TOP - 4} L 112 16 L ${CX - 30} 16 L ${CX - 6} ${STORE_TOP - 4} Z`} />
-        </clipPath>
-      </defs>
-      <Facade />
-      <Section hov={hov} />
-      <g opacity={0.3}>
-        {Array.from({ length: 70 }, (_, i) => { const x = 20 + i * 14; return <Ln key={i} x1={x} y1={BASE_Y + 2} x2={x - 6} y2={BASE_Y + 8} w={0.5} o={0.9} /> })}
-      </g>
-      <text x={255} y={BASE_Y + 20} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7.5px", letterSpacing: "1.2px" }}>ELEVATION</text>
-      <text x={731} y={BASE_Y + 20} textAnchor="middle" fill="currentColor" opacity={0.45} style={{ fontFamily: mono, fontSize: "7.5px", letterSpacing: "1.2px" }}>SECTION A—A</text>
-      <ScaleBar />
-      <Ln x1={CX} y1={0} x2={CX} y2={BASE_Y + 10} w={0.5} o={0.3} dash="1 3" />
+    <svg viewBox={`0 0 ${PW} ${EH}`} style={{ width: "100%", height: "auto", display: "block", marginBottom: "0.4rem" }}>
+      <SouthElevation hov={hov} />
+      <SectionAA hov={hov} />
+      <text x={ex(0)} y={EH - 8} fill="currentColor" style={label(16)}>SOUTH ELEVATION</text>
+      <text x={sy(-1.5)} y={EH - 8} fill="currentColor" style={label(16)}>SECTION A-A</text>
+      {room && bracket(ex, 0)}
+      {room && bracket(sy, 1)}
     </svg>
   )
 }
@@ -302,65 +694,10 @@ function CombinedPlan() {
     // .plan-1bit: no antialiasing, then every pixel is thresholded to ink or
     // paper (see #one-bit in layout.astro) — the drawing's line hierarchy is
     // carried by weight alone, like a photocopied CAD sheet
-    <div className="plan-1bit" style={{ position: "relative", width: "min(86%, 760px)", margin: "0 0 0 2rem", color: "var(--ink)" }}
+    <div className="plan-1bit" style={{ position: "relative", width: "min(100%, 760px)", color: "var(--ink)" }}
     >
       <ElevationSection hov={hov} />
-      <svg viewBox={`-250 0 1500 ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
-        <defs>
-          <pattern id="planD12" width="12" height="12" patternUnits="userSpaceOnUse">
-            <rect x="6" y="6" width="4" height="4" fill="currentColor" />
-          </pattern>
-        </defs>
-        <circle cx={CX} cy={CY} r={R_CELL_OUT} fill="currentColor" opacity={0.03} />
-        <circle cx={CX} cy={CY} r={R_CELL_OUT} fill="none" stroke="currentColor" strokeWidth={2.4} opacity={0.85} />
-        {Array.from({ length: N_CELLS }, (_, i) => {
-          const a0 = -Math.PI / 2 + (i * 2 * Math.PI) / N_CELLS
-          const a1 = -Math.PI / 2 + ((i + 1) * 2 * Math.PI) / N_CELLS
-          return <Cell key={i} idx={i} a0={a0} a1={a1} label={WORDS[i]} hovered={hov === i} onHover={setHov} />
-        })}
-        {Array.from({ length: N_CELLS }, (_, i) => {
-          const a = -Math.PI / 2 + (i * 2 * Math.PI) / N_CELLS
-          const [x1, y1] = pol(CX, CY, R_CELL_IN, a)
-          const [x2, y2] = pol(CX, CY, R_CELL_OUT, a)
-          return <Wl key={i} x1={x1} y1={y1} x2={x2} y2={y2} w={1.6} o={0.6} />
-        })}
-        <circle cx={CX} cy={CY} r={R_CATWALK} fill="none" stroke="currentColor" strokeWidth={1} opacity={0.5} strokeDasharray="2 3" />
-        <circle cx={CX} cy={CY} r={R_CELL_IN} fill="none" stroke="currentColor" strokeWidth={1.4} opacity={0.7} />
-        <g stroke="currentColor" fill="none" opacity={0.22}>
-          {Array.from({ length: N_CELLS }, (_, i) => {
-            const a = -Math.PI / 2 + ((i + 0.5) * 2 * Math.PI) / N_CELLS
-            const [x2, y2] = pol(CX, CY, R_CELL_OUT - 4, a)
-            return <line key={i} x1={CX} y1={CY} x2={x2} y2={y2} strokeWidth={0.4} strokeDasharray="1 3" />
-          })}
-        </g>
-        {hov != null && (() => {
-          const a = -Math.PI / 2 + ((hov + 0.5) * 2 * Math.PI) / N_CELLS
-          const [x2, y2] = pol(CX, CY, R_CELL_OUT - 4, a)
-          return <line x1={CX} y1={CY} x2={x2} y2={y2} stroke="currentColor" strokeWidth={0.7} opacity={0.55} pointerEvents="none" />
-        })()}
-        <circle cx={CX} cy={CY} r={R_TOWER} fill="currentColor" opacity={0.06} />
-        <circle cx={CX} cy={CY} r={R_TOWER} fill="none" stroke="currentColor" strokeWidth={1.6} opacity={0.85} />
-        <g stroke="currentColor" fill="none" opacity={0.6}>
-          {Array.from({ length: N_CELLS }, (_, i) => {
-            const a = -Math.PI / 2 + (i * 2 * Math.PI) / N_CELLS
-            const [x1, y1] = pol(CX, CY, R_TOWER * 0.4, a)
-            const [x2, y2] = pol(CX, CY, R_TOWER, a)
-            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} strokeWidth={0.4} />
-          })}
-        </g>
-        <circle cx={CX} cy={CY} r={16} fill="none" stroke="currentColor" strokeWidth={1} opacity={0.7} />
-        <circle cx={CX} cy={CY} r={4} fill="currentColor" stroke="none" opacity={0.75} />
-        <text x={CX} y={CY - 26} textAnchor="middle" fill="currentColor" opacity={0.5} style={{ fontFamily: mono, fontSize: "7.5px", letterSpacing: "1.5px" }}>INSPECTION HOUSE</text>
-        <g opacity={0.4}>
-          <Ln x1={60} y1={34} x2={940} y2={34} w={0.5} />
-          {[60, 240, 500, 760, 940].map((x) => <g key={x}><Ln x1={x} y1={30} x2={x} y2={38} w={0.6} /><Ln x1={x - 3} y1={37} x2={x + 3} y2={31} w={0.6} /></g>)}
-        </g>
-        <g transform="translate(952 330)" stroke="currentColor" fill="none" opacity={0.5}>
-          <circle cx={0} cy={0} r={13} strokeWidth={0.7} />
-          <path d="M 0 9 L 0 -9 M -4 -3 L 0 -9 L 4 -3" strokeWidth={0.8} />
-          <text x={0} y={24} textAnchor="middle" fill="currentColor" stroke="none" style={{ fontFamily: mono, fontSize: "7px" }}>N</text>
-        </g>
-      </svg>
+      <FloorPlan hov={hov} onHover={setHov} />
     </div>
   )
 }
@@ -369,7 +706,7 @@ function CombinedPlan() {
 
 function FullBio() {
   return (
-    <div className="space-y-4" style={{ fontSize: "17px", lineHeight: 1.45 }}>
+    <div className="space-y-4" style={{ fontSize: "15px", lineHeight: 1.45 }}>
       <p>
         He also performs and records under the name <strong>WrappedByte</strong> — a live-coding
         audio/visual project working primarily in TidalCycles and Hydra. As WrappedByte, he has
@@ -587,16 +924,25 @@ const About = () => {
   return (
     <div
       className="relative z-10 w-full pb-16"
-      style={{ fontFamily: "var(--f-body)", color: "var(--ink)", fontSize: "18px", lineHeight: 1.45 }}
+      style={{ fontFamily: "var(--f-body)", color: "var(--ink)", fontSize: "16px", lineHeight: 1.45 }}
     >
       <style>{`
         .about-link { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
         .about-link:hover { background: var(--ink); color: var(--bg); text-decoration: none; }
         .plan-1bit svg { shape-rendering: crispEdges; filter: url(#one-bit); }
+        /* desktop: bio on the left, works & activity on the right */
+        .about-cols { max-width: 48rem; padding: 2rem 2rem 0; margin-bottom: 3rem; }
+        @media (min-width: 1024px) {
+          .about-cols { max-width: 96rem; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 4rem; align-items: start; }
+          /* the title row spans both columns, so works & activity starts level
+             with the first paragraph (the pull cancels the Toggle's top margin) */
+          .about-head { grid-column: 1 / -1; }
+          .about-works { margin-top: -2.4rem; }
+        }
       `}</style>
-      <div className="max-w-3xl" style={{ padding: "2rem 2rem 0", marginBottom: "3rem" }}>
-        <p className="kicker wipe" style={{ marginTop: "2.5rem" }}>[about] — b. 1994, Thailand</p>
-        <h1 className="wipe" style={{ margin: "0.6rem 0 2.4rem" }}>About</h1>
+      <div className="about-cols">
+        <div className="about-head">
+        <h1 className="wipe" style={{ margin: "2.5rem 0 2.4rem" }}>About</h1>
 
         <div className="flex wipe" style={{ marginBottom: "3.5rem" }}>
           {[
@@ -608,9 +954,11 @@ const About = () => {
             </a>
           ))}
         </div>
+        </div>
 
+        <div>
         <div className="space-y-5 wipe">
-        <p className="lead">
+        <p className="lead" style={{ fontSize: "clamp(18px, 1.7vw, 22px)" }}>
           Wasawat Somno (1994, Thailand) is an artist working with code, audiovisual/sound performance,
           and installation. His practice is organized around the act of mapping — holding two planes of
           context in tension and tracing what passes between them. A computational system and the ethical
@@ -638,6 +986,18 @@ const About = () => {
           </div>
         )}
 
+        {/* floor plan toggle */}
+        <div>
+          <Toggle open={showPlan} onClick={() => setShowPlan(v => !v)} openLabel="close plan" closedLabel="floor plan" />
+        </div>
+        {showPlan && (
+          <div style={{ marginTop: "1.5rem" }}>
+            <CombinedPlan />
+          </div>
+        )}
+        </div>
+
+        <div className="about-works">
         <div>
           <Toggle open={showWorks} onClick={() => setShowWorks(v => !v)} openLabel="collapse works & activity" closedLabel="works & activity" />
         </div>
@@ -646,16 +1006,7 @@ const About = () => {
             <WorksList />
           </div>
         )}
-      </div>
-
-      {/* floor plan toggle */}
-      <div style={{ width: "100%", borderTop: "1px solid var(--line)" }}>
-        <div className="max-w-3xl" style={{ padding: `0 2rem ${showPlan ? "1.5rem" : "1rem"}` }}>
-          <Toggle open={showPlan} onClick={() => setShowPlan(v => !v)} openLabel="close plan" closedLabel="floor plan" />
         </div>
-        {showPlan && (
-          <CombinedPlan />
-        )}
       </div>
     </div>
   )

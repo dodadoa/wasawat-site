@@ -1,0 +1,67 @@
+---
+import Layout from "../layouts/layout.astro"
+import Ouroboros from "./art/Ouroboros.jsx"
+
+export interface Props {
+  code: string
+  title: string
+  line: string
+}
+
+const { code, title, line } = Astro.props
+---
+
+<Layout title={`${code} · ${title}`}>
+  <section class="err">
+    <div class="err-stage">
+      <Ouroboros client:only="react" />
+    </div>
+    <p class="kicker">error {code} · {title}</p>
+    <p class="err-line">{line}</p>
+    <p class="data err-path">{Astro.url.pathname}</p>
+    <nav class="err-nav">
+      <a href="/" class="btn">→ home</a>
+      <a href="/work" class="btn">→ work</a>
+    </nav>
+  </section>
+</Layout>
+
+<style>
+  .err {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: calc(100vh - 8rem);
+    justify-content: center;
+    padding: 0 1rem;
+    text-align: center;
+  }
+
+  .err-stage {
+    width: min(92vw, 62vh, 640px);
+    aspect-ratio: 1;
+  }
+
+  .err-line {
+    font-family: var(--f-display);
+    font-size: clamp(22px, 3.4vw, 34px);
+    line-height: 1.2;
+    max-width: 22em;
+    filter: url(#ink-small);
+  }
+
+  .err-path {
+    font-size: 12px;
+    max-width: 90vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .err-nav {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+</style>

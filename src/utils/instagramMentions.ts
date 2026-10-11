@@ -17,6 +17,7 @@ const INSTAGRAM_NAMES: Record<string, string> = {
   "korborvor_visual_label": "Korborvor Visual Label",
   // People
   "renickbell": "Renick Bell",
+  "sophiologin": "Yeeun Namkoong (sofolofo)",
   "jodeyiam": "Jo Ngo",
   "wrappedbyte": "WrappedByte",
   "karnpapon": "Anu",
@@ -26,14 +27,14 @@ const INSTAGRAM_NAMES: Record<string, string> = {
   "nawinnuthong": "Nawin Nuthong",
   "pin_natthamon": "Pin Natthamon",
   "varut_o": "Varut",
-  "putpat13o": "putpat13o",
-  "uuunbbb": "uuunbbb",
-  "poc9.s": "poc9.s",
-  "sthienwiwat": "sthienwiwat",
-  "frameofchaos": "frameofchaos",
+  "putpat13o": "Putpipat Tamtantiwattana",
+  "uuunbbb": "Anon Chaisansook",
+  "poc9.s": "Sahapon Chootinan",
+  "sthienwiwat": "Sippapas Sthienwiwat",
+  "frameofchaos": "Kornthanat P. (Ben)",
   "alcoholidaysss": "Pathompong Manakitsomboon",
-  "toeeyt": "toeeyt",
-  "msyves": "msyves",
+  "toeeyt": "Natwara K. (Toey)",
+  "msyves": "Yves Pokakunkanon",
   "roma_or_am_i": "Roman Solodkov",
   "nomonument": "Nuttapon Sawasdee",
   "nowheredweller": "Thanapat Ogaslert",
@@ -52,12 +53,19 @@ const INSTAGRAM_NAMES: Record<string, string> = {
   "pppppppeeeeeeaaaaarrrryyype": "pppppppeeeeeeaaaaarrrryyype",
 };
 
+// People who'd rather be linked to their own site than their Instagram
+const MENTION_URLS: Record<string, string> = {
+  "uuunbbb": "https://www.c-nona.com",
+  "poc9.s": "https://gaosahapon.com",
+  "sthienwiwat": "https://skykys88.github.io",
+};
+
 export function linkInstagramMentions(text: string): string {
   const mentionPattern = /@([\w._-]+)/g;
 
   return text.replace(mentionPattern, (match, username) => {
-    const instagramUrl = `https://www.instagram.com/${username}/`;
+    const url = MENTION_URLS[username] ?? `https://www.instagram.com/${username}/`;
     const displayName = INSTAGRAM_NAMES[username] ?? match;
-    return `<a href="${instagramUrl}" target="_blank" rel="noopener noreferrer" data-ig="@${username}" class="ig-mention font-bold hover:underline" style="color: var(--text-muted);">${displayName}</a>`;
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" data-ig="@${username}" class="ig-mention font-bold hover:underline" style="color: var(--text-muted);">${displayName}</a>`;
   });
 }

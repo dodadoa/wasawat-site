@@ -1,9 +1,95 @@
 ---
 import Layout from "../layouts/layout.astro"
 import HomeQuadrantView from "../components/HomeQuadrantView.jsx"
+import { collectSelectedWorks } from "../data/selectedWorks.js"
+
+const works = collectSelectedWorks()
 ---
 
 <Layout title="Wasawat Somno" description="Developer/Artist" preview="/images/pages/index.png" mono>
+  <!-- the 1-bit roguelike: one of the views HomeQuadrantView switches between -->
+  <div id="home-rogue" hidden>
+    <!-- left column: everything about the walk that isn't the map. On a
+         phone there is no column, and the status and help sit over the map -->
+    <aside class="rogue-side" aria-label="Museum status and instructions">
+      <h2 class="rogue-side-title">museum.walk</h2>
+
+      <div class="rogue-hud rogue-frame">
+        <h3 class="rogue-side-head">status</h3>
+        <p class="rogue-stats">
+          <span><canvas class="rogue-icon" data-sprite="eye" data-scale="2" aria-hidden="true"></canvas><i>seen</i><b data-stat-seen>00/00</b></span>
+          <span><canvas class="rogue-icon" data-sprite="hourglass" data-scale="2" aria-hidden="true"></canvas><i>turns</i><b data-stat-turns>0000</b></span>
+          <span><canvas class="rogue-icon" data-sprite="door" data-scale="2" aria-hidden="true"></canvas><i>room</i><b data-stat-room>LOBBY</b></span>
+        </p>
+        <h3 class="rogue-side-head">log</h3>
+        <p class="rogue-log" data-rogue-log aria-live="polite"></p>
+      </div>
+
+      <div class="rogue-help rogue-frame">
+        <h3 class="rogue-side-head">how to walk</h3>
+        <dl class="rogue-keys rogue-help-keys">
+          <div><dt>arrows / wasd</dt><dd>walk</dd></div>
+          <div><dt>enter / z / x</dt><dd>read / open</dd></div>
+          <div><dt>click</dt><dd>walk there</dd></div>
+        </dl>
+        <dl class="rogue-keys rogue-help-touch">
+          <div><dt>tap</dt><dd>walk there</dd></div>
+          <div><dt>tap a sign</dt><dd>read it</dd></div>
+          <div><dt>tap a work twice</dt><dd>open</dd></div>
+        </dl>
+        <span class="rogue-help-line">tap to walk · tap a sign to read it · tap a work twice to open</span>
+      </div>
+
+      <!-- legend: what the pictures on the map are -->
+      <h3 class="rogue-side-head">legend</h3>
+      <dl class="rogue-legend" aria-label="Map legend">
+        <div><dt><canvas class="rogue-icon" data-scale="2" data-sprite="hero-a" aria-hidden="true"></canvas></dt><dd>you</dd></div>
+        <div><dt><canvas class="rogue-icon" data-scale="2" data-sprite="work" aria-hidden="true"></canvas></dt><dd>a work</dd></div>
+        <div><dt><canvas class="rogue-icon" data-scale="2" data-sprite="sign" aria-hidden="true"></canvas></dt><dd>sign</dd></div>
+        <div><dt><canvas class="rogue-icon" data-scale="2" data-sprite="visitor-a" aria-hidden="true"></canvas></dt><dd>audience</dd></div>
+        <div><dt><canvas class="rogue-icon" data-scale="2" data-sprite="curator-a" aria-hidden="true"></canvas></dt><dd>curator</dd></div>
+        <div><dt><canvas class="rogue-icon" data-scale="2" data-sprite="gallerist-a" aria-hidden="true"></canvas></dt><dd>gallerist</dd></div>
+        <div><dt><canvas class="rogue-icon" data-scale="2" data-sprite="stairs" aria-hidden="true"></canvas></dt><dd>full index</dd></div>
+        <div><dt><canvas class="rogue-icon" data-scale="2" data-sprite="cat-a" aria-hidden="true"></canvas></dt><dd>the cat</dd></div>
+      </dl>
+    </aside>
+
+    <div class="rogue-stage" data-rogue-stage>
+      <canvas data-rogue-map aria-label="A museum in plan. Walk up to a work to see it, and up to a sign to read it."></canvas>
+      <span class="rogue-loading">loading selected work…</span>
+
+      <aside class="rogue-panel" data-rogue-panel hidden>
+        <img class="rogue-thumb" data-panel-thumb alt="" hidden />
+        <div class="rogue-panel-body">
+          <p class="rogue-panel-head">
+            <span class="rogue-no" data-panel-no></span>
+            <span data-panel-meta></span>
+          </p>
+          <p class="rogue-panel-title" data-panel-title></p>
+          <a class="rogue-panel-link" data-panel-link href="/work">open ↵</a>
+        </div>
+      </aside>
+    </div>
+
+    <nav class="rogue-index" aria-label="Selected work">
+      <h2>Selected work</h2>
+      <ol>
+        {
+          works.map((w, i) => (
+            <li>
+              <a href={`/art/${w.slug}`} data-work-index={i}>
+                <span class="rogue-no">{w.no}</span>
+                <span>{w.planeLabel ?? w.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+      <a class="rogue-index-all" href="/work"><canvas class="rogue-icon" data-sprite="stairs" aria-hidden="true"></canvas> full index</a>
+
+    </nav>
+  </div>
+
   <HomeQuadrantView client:only="react">
     <div
       slot="fallback"
@@ -42,11 +128,452 @@ import HomeQuadrantView from "../components/HomeQuadrantView.jsx"
     text-shadow: none;
   }
 
+  /* …but its lines bloom: the canvas is transparent, so the glow follows the
+     drawn axes, grids and nodes rather than the canvas box */
+  .quadrant-3d canvas {
+    filter: drop-shadow(0 0 1px rgba(20, 20, 20, 0.55)) drop-shadow(0 0 7px rgba(20, 20, 20, 0.32));
+  }
+
   body:has(#home-quadrant) main {
     margin: 0 !important;
     padding: 0;
     width: 100%;
     height: calc(100vh - 4rem);
     overflow: hidden;
+  }
+
+  /* the map and its labels are crisp: no text bloom */
+  #home-rogue,
+  #home-rogue * {
+    text-shadow: none;
+  }
+</style>
+
+<style>
+  #home-rogue {
+    position: fixed;
+    top: 2.5rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    font-family: var(--f-pixel);
+    font-size: calc(12px * var(--ui-scale, 1));
+    letter-spacing: 0.06em;
+    color: var(--ink);
+  }
+
+  #home-rogue[hidden],
+  .rogue-panel[hidden] {
+    display: none;
+  }
+
+  #home-rogue p,
+  #home-rogue li {
+    line-height: 1.35;
+  }
+
+  /* light theme like the rest of the site: paper ground, ink art */
+  .rogue-stage {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  .rogue-stage canvas[data-rogue-map] {
+    display: block;
+    image-rendering: pixelated;
+    cursor: pointer;
+  }
+
+  .rogue-loading {
+    color: var(--ink);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    /* hard blink, no eased pulse */
+    animation: blink-step 1s steps(1, end) infinite;
+  }
+
+  #home-rogue[data-ready] .rogue-loading {
+    display: none;
+  }
+
+  /* ── left column: status, log, instructions, legend ── */
+  /* as wide as the document-stats panel it stands in for (DomStatsPanel.jsx) */
+  .rogue-side {
+    width: clamp(280px, 24vw, 380px);
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px clamp(1.5rem, 3vw, 3rem) 12px 2rem;
+    border-right: 1px solid var(--line);
+    background: var(--bg);
+    overflow-y: auto;
+    text-transform: uppercase;
+  }
+
+  .rogue-side-title {
+    font: inherit;
+    font-size: calc(13px * var(--ui-scale, 1));
+    letter-spacing: 0.12em;
+    margin-bottom: 4px;
+  }
+
+  .rogue-side-head {
+    font: inherit;
+    letter-spacing: 0.12em;
+    color: var(--soft);
+    margin: 14px 0 6px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--soft);
+  }
+
+  .rogue-hud .rogue-side-head:first-child {
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 6px;
+  }
+
+  #home-rogue .rogue-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+  }
+
+  .rogue-stats span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  /* label, then a dotted leader out to the value */
+  .rogue-stats i {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-style: normal;
+  }
+
+  .rogue-stats i::after {
+    content: "";
+    flex: 1;
+    min-width: 8px;
+    border-bottom: 1px dotted var(--line);
+  }
+
+  .rogue-stats b {
+    font-weight: 400;
+  }
+
+  /* room for three lines, so the column doesn't jump as the log changes */
+  #home-rogue .rogue-log {
+    min-height: 4.05em;
+    color: var(--ink);
+  }
+
+  .rogue-keys div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 0;
+  }
+
+  .rogue-keys dd {
+    color: var(--soft);
+    text-align: right;
+  }
+
+  /* touch instructions only where there is no pointer to hover with */
+  .rogue-help-touch,
+  .rogue-help-line {
+    display: none;
+  }
+
+  @media (hover: none) {
+    .rogue-help-keys {
+      display: none;
+    }
+
+    .rogue-help-touch {
+      display: block;
+    }
+  }
+
+  /* icons are the map's sprites at their own pixel size */
+  .rogue-icon {
+    flex: none;
+    image-rendering: pixelated;
+    vertical-align: middle;
+  }
+
+  .rogue-index-all .rogue-icon {
+    margin-right: 6px;
+  }
+
+  .rogue-index a:hover .rogue-icon,
+  .rogue-index-all:hover .rogue-icon {
+    filter: none;
+  }
+
+  .rogue-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 12px;
+    color: var(--soft);
+  }
+
+  .rogue-legend div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rogue-legend dt {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 24px;
+    line-height: 1;
+  }
+
+  .rogue-legend div {
+    align-items: flex-end;
+  }
+
+  .rogue-index-all {
+    display: flex !important;
+    align-items: flex-end;
+  }
+
+  .rogue-no {
+    display: inline-block;
+    min-width: 1.6em;
+    padding: 1px 0;
+    text-align: center;
+    border: 1px solid var(--ink);
+  }
+
+  /* ── the work in reach ── */
+  .rogue-panel {
+    position: absolute;
+    right: 16px;
+    bottom: 3.6rem;
+    width: min(320px, calc(100% - 32px));
+    background: var(--bg);
+    border: 1px solid var(--ink);
+    box-shadow: var(--stack-hi);
+  }
+
+  /* the work's own picture, as it is */
+  .rogue-thumb {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    background: #fff;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .rogue-thumb[hidden] {
+    display: none;
+  }
+
+  .rogue-panel-body {
+    padding: 10px 12px 12px;
+  }
+
+  .rogue-panel-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    color: var(--soft);
+    text-transform: uppercase;
+  }
+
+  .rogue-panel-head .rogue-no {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .rogue-panel-title {
+    margin: 8px 0 10px;
+    font-family: var(--f-body);
+    font-size: 1rem;
+    letter-spacing: 0;
+  }
+
+  .rogue-panel-link {
+    display: inline-block;
+    padding: 3px 8px;
+    background: var(--ink);
+    color: var(--bg);
+    text-transform: uppercase;
+  }
+
+  /* ── index: the same numbers, as a list ── */
+  .rogue-index {
+    /* as wide as the nav's link cells, so its rule continues theirs */
+    width: var(--nav-desktop-w, 280px);
+    flex: none;
+    padding: 12px 16px;
+    border-left: 1px solid var(--line);
+    overflow-y: auto;
+  }
+
+  .rogue-index h2 {
+    font: inherit;
+    text-transform: uppercase;
+    color: var(--soft);
+    margin-bottom: 10px;
+  }
+
+  .rogue-index li a {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .rogue-index .rogue-no {
+    flex: none;
+  }
+
+  /* found on the walk = inverted number; in reach = inverted row */
+  .rogue-index a[data-found] .rogue-no {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .rogue-index a:hover,
+  .rogue-index a[data-active] {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .rogue-index a:hover .rogue-no,
+  .rogue-index a[data-active] .rogue-no {
+    border-color: var(--bg);
+  }
+
+  .rogue-index-all {
+    display: block;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 768px) {
+    .rogue-index,
+    .rogue-side-title,
+    .rogue-side-head,
+    .rogue-legend,
+    .rogue-keys,
+    .rogue-stats i {
+      display: none;
+    }
+
+    /* no column on a phone: the status and the help sit over the map, in a
+       double-ruled frame with square studs at the corners */
+    .rogue-side {
+      display: contents;
+    }
+
+    .rogue-frame {
+      position: absolute;
+      z-index: 1;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      text-transform: uppercase;
+      background: var(--bg);
+      color: var(--ink);
+      border: 2px solid var(--ink);
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink), 0 0 0 8px var(--bg);
+    }
+
+    .rogue-frame::before,
+    .rogue-frame::after {
+      content: "";
+      position: absolute;
+      top: -8px;
+      width: 8px;
+      height: calc(100% + 16px);
+      /* a stud at the top and the bottom of each side */
+      background:
+        linear-gradient(var(--ink), var(--ink)) top / 8px 8px no-repeat,
+        linear-gradient(var(--ink), var(--ink)) bottom / 8px 8px no-repeat;
+    }
+
+    .rogue-frame::before {
+      left: -8px;
+    }
+
+    .rogue-frame::after {
+      right: -8px;
+    }
+
+    .rogue-hud {
+      top: 20px;
+      width: min(560px, calc(100% - 48px));
+      padding: 10px 14px 9px;
+    }
+
+    #home-rogue .rogue-stats {
+      flex-direction: row;
+      justify-content: space-between;
+      font-size: 13px;
+      gap: 8px;
+    }
+
+    #home-rogue .rogue-log {
+      margin-top: 8px;
+      padding-top: 7px;
+      border-top: 2px dotted var(--ink);
+      min-height: 2.3em;
+    }
+
+    /* the bottom strip belongs to the view switcher */
+    .rogue-help {
+      bottom: 4.2rem;
+      padding: 6px 12px;
+      width: max-content;
+      max-width: calc(100% - 48px);
+      text-align: center;
+    }
+
+    .rogue-help-line {
+      display: inline;
+    }
+
+    /* thumbnail beside the text, so the map stays in view */
+    .rogue-panel {
+      bottom: 5.6rem;
+      display: flex;
+    }
+
+    .rogue-thumb {
+      width: 36%;
+      object-fit: cover;
+      border-bottom: 0;
+      border-right: 1px solid var(--ink);
+    }
+
+    .rogue-panel-body {
+      flex: 1;
+      min-width: 0;
+    }
   }
 </style>

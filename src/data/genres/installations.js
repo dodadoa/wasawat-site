@@ -5,15 +5,6 @@ const installations = {
   z: 1,
   works: [
     {
-      label: "Neonatus/Neotokyo",
-      slug: "neonatus-neotokyo",
-      image: "/images/neonatus/neonatus-02.png",
-      date: "2020-01-01",
-      x: -1,
-      y: -1,
-      z: -1,
-    },
-    {
       label: "Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)",
       planeLabel: "Eternal Gain, Eternal Pain.",
       slug: "eternal-gain-eternal-pain",

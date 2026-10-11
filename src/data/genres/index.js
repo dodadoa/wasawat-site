@@ -2,6 +2,7 @@ import { artSections } from "../artArchive.js"
 import installations from "./installations.js"
 import netart from "./netart.js"
 import performance from "./performance.js"
+import print from "./print.js"
 
 /** @param {import('../homeQuadrant3d.js').QuadrantWork[]} works newest first; undated works go last */
 function sortByDateDesc(works) {
@@ -14,7 +15,7 @@ function toId(title) {
 
 /** Enrich archive items with date/image from quadrant genre data when available */
 const metaBySlug = Object.fromEntries(
-  [...installations.works, ...netart.works, ...performance.works]
+  [...installations.works, ...netart.works, ...performance.works, ...print.works]
     .filter((w) => w.slug)
     .map((w) => [w.slug, w]),
 )

@@ -1,0 +1,162 @@
+/* live canvas explainers on the art pages (FourWorlds, ThreeBody) */
+.sim-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  /* soft ink aura around the lit pixels; the pixels themselves stay 1-bit */
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--ink) 28%, transparent))
+    drop-shadow(0 0 10px color-mix(in srgb, var(--ink) 14%, transparent));
+}
+
+/* ───────── four parallel worlds */
+.worlds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.worlds-q {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  background: var(--bg);
+}
+.worlds-q.worlds-meh {
+  background: var(--dither-12), var(--bg);
+}
+.worlds-label {
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+  font-family: var(--f-pixel);
+  font-size: calc(10px * var(--ui-scale, 1));
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.worlds-label span {
+  background: var(--bg);
+}
+.worlds-label b {
+  font-weight: 400;
+  padding: 0 6px;
+  background: var(--bg);
+}
+.worlds-bad .worlds-label b {
+  background: var(--ink);
+  color: var(--bg);
+}
+.worlds-meh .worlds-label b {
+  color: var(--soft);
+}
+
+/* ───────── three-body orbit */
+.tb {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 232px;
+  border: 1px solid var(--line);
+  font-family: var(--f-pixel);
+  font-size: calc(10px * var(--ui-scale, 1));
+  color: var(--ink);
+}
+.tb-stage {
+  position: relative;
+  min-height: 380px;
+  overflow: hidden;
+}
+.tb-stage .sim-canvas {
+  position: absolute;
+  inset: 0;
+}
+.tb-tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: var(--bg);
+  padding: 1px 5px;
+  border: 1px solid var(--ink);
+  pointer-events: none;
+}
+.tb-hud {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-left: 1px solid var(--line);
+}
+.tb-row {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+.tb-label {
+  color: var(--soft);
+}
+.tb-state {
+  justify-self: start;
+  font-weight: 400;
+  font-size: calc(15px * var(--ui-scale, 1));
+  letter-spacing: 0.06em;
+  padding: 0 6px;
+}
+.tb-state-friction {
+  background: var(--dither-25), var(--bg);
+}
+.tb-state-crisis,
+.tb-state-collision {
+  background: var(--ink);
+  color: var(--bg);
+}
+.tb-bar {
+  height: 10px;
+  background: var(--dither-12), var(--bg);
+}
+.tb-bar i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+.tb-prompt {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font: inherit;
+  line-height: 1.6;
+  color: var(--soft);
+  white-space: pre-wrap;
+}
+.tb-btn {
+  margin-top: auto;
+  font: inherit;
+  color: var(--ink);
+  background: none;
+  border: 1px solid var(--ink);
+  padding: 7px;
+  cursor: pointer;
+}
+.tb-btn:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+@media (max-width: 640px) {
+  .worlds-q {
+    aspect-ratio: 1;
+  }
+  .tb {
+    grid-template-columns: 1fr;
+  }
+  .tb-stage {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+  }
+  .tb-hud {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}

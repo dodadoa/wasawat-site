@@ -198,7 +198,18 @@ const section =
     iconClose?.classList.toggle("hidden", !open)
   }
 
+  // the desktop cells are as wide as their labels; publish that width so a
+  // page's own right-hand column (the roguelike index) can share the nav's rule
+  function publishDesktopWidth() {
+    const desktop = document.querySelector("#site-nav .nav-desktop")
+    const w = desktop ? desktop.getBoundingClientRect().width : 0
+    const root = document.documentElement
+    if (w > 0) root.style.setProperty("--nav-desktop-w", `${w}px`)
+    else root.style.removeProperty("--nav-desktop-w")
+  }
+
   function setupNav() {
+    publishDesktopWidth()
     const toggle = document.getElementById("nav-menu-toggle")
     if (!toggle || toggle.dataset.bound === "1") {
       updatePathSuffix()
@@ -217,6 +228,8 @@ const section =
 
     updatePathSuffix()
     window.addEventListener("popstate", updatePathSuffix)
+    window.addEventListener("resize", publishDesktopWidth)
+    document.fonts?.ready.then(publishDesktopWidth)
   }
 
   setupNav()

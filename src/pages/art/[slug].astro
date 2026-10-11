@@ -19,6 +19,8 @@ import TendernessKit from "../../subpages/art/TendernessKit.astro"
 import WebsiteForStack from "../../subpages/art/WebsiteForStack.astro"
 import WebsiteForTDBKK from "../../subpages/art/WebsiteForTDBKK.astro"
 import PoeticGarden from "../../subpages/art/PoeticGarden.astro"
+import TheAbstractionOfViolence from "../../subpages/art/TheAbstractionOfViolence.astro"
+import Query from "../../subpages/art/Query.astro"
 
 const components = {
   "do-the-npcs-hear-the-simulated-wind": DoTheNPCsHearTheSimulatedWind,
@@ -39,6 +41,8 @@ const components = {
   "website-for-stack": WebsiteForStack,
   "website-for-tdbkk": WebsiteForTDBKK,
   "poetic-garden": PoeticGarden,
+  "the-abstraction-of-violence": TheAbstractionOfViolence,
+  query: Query,
 }
 
 export function getStaticPaths() {
@@ -126,7 +130,8 @@ if (!artwork || !Content) {
   // inline "art-callout" links mid-paragraph pointing at a floated
   // .art-margin-note: the note can land anywhere in the flow (unlike the
   // row pattern's fixed-position arrow), so draw a curved connector in JS
-  // from the underline to the note on hover/focus.
+  // from the underline to the note on hover/focus. It works both ways:
+  // hovering the note lights up the phrase that points at it.
   const body = document.querySelector<HTMLElement>(".art-detail-body")
   const inlineCallouts = document.querySelectorAll<HTMLAnchorElement>(
     ".art-detail-body p .art-callout[href^='#']"
@@ -164,11 +169,16 @@ if (!artwork || !Content) {
     }
 
     const show = (link: HTMLAnchorElement, target: HTMLElement) => {
+      hide()
       active = { link, target }
+      link.classList.add("is-linked")
+      target.classList.add("is-linked")
       draw()
       svg.classList.add("is-visible")
     }
     const hide = () => {
+      active?.link.classList.remove("is-linked")
+      active?.target.classList.remove("is-linked")
       active = null
       svg.classList.remove("is-visible")
     }
@@ -181,6 +191,11 @@ if (!artwork || !Content) {
       link.addEventListener("mouseleave", hide)
       link.addEventListener("focus", () => show(link, target))
       link.addEventListener("blur", hide)
+      // first callout pointing at a note owns the note's hover
+      if (target.dataset.calloutBound) return
+      target.dataset.calloutBound = "true"
+      target.addEventListener("mouseenter", () => show(link, target))
+      target.addEventListener("mouseleave", hide)
     })
 
     window.addEventListener("resize", draw)
@@ -255,7 +270,8 @@ if (!artwork || !Content) {
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;
   }
-  .art-detail-body a:hover {
+  .art-detail-body a:hover,
+  .art-detail-body a.art-callout.is-linked {
     background: var(--ink);
     color: var(--bg);
     text-decoration: none;
@@ -425,6 +441,25 @@ if (!artwork || !Content) {
   .art-detail-body .art-media-grid .art-media-full {
     grid-column: 1 / -1;
   }
+  /* two images side by side share one height: the taller sets the row and
+     the other fills it, cropped (the lightbox still shows the whole image).
+     Captioned figures borrow the grid's rows so the images line up even
+     when the captions wrap to different lengths. */
+  .art-detail-body .art-media-grid > img:not(.art-media-full) {
+    align-self: stretch;
+    object-fit: cover;
+  }
+  .art-detail-body .art-media-grid > figure:not(.art-media-full) {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 2;
+    row-gap: 0;
+    align-self: stretch;
+  }
+  .art-detail-body .art-media-grid > figure:not(.art-media-full) > img {
+    align-self: stretch;
+    object-fit: cover;
+  }
   /* click-to-enlarge: hint on the thumbnail, overlay to view */
   .art-detail-body .art-media-grid img,
   .art-detail-body .art-zoomable {
@@ -519,7 +554,8 @@ if (!artwork || !Content) {
   /* hovering (or focusing) an inline callout that links to a margin note
      highlights the note it refers to: the rule goes to a fine red line */
   .art-detail-body:has(.art-callout:hover) .art-margin-note,
-  .art-detail-body:has(.art-callout:focus-visible) .art-margin-note {
+  .art-detail-body:has(.art-callout:focus-visible) .art-margin-note,
+  .art-detail-body .art-margin-note.is-linked {
     outline: 1px solid var(--red);
   }
   a.art-callout {
@@ -587,7 +623,7 @@ if (!artwork || !Content) {
       margin-top: 0.7rem;
     }
   }
-  /* lightbox: the print laid on a 50% screen, framed like a highlighted card */
+  /* lightbox: a modal over the page — the content stays visible behind, blurred */
   .art-lightbox {
     position: fixed;
     inset: 0;
@@ -596,9 +632,20 @@ if (!artwork || !Content) {
     align-items: center;
     justify-content: center;
     padding: 5vmin;
-    background: var(--dither-50);
+    background: color-mix(in srgb, var(--bg) 45%, transparent);
+    -webkit-backdrop-filter: blur(10px) saturate(0.25);
+    backdrop-filter: blur(10px) saturate(0.25);
     cursor: zoom-out;
     clip-path: inset(0 0 100% 0);
+  }
+  /* a light ordered dither over the blurred page, under the image */
+  .art-lightbox::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--dither-12);
+    opacity: 0.22;
+    pointer-events: none;
   }
   .art-lightbox.is-open {
     clip-path: inset(0 0 0 0);
@@ -610,9 +657,8 @@ if (!artwork || !Content) {
     width: auto;
     height: auto;
     display: block;
+    position: relative;
     background: #fff;
-    border: 3px solid var(--ink);
-    box-shadow: var(--stack-hi);
   }
   @media (max-width: 640px) {
     .art-detail-body .art-media-grid {

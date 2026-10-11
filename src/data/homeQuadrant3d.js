@@ -7,6 +7,7 @@ import index from "./genres/index.js"
 import installations from "./genres/installations.js"
 import netart from "./genres/netart.js"
 import performance from "./genres/performance.js"
+import print from "./genres/print.js"
 
 export { XY_SCALE, QUADRANT_LABELS }
 
@@ -17,7 +18,7 @@ export const Z_SCALE = XY_SCALE
 export const Z_AXIS_LABELS = { pos: "Human", neg: "Machine" }
 
 /** @type {GenreLayer[]} */
-export const genreLayers = [all, installations, netart, performance]
+export const genreLayers = [all, installations, netart, performance, print]
 
 export const indexLayer = index
 

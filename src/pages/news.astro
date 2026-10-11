@@ -11,7 +11,6 @@ const { upcoming, archive } = splitNews()
 <Layout title="News — Wasawat Somno" description="Upcoming events and news">
   <div class="news-page relative z-10 w-full">
     <header class="news-head">
-      <p class="kicker wipe">[news] — {String(upcoming.length).padStart(2, "0")} upcoming / {String(archive.length).padStart(2, "0")} past</p>
       <h1 class="wipe">News</h1>
     </header>
 
@@ -53,10 +52,6 @@ const { upcoming, archive } = splitNews()
 
   .news-head {
     margin: 2.5rem 0 5rem;
-  }
-
-  .news-head h1 {
-    margin-top: 0.6rem;
   }
 
   /* nothing on: a dashed placeholder on a 12% screen; the note itself sits

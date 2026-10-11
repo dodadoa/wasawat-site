@@ -8,6 +8,8 @@ const credits1b = linkInstagramMentions("<strong>Structure design</strong><br />
 const credits2 = linkInstagramMentions("<strong>Big thanks for folks that let me borrow their PCs</strong><br />@pasuthh<br />@msyves<br />@roma_or_am_i");
 const credits3 = linkInstagramMentions("<strong>Special Thank</strong><br />@toeeyt<br />@tentaclesgallery<br />@alcoholidaysss<br />@uuunbbb<br />@poc9.s<br />@sthienwiwat");
 const credits4 = linkInstagramMentions("<strong>Photos by</strong><br />@frameofchaos");
+const photo = (n) => `/images/do-npcs-hear/npcs-${n}.jpg`;
+const photoAlt = (n) => `Do The NPCs Hear The Simulated Wind — performance documentation ${n}`;
 const credits5 = linkInstagramMentions("Organised by @stack_xyz and @team_stimulant , in collaboration with @goetheinstitut.thailand , with support from @thaifilmarchive , Office of the Prime Minister, Creative Economy Agency (CEA), Virtual Media Lab, immertech, and REAL Bangkok.");
 ---
 
@@ -92,35 +94,61 @@ const credits5 = linkInstagramMentions("Organised by @stack_xyz and @team_stimul
   </div>
   <p class="text-sm mt-6" set:html={credits5}></p>
 
-  <div class="art-media-grid">
-    <figure>
-      <img
-        src="/images/do-npcs-hear/model.png"
-        alt="Do The NPCs Hear The Simulated Wind — aluminum profile structure model render"
-        loading="lazy"
-      />
-      <figcaption class="text-sm mt-2">
-        Structure design model — aluminum profiles, 4-station setup
-      </figcaption>
-    </figure>
-
-    <figure>
-      <img
-        src="/images/do-npcs-hear/npcs-promo.jpg"
-        alt="Do The NPCs Hear The Simulated Wind — poster"
-        loading="lazy"
-      />
-    </figure>
-
-    {Array.from({ length: 12 }, (_, i) => {
-      const n = String(i + 1).padStart(2, "0")
-      return (
+  <div class="art-media-grid npcs-grid">
+    <div class="art-media-full npcs-row npcs-row-design">
+      <figure>
         <img
-          src={`/images/do-npcs-hear/npcs-${n}.jpg`}
-          alt={`Do The NPCs Hear The Simulated Wind — performance documentation ${n}`}
+          src="/images/do-npcs-hear/model.png"
+          alt="Do The NPCs Hear The Simulated Wind — aluminum profile structure model render"
           loading="lazy"
         />
-      )
-    })}
+        <figcaption class="text-sm mt-2">
+          Structure design model — aluminum profiles, 4-station setup
+        </figcaption>
+      </figure>
+      <figure>
+        <img
+          src="/images/do-npcs-hear/npcs-promo.jpg"
+          alt="Do The NPCs Hear The Simulated Wind — poster"
+          loading="lazy"
+        />
+      </figure>
+    </div>
+
+    <img src={photo("08")} alt={photoAlt("08")} class="art-media-full" loading="lazy" />
+
+    {["06", "07", "04", "05", "11", "12", "02", "03"].map((n) => (
+      <img src={photo(n)} alt={photoAlt(n)} loading="lazy" />
+    ))}
+
+    <div class="art-media-full npcs-row npcs-row-3">
+      {["01", "09", "10"].map((n) => (
+        <img src={photo(n)} alt={photoAlt(n)} loading="lazy" />
+      ))}
+    </div>
   </div>
 </div>
+
+<style>
+  /* equal columns so the 16:9 photos line up row by row */
+  .npcs-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .npcs-row {
+    display: grid;
+    gap: 14px;
+    align-items: start;
+  }
+  .npcs-row-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  /* square render beside 4:5 poster: 5fr/4fr gives both the same height */
+  .npcs-row-design {
+    grid-template-columns: 5fr 4fr;
+  }
+  @media (max-width: 640px) {
+    .npcs-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>

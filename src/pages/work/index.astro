@@ -4,8 +4,9 @@ import { artSections } from "../../data/artArchive.js"
 import installations from "../../data/genres/installations.js"
 import netart from "../../data/genres/netart.js"
 import performance from "../../data/genres/performance.js"
+import print from "../../data/genres/print.js"
 
-const allWorks = [...installations.works, ...netart.works, ...performance.works]
+const allWorks = [...installations.works, ...netart.works, ...performance.works, ...print.works]
 
 const dateBySlug = Object.fromEntries(
   allWorks.filter((w) => w.slug && w.date).map((w) => [w.slug, w.date]),
@@ -16,8 +17,9 @@ const imageBySlug = Object.fromEntries(
 )
 
 /**
- * Small pre-generated thumbnails live in /images/thumbs/<slug>.jpg so the
- * table doesn't load full-size images to render 44x32 thumbs.
+ * Pre-generated thumbnails live in /images/thumbs/<slug>.jpg so the table
+ * doesn't load full-size images to render 44x32 thumbs. Regenerate them with
+ * `node scripts/make-thumbs.mjs` after adding or changing a work's image.
  */
 const thumbSrc = (slug) => `/images/thumbs/${slug}.jpg`
 
@@ -91,19 +93,28 @@ const sheets = [
     rows: [...allRows].sort(byStatusThenYear),
   },
 ]
-const sheetCols = (sheet) => (sheet.showSection ? [...COLS, "F"] : COLS)
+const sheetCols = (sheet) => (sheet.showSection ? [...COLS, "E"] : COLS)
+
+/**
+ * Selected and archive are split by a title row spanning the sheet rather
+ * than a Status column. Title rows take a row number like any other row.
+ */
+const sheetLines = (sheet) =>
+  ["Selected", "Archive"].flatMap((status) => {
+    const rows = sheet.rows.filter((row) => row.status === status)
+    return rows.length ? [{ title: status }, ...rows.map((row) => ({ row }))] : []
+  })
 
 /** A few blank rows after the data, like the unused part of a sheet. */
 const BLANK_ROWS = 4
-const COLS = ["A", "B", "C", "D", "E"]
-const FIELDS = ["Img", "Title", "Medium", "Year", "Status", "Section"]
+const COLS = ["A", "B", "C", "D"]
+const FIELDS = ["Img", "Title", "Medium", "Year", "Section"]
 const colClass = (c) => `col-${c.toLowerCase()}`
 ---
 
 <Layout title="Work — Wasawat Somno" description="Index of works">
   <div class="work-page relative z-10 w-full">
     <header class="work-head">
-      <p class="kicker wipe">[work] — works.xlsx · {sectionSheets.length} sections · {allRows.length} works</p>
       <h1 class="wipe">Work</h1>
     </header>
 
@@ -115,7 +126,9 @@ const colClass = (c) => `col-${c.toLowerCase()}`
       </div>
 
       {
-        sheets.map((sheet, si) => (
+        sheets.map((sheet, si) => {
+          const lines = sheetLines(sheet)
+          return (
           <section
             class="sheet"
             id={sheet.id}
@@ -141,7 +154,12 @@ const colClass = (c) => `col-${c.toLowerCase()}`
                     <td class={colClass(c)}>{FIELDS[ci]}</td>
                   ))}
                 </tr>
-                {sheet.rows.map((row, i) => (
+                {lines.map(({ title, row }, i) => title ? (
+                  <tr class="row-group">
+                    <th class="rownum" scope="row">{i + 2}</th>
+                    <td colspan={sheetCols(sheet).length}>{title}</td>
+                  </tr>
+                ) : (
                   <tr
                     class={row.href ? "row-link" : "row-plain"}
                     data-href={row.href || undefined}
@@ -173,13 +191,12 @@ const colClass = (c) => `col-${c.toLowerCase()}`
                     </td>
                     <td class="col-c">{row.medium}</td>
                     <td class="col-d work-year">{row.year}</td>
-                    <td class="col-e">{row.status}</td>
-                    {sheet.showSection && <td class="col-f">{row.section}</td>}
+                    {sheet.showSection && <td class="col-e">{row.section}</td>}
                   </tr>
                 ))}
                 {Array.from({ length: BLANK_ROWS }, (_, i) => (
                   <tr class="row-blank">
-                    <th class="rownum" scope="row">{sheet.rows.length + i + 2}</th>
+                    <th class="rownum" scope="row">{lines.length + i + 2}</th>
                     {sheetCols(sheet).map((c) => (
                       <td class={colClass(c)} />
                     ))}
@@ -188,7 +205,8 @@ const colClass = (c) => `col-${c.toLowerCase()}`
               </tbody>
             </table>
           </section>
-        ))
+          )
+        })
       }
 
       <div class="sheet-tabs" role="tablist" aria-label="Sheets">
@@ -218,10 +236,6 @@ const colClass = (c) => `col-${c.toLowerCase()}`
 
   .work-head {
     margin: 2.5rem 0 2.5rem;
-  }
-
-  .work-head h1 {
-    margin-top: 0.6rem;
   }
 
   /* the whole index is one workbook: formula bar, grid, sheet tabs */
@@ -346,13 +360,22 @@ const colClass = (c) => `col-${c.toLowerCase()}`
   .sheet-cols .col-a { width: 64px; }
   .sheet-cols .col-c { width: 220px; }
   .sheet-cols .col-d { width: 64px; }
-  .sheet-cols .col-e { width: 96px; }
-  .sheet-cols .col-f { width: 150px; }
+  .sheet-cols .col-e { width: 150px; }
 
   /* row 1 holds the field names, frozen-pane style */
   .row-fields td {
     font-weight: 700;
     background: color-mix(in srgb, var(--ink) 4%, var(--bg));
+    border-bottom-color: var(--ink);
+  }
+
+  /* merged title row heading the selected and archive blocks */
+  .row-group td {
+    font-family: var(--f-pixel);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--chrome);
     border-bottom-color: var(--ink);
   }
 
@@ -387,12 +410,12 @@ const colClass = (c) => `col-${c.toLowerCase()}`
 
   .row-plain td,
   td.col-c,
-  td.col-e,
-  td.col-f {
+  td.col-e {
     color: var(--soft);
   }
 
-  .row-fields td {
+  .row-fields td,
+  .row-group td {
     color: var(--ink) !important;
   }
 
@@ -460,10 +483,9 @@ const colClass = (c) => `col-${c.toLowerCase()}`
       margin: 1.5rem 0 1.5rem;
     }
 
-    /* hidden columns, as in a real sheet: the letters skip C, E and F */
+    /* hidden columns, as in a real sheet: the letters skip C and E */
     .col-c,
-    .col-e,
-    .col-f {
+    .col-e {
       display: none;
     }
 

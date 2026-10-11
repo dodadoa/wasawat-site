@@ -99,10 +99,38 @@ export const newsEntries = [
     ],
   },
   {
+    start: "2026-10-08",
+    venue: [{ label: "Eaton HK" }],
+    venueSuffix: "Hong Kong",
+    title: "Live Performance at 10AFEST",
+    body: [
+      "Live performance at Eaton HK as one of three Thai artists brought to Hong Kong by SATA and Stack, in collaboration with 10AFEST as a programme partner.",
+    ],
+    meta: [
+      "Thursday, 8 October 2026",
+      'Presented by <a href="https://www.instagram.com/sata_info/">@sata_info</a>, <a href="https://www.instagram.com/stack_xyz/">@stack_xyz</a> &amp; <a href="https://www.instagram.com/banga.gallery/">@banga.gallery</a>',
+    ],
+    links: [{ label: "↗ Instagram", href: "https://www.instagram.com/p/DeKF7Ppku7c/" }],
+  },
+  {
     start: "2026-10-10",
     venue: [{ label: "@vietnam_media_lab", href: "https://www.instagram.com/vietnam_media_lab/" }],
     title: "Show at Vietnam Media Lab",
     body: ["More details coming soon."],
+  },
+  {
+    start: "2026-10-23",
+    venue: [{ label: "BadWater Project" }],
+    title: "ColdWire Corporation",
+    subtitle: "Installation",
+    meta: ["Friday, 23 October 2026"],
+  },
+  {
+    start: "2026-11-01",
+    venue: [{ label: "Diage festival 2026" }],
+    title: "World Of The Wars",
+    subtitle: "Performance — Wasawat presents",
+    meta: ["Sunday, 1 November 2026"],
   },
 ]
 

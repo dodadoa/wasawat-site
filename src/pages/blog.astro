@@ -14,7 +14,6 @@ const allPosts = [...pagePosts, ...mdPosts];
 
 <Layout title="Wasawat Somno's blog" description="blogs">
   <div class="blog-page">
-    <p class="kicker wipe">[blog] — {String(allPosts.length).padStart(2, "0")} posts</p>
     <h1 class="wipe">Blog</h1>
     {
       allPosts.length === 0 && (
@@ -47,11 +46,7 @@ const allPosts = [...pagePosts, ...mdPosts];
   }
 
   .blog-page h1 {
-    margin: 0.6rem 0 5rem;
-  }
-
-  .blog-page .kicker {
-    margin-top: 2.5rem;
+    margin: 2.5rem 0 5rem;
   }
 
   .blog-empty {

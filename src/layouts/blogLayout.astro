@@ -10,7 +10,6 @@ const { frontmatter } = Astro.props
   description={frontmatter.description}
 >
   <div class="blog-post">
-    <p class="kicker wipe">[blog]</p>
     <h1 class="wipe">{frontmatter.title}</h1>
     <p class="lead wipe">{frontmatter.description}</p>
     <div class="blog-post-body wipe">
@@ -25,13 +24,9 @@ const { frontmatter } = Astro.props
     max-width: 1080px;
   }
 
-  .blog-post > .kicker {
-    margin-top: 2.5rem;
-  }
-
   .blog-post > h1 {
     font-size: clamp(34px, 5.2vw, 76px);
-    margin: 0.6rem 0 2rem;
+    margin: 2.5rem 0 2rem;
     filter: url(#ink-body);
   }
 

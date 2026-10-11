@@ -1,13 +1,14 @@
 ---
 import { linkInstagramMentions } from "../../utils/instagramMentions"
 import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
+import ThreeBody from "../../components/art/ThreeBody.jsx"
 ---
 
 <div class="mt-4 max-w-3xl">
   <ArtworkMeta fields={[
     { label: "Dates", value: "12–26 July 2025" },
     { label: "Venue", value: "ETAK BKK" },
-    { label: "Exhibition", value: "Close Inspection From Afar" },
+    { label: "Exhibition", value: "Close Inspection From Afar, organised by Cache" },
     {
       label: "Collaboration",
       value:
@@ -32,6 +33,13 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
     same input.
   </p>
 
+  <figure class="my-8">
+    <ThreeBody client:only="react" />
+    <figcaption class="mt-2 text-sm opacity-70">
+      A simplified version of the system, running live. Each bar grows as two bodies approach; every time the tension crosses the threshold, a new prompt is written. In the installation that prompt goes to the language model.
+    </figcaption>
+  </figure>
+
   <p class="mb-4">
     The generated text drives StreamDiffusion visuals on the top screen, while story and image are
     printed or embossed on the bottom as machine-written history. Archived outputs feed the next prompt
@@ -43,6 +51,43 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
     A metallic flower arrangement accompanies the installation, growing or wilting by the end of the
     exhibition — a metaphor for minor powers orbiting larger ones, present yet with little influence on
     the global scale.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">Two bodies can be solved. Three cannot.</h2>
+
+  <p class="mb-4">
+    Two masses under gravity trace a clean orbit that can be written down and predicted forever. Add a third and there is no general closed-form solution. The system stays completely deterministic, every position following from the one before, and it is still unpredictable: a tiny difference at the start becomes a completely different future. That is the property I wanted, a system that obeys rules and cannot be forecast.
+  </p>
+
+  <p class="mb-4">
+    The metaphor is crude on purpose. Each body is a nation. The distance between them is the state of diplomacy, and closeness is not friendship but friction. When two bodies come too close they swing violently past each other, and that is conflict. Far apart is stability, or at least peace by distance. Geopolitical forecasting models are also crude. They just hide it better.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">How it runs</h2>
+
+  <ol class="mb-4 space-y-1">
+    <li><strong>Orbit.</strong> Three bodies, simulated in real time in TouchDesigner with custom Python.</li>
+    <li><strong>Distance.</strong> Read as geopolitical tension, a number between zero and one, and sent on over OSC.</li>
+    <li><strong>LLM.</strong> When the tension crosses a line, the number becomes a prompt. Grok or ChatGPT writes a short speculative fiction of what happens next between the three countries.</li>
+    <li><strong>StreamDiffusion.</strong> The text is rendered as a scene, live, on the upper part of the screen.</li>
+    <li><strong>Archive.</strong> The lower part prints or embosses the story and the image as a record.</li>
+    <li><strong>Loop.</strong> Every record becomes part of the next prompt, as memory.</li>
+  </ol>
+
+  <p class="mb-4">
+    The orbit chooses when; the model chooses what. The only thing I chose is the rule. Start it from slightly different initial conditions and the history comes out different.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">Machine-written history</h2>
+
+  <p class="mb-4">
+    Because each event is archived and then fed back in, the system does not write disconnected stories. It remembers a past that never happened, and continues it. By the end of the exhibition there is a pile of printed history of a world that did not happen: two weeks of crises, treaties and border incidents, consistent with each other, all following from a chaotic orbit and authored by nobody. I mean the phrase "machine-written history" as a question rather than a boast.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">The flowers</h2>
+
+  <p class="mb-4">
+    The arrangement is sprayed metallic. The flowers look futuristic and they are dying; by the end of the show they are wilted under the paint. They stand for the smaller nations that drift around the three powers: present, decorative, with almost no pull on the orbit. In this model, we are the flowers. We are in the room, affected by every swing, and we do not move the bodies.
   </p>
 
   <div class="art-media-grid">

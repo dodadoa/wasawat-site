@@ -425,13 +425,6 @@ export default function DomStatsPanel() {
           ...glassPlain,
         }}
       >
-      <style>{`
-        @keyframes request-log-blink {
-          0%, 55% { visibility: visible; }
-          56%, 100% { visibility: hidden; }
-        }
-      `}</style>
-
       <div
         style={{
           fontFamily: mono,
@@ -495,7 +488,7 @@ export default function DomStatsPanel() {
         <span>net.log</span>
         <span style={{ letterSpacing: "0.08em", display: "flex", gap: "0.7em", alignItems: "baseline", whiteSpace: "nowrap" }}>
           <span style={{ color: inkFaint, fontFamily: dataMono, fontSize: "calc(10px * var(--ui-scale, 1))", letterSpacing: 0 }}>{logTotals.count} req · {fmtBytes(logTotals.bytes)}</span>
-          <span style={{ background: INK, color: PAPER, padding: "0 0.4em", animation: "request-log-blink 1.2s steps(1, end) infinite" }}>rec</span>
+          <span style={{ background: INK, color: PAPER, padding: "0 0.4em" }}>rec</span>
         </span>
       </div>
 

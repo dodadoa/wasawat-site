@@ -35,6 +35,7 @@ export const GENRE_COLORS = {
   installations: INK,
   netart: INK,
   performance: INK,
+  print: INK,
   audiovisual: INK,
   "tech-art": INK,
   audio: INK,

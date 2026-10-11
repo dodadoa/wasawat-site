@@ -2,6 +2,7 @@
 import { linkInstagramMentions } from "../../utils/instagramMentions";
 import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
 import BenatarMatrix from "../../components/art/BenatarMatrix.jsx";
+import FourWorlds from "../../components/art/FourWorlds.jsx";
 
 const text2 = linkInstagramMentions("<strong>Project Installation consultation</strong><br />@toeeyt");
 const text3 = linkInstagramMentions("<strong>3d mockup</strong><br />@msyves");
@@ -17,7 +18,7 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
   <ArtworkMeta fields={[
     { label: "Year", value: "2025" },
     { label: "Country", value: "Thailand" },
-    { label: "Medium", value: "Print on fabric, metal frame, custom software (openworm's c302 project), mixed media" },
+    { label: "Medium", value: "Print on fabric, metal frame, custom software (openworm's c302 project), 4 Raspberry Pi, mixed media" },
     { label: "Exhibition", value: "re:complex" },
     { label: "Venue", value: metaVenue, html: true },
     { label: "Dates", value: "7–13 November 2025" },
@@ -28,13 +29,33 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
     The simulations of four parallel worlds of the nematode Caenorhabditis elegans' neural pathway—an organism (roundworm) whose whole neural map data has been collected and simulated. They are displayed with each quadrant. Each quadrant presents a different condition based on the quadrant's description: induced pain, induced pleasure, or complete absence of the worm.
   </p>
 
+  <figure class="my-8">
+    <FourWorlds client:only="react" />
+    <figcaption class="mt-2 text-sm opacity-70">
+      The four screens, as four parallel worlds: two running, two empty. The strip under each is its neurons firing. An illustration for this page; the installation runs OpenWorm's c302.
+    </figcaption>
+  </figure>
+
   <p class="mb-4">
     The installation also stands as a sculptural totem (coffee table or altar), a monument to the continuity of human civilization, questioning the inevitability of its persistence. It asks: Should we continue to reproduce and perpetuate our lineage, or accept extinction as the natural end of our cycle?
   </p>
 
+  <figure class="my-8">
+    <img
+      src="/images/eternal-gain/eternal-gain-01.jpg"
+      alt="Eternal Gain, Eternal Pain — the metal frame with the printed table and four screens, the ouroboros table at its foot"
+      class="art-zoomable"
+      style="width: 100%; max-width: 520px; height: auto; display: block; border: 1px solid var(--line);"
+      loading="lazy"
+    />
+    <figcaption class="mt-2 text-sm opacity-70">
+      The frame, the print, the four screens, and the table at its foot. Goethe-Institut Thailand, November 2025.
+    </figcaption>
+  </figure>
+
   <figure class="art-margin-note" id="benatar-diagram">
     <BenatarMatrix client:only="react" />
-    <figcaption class="mt-2 text-sm opacity-70">
+    <figcaption class="mt-2 opacity-70" style="font-size: calc(10px * var(--ui-scale, 1)); line-height: 1.5;">
       Adapted from David Benatar, <em>Better Never to Have Been</em> (2006). See <a href="https://en.wikipedia.org/wiki/Benatar%27s_asymmetry_argument" target="_blank" rel="noopener noreferrer">Wikipedia</a>.
     </figcaption>
   </figure>
@@ -45,6 +66,119 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
 
   <p class="mb-4">
     Beside the simulation, a coffee table with an embossed ouroboros evokes humanity's cycle of creation and consumption, a quiet symbol of endurance and self-devouring continuity. Eternal Gain, Eternal Pain questions whether our drive to create — in biology or in code — arises from empathy or compulsion, and whether the refusal to create might be the final act of compassion.
+  </p>
+
+  <figure class="my-8">
+    <img
+      src="/images/eternal-gain/eternal-gain-03.jpg"
+      alt="Eternal Gain, Eternal Pain — the ouroboros cut into the metal tabletop, its head meeting its tail"
+      class="art-zoomable"
+      style="width: 100%; max-width: 640px; height: auto; display: block; border: 1px solid var(--line);"
+      loading="lazy"
+    />
+    <figcaption class="mt-2 text-sm opacity-70">
+      The ouroboros on the tabletop, where the head meets the tail.
+    </figcaption>
+  </figure>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">Digital antinatalism</h2>
+
+  <p class="mb-4">
+    Benatar's table has four cells. If someone exists there is pain, which is bad, and pleasure, which is good. If they never exist, the absence of pain is good even with nobody there to enjoy it, and the absence of pleasure is not bad, because nobody is there to be deprived of it. Never existing gets one good and one not-bad, so on his account coming into existence is always a harm.
+  </p>
+
+  <p class="mb-4">
+    Move the table to machines and it becomes digital antinatalism: we should not create artificial beings that are able to suffer. A digital mind can be copied, paused, looped, and run faster than real time, so if it can suffer, we have built suffering at scale. Thomas Metzinger argued in 2021 for a moratorium on synthetic phenomenology on these grounds.
+  </p>
+
+  <p class="mb-4">
+    People accept this argument for machines very easily and resist it for humans very strongly. If creating a digital being is wrong because it will suffer, why does the same logic not apply to creating a human? The work lives in that gap. It does not tell anyone not to have children. It asks whether the difference is in the logic, or in us. The subtitle is a joke on the meme "would you still love me if I was a worm", sitting on top of that question.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">Why a worm</h2>
+
+  <p class="mb-4">
+    Caenorhabditis elegans is a transparent nematode about one millimetre long that lives in soil and eats bacteria. The hermaphrodite has exactly 302 neurons, the same ones in the same places in every animal. In 1986 White, Southgate, Thomson and Brenner published its complete wiring diagram, traced by hand from electron microscope slices: the first whole nervous system ever mapped, and for decades the only one.
+  </p>
+
+  <p class="mb-4">
+    OpenWorm is an open-science project that has been trying since 2011 to build the whole worm in software: the body, the water, the muscles, the nervous system. The nervous system part is c302, built directly from that biological data. Each spike in the real animal has a counterpart in code. On one side the electricity moves through ion channels, on the other through transistors. It is not a picture of a worm, and not a language model that can talk about worms. It is the worm's own wiring, running.
+  </p>
+
+  <p class="mb-4">
+    There is no generative model in the piece: no prompt, no image generator, no chat. The dataset is a connectome, one animal's body, measured by people with electron microscopes and a great deal of patience.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">Harm is a circuit, pleasure is a history</h2>
+
+  <ul class="mb-4 space-y-1">
+    <li>
+      <strong>Pain: ASH → AIB → RIM → AVA.</strong> ASH senses something harmful (in the lab, octanol), AIB integrates, RIM modulates, and AVA commands the reversal: the worm backs away. Every step is in the wiring diagram.
+    </li>
+    <li>
+      <strong>Pleasure: dopamine and serotonin.</strong> CEP releases dopamine and NSM serotonin when there is food. The wiring says which cells release them. It does not say what is rewarding, or for whom.
+    </li>
+  </ul>
+
+  <p class="mb-4">
+    Withdrawal needs no memory and no hunger. Reward needs a body that has been without something. So the pain side can be specified first, and that is a bias too: not in the data, but in what is easy to build. The reference is Zalucki, Brown and Key, "What if worms were sentient?" (2023).
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">Four screens, four Raspberry Pis</h2>
+
+  <p class="mb-4">
+    The four screens hang on a print of Benatar's table, on fabric, in a metal frame, each driven by its own Raspberry Pi: a small local body in the room rather than a cloud.
+  </p>
+
+  <figure class="my-8">
+    <img
+      src="/images/eternal-gain/eternal-gain-02.jpg"
+      alt="Eternal Gain, Eternal Pain — front view of the printed Benatar table with a screen in each cell"
+      class="art-zoomable"
+      style="width: 100%; max-width: 520px; height: auto; display: block; border: 1px solid var(--line);"
+      loading="lazy"
+    />
+    <figcaption class="mt-2 text-sm opacity-70">
+      Scenario A on the left, running. Scenario B on the right, on and empty.
+    </figcaption>
+  </figure>
+
+  <ol class="mb-4 space-y-1">
+    <li><strong>Presence of pain.</strong> The worm exists and the octanol pathway is driven. The spikes are dense and fast, and the worm keeps reversing.</li>
+    <li><strong>Absence of pain.</strong> The worm is absent. The screen is on, the computer is running, the electricity is being spent, and nobody is there.</li>
+    <li><strong>Presence of pleasure.</strong> The worm exists and the dopamine cells are driven. There is food, and it moves slowly and forward.</li>
+    <li><strong>Absence of pleasure.</strong> The worm is absent again. Nobody is there to miss it.</li>
+  </ol>
+
+  <p class="mb-4">
+    In the hall the screens were small and the room was dark, so you had to come close to see that something was happening, and closer still to see what: the running cells glow with the neuron names down the side: AIB, ASH, AWC, CEP, NSM, RIM. Benatar would choose the right column, both empty screens. Most visitors stood in front of the left, and mostly in front of the pain.
+  </p>
+
+  <figure class="my-8">
+    <img
+      src="/images/eternal-gain/eternal-gain-04.jpg"
+      alt="Eternal Gain, Eternal Pain — close-up of the Raspberry Pi screen in the presence-of-pleasure cell"
+      class="art-zoomable"
+      style="width: 100%; max-width: 520px; height: auto; display: block; border: 1px solid var(--line);"
+      loading="lazy"
+    />
+    <figcaption class="mt-2 text-sm opacity-70">
+      Up close: the screen in cell (2), presence of pleasure.
+    </figcaption>
+  </figure>
+
+  <p class="mb-4">
+    A sentence stayed on my wall while I made it: "lamps in games are using real electricity." Nothing simulated stays in the simulation. A simulated worm spends real power and lights a real room, and even the two empty worlds are paid for. The ouroboros is the same loop cut into the table, so it needs no power. When the screens are off, it is still there.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">Reflex, or sentience</h2>
+
+  <p class="mb-4">
+    What emerges in c302 may be reflex rather than sentience. I do not claim the worm feels. It continues indefinitely, enduring without awareness, existing only because it can. But I also cannot prove that it does not feel. Perception can be known from outside: the worm registers the octanol and turns. Consciousness cannot. The work puts you in the position of deciding under uncertainty, which is what a parent does too.
+  </p>
+
+  <p class="mb-4">
+    Do we create out of compassion, or compulsion? And still, I pressed run. Four times.
   </p>
 
   <figure class="my-8">
@@ -64,19 +198,5 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
     <p class="text-sm" set:html={text4}></p>
     <p class="text-sm" set:html={text5}></p>
     <p class="text-sm" set:html={text6}></p>
-  </div>
-
-  <div class="art-media-grid">
-    {Array.from({ length: 4 }, (_, i) => {
-      const n = String(i + 1).padStart(2, "0")
-      return (
-        <img
-          src={`/images/eternal-gain/eternal-gain-${n}.jpg`}
-          alt={`Eternal Gain, Eternal Pain — installation documentation ${n}`}
-          style="height: 280px; object-fit: cover;"
-          loading="lazy"
-        />
-      )
-    })}
   </div>
 </div>

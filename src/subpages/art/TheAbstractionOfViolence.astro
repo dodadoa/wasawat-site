@@ -1,0 +1,74 @@
+---
+import { linkInstagramMentions } from "../../utils/instagramMentions";
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
+
+const metaBy = linkInstagramMentions("@vietnam_media_lab");
+const metaSupport = linkInstagramMentions("Goethe-Institut Ho Chi Minh City (@goetheinstitut_hochiminh), under the patronage of the Consulate General of the Federal Republic of Germany in Ho Chi Minh City");
+const metaDemo = linkInstagramMentions("8 August 2026, as a demo at Shadowplay (@shadowplay.bkk), Bangkok, for Play Play Play: Transitional image after party, curated by @pasuthh & @vietnam_media_lab");
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2026" },
+    { label: "Country", value: "Vietnam" },
+    { label: "Date", value: "10 October 2026, 19:30–21:30" },
+    { label: "Venue", value: "HVT Villa, 257 Hoàng Văn Thụ, Tân Sơn Hòa, Ho Chi Minh City" },
+    { label: "For", value: "VINA/V #05 — The Living Code Prelude, at the opening of Science Fair 2026" },
+    { label: "Presented by", value: metaBy, html: true },
+    { label: "Supported by", value: metaSupport, html: true },
+  ]} />
+
+  <p class="mb-4">
+    When something is abstracted, we tend to see it as less human, even when the data underneath is a person.
+    A drone operation is the plainest example: the person becomes a shape on a screen, and killing becomes easier.
+  </p>
+
+  <aside class="art-margin-note" id="psyop-note">
+    <p style="font-family: var(--f-data); font-size: 12px; line-height: 1.6; margin: 0;">
+      <strong>Psyop</strong>: short for psychological operation. A military term for planned efforts to
+      influence the emotions, reasoning and behaviour of an audience by conveying selected information,
+      rather than by force.
+    </p>
+  </aside>
+
+  <p class="mb-4">
+    We have been trained on these images for a long time. Harun Farocki called them operational images: pictures
+    that are not made to show something but to be part of an operation.<sup>1</sup> We got used to them through
+    the news, and then through games. The second scene of this set, the aerial view, comes from
+    <em>Call of Duty 4: Modern Warfare</em>, where the player looks down from a gunship through a thermal camera.
+    Some researchers argue that the series was made with the support of the U.S. military, and read it as a
+    <a href="#psyop-note" class="art-callout">psychological operation</a>.<sup>2</sup>
+  </p>
+
+  <p class="mb-4">
+    At some point the separation gets so wide that we cannot tell the difference anymore. In <em>Ender's Game</em> the
+    protagonist believes he is playing a simulation, and has no idea what he is actually doing.<sup>3</sup>
+  </p>
+
+  <p class="mb-4">
+    Lately the killing is automated as well, so we don't even have to deal with it. Business as usual. What is left is
+    only a task, and a task can be automated, and it has to be finished whether or not it hurts a real human.
+  </p>
+
+  <p class="mb-4">
+    I wanted to deliberately destroy this system, so I made a desktop destroyer to end the set.
+  </p>
+
+  <div class="art-footnotes">
+    <p><sup>1</sup>Harun Farocki, <em>Eye/Machine I–III</em> (2000–03) and <em>Serious Games I–IV</em> (2009–10). See <a href="https://www.moma.org/calendar/exhibitions/1179" target="_blank" rel="noopener noreferrer">Harun Farocki: Images of War (at a Distance)</a>, MoMA.</p>
+    <p><sup>2</sup>Alan MacLeod, <a href="https://www.mintpressnews.com/call-of-duty-is-a-government-psyop-these-documents-prove-it/282781/" target="_blank" rel="noopener noreferrer">“Call of Duty is a Government Psyop: These Documents Prove It”</a>, MintPress News, 18 November 2022, based on documents obtained by Tom Secker under the Freedom of Information Act. The documents show collaboration between the military and the producers; “psyop” is the author's reading. The aerial mission is “Death From Above” (Infinity Ward, 2007).</p>
+    <p><sup>3</sup>Orson Scott Card, <em>Ender's Game</em> (1985).</p>
+  </div>
+
+  <div class="art-media-grid">
+    <img src="/images/the-abstraction-of-violence/field-note-1.jpg" alt="Business As Usual: The Abstraction of violence — performance documentation" class="art-media-full" />
+  </div>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">
+    Earlier showing
+  </h2>
+
+  <ArtworkMeta fields={[
+    { label: "First played", value: metaDemo, html: true },
+  ]} />
+</div>

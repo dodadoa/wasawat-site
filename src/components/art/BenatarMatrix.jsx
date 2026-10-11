@@ -271,10 +271,10 @@ export default function BenatarMatrix() {
 
       {/* step text */}
       <div style={{ padding: "14px 0 12px", borderTop: "1px solid var(--line)", marginTop: "12px" }}>
-        <div style={{ fontFamily: navFont, fontSize: fs(10), letterSpacing: "0.06em", color: "var(--ink)", marginBottom: "7px" }}>
+        <div style={{ fontFamily: navFont, fontSize: fs(12), letterSpacing: "0.06em", color: "var(--ink)", marginBottom: "7px" }}>
           {current.title}
         </div>
-        <div style={{ fontFamily: navFont, fontSize: fs(10), color: "var(--soft)", lineHeight: 1.65 }}>
+        <div style={{ fontFamily: navFont, fontSize: fs(12), color: "var(--soft)", lineHeight: 1.65 }}>
           {current.body}
         </div>
       </div>

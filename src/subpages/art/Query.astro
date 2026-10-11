@@ -1,0 +1,41 @@
+---
+import { linkInstagramMentions } from "../../utils/instagramMentions";
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
+
+const metaVenue = linkInstagramMentions("@aapex_lab");
+const metaOrganised = linkInstagramMentions("@sophiologin");
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2026" },
+    { label: "First played", value: "20 September 2026" },
+    { label: "Venue", value: metaVenue, html: true },
+    { label: "Organised by", value: metaOrganised, html: true },
+    { label: "Software", value: "SuperCollider" },
+  ]} />
+
+  <p class="mb-4">
+    A sequencer that treats the sample folder as a database. You type words: kick, impact, glitch, loop
+    and so on, then the rows fill with whatever matches.
+  </p>
+
+  <p class="mb-4">
+    I gave up some control over the rhythm. Each row runs its own algorithm, so nothing lines up for long.
+  </p>
+
+  <p class="mb-4">
+    The idea of putting all the sound in RAM is borrowed from <a href="https://renickbell.net" target="_blank" rel="noopener noreferrer">Renick Bell</a>'s
+    <a href="https://github.com/renickbell/konduktiva" target="_blank" rel="noopener noreferrer">Konduktiva</a>.
+    The whole program is written in SuperCollider.
+  </p>
+
+  <div class="art-media-grid">
+    <figure class="art-media-full">
+      <video controls preload="metadata" poster="/images/query/query-cover.jpg">
+        <source src="/video/query.mp4" type="video/mp4" />
+      </video>
+      <figcaption class="mt-2 text-sm opacity-70">Screen recording — typing a query, rows filling with matching samples</figcaption>
+    </figure>
+  </div>
+</div>
