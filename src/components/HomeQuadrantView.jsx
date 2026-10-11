@@ -17,6 +17,12 @@ const dataMono = "'PragmataPro Mono', ui-monospace, Menlo, monospace"
 // the canvas (.quadrant-3d canvas, in pages/index.astro)
 const BLOOM = "0 0 1px rgba(20,20,20,0.55), 0 0 7px rgba(20,20,20,0.32)"
 const STACK = `6px 6px 0 -1px ${PAPER}, 6px 6px 0 0 ${LINE}`
+// the 2d planes' rules are hairlines, so they take the bloom a touch heavier
+const FLAT_BLOOM_AT = (inset = "") =>
+  `${inset}0 0 1px rgba(20,20,20,0.6), ${inset}0 0 9px rgba(20,20,20,0.4)`
+const FLAT_BLOOM = FLAT_BLOOM_AT()
+// a sheet's border blooms to both sides of the line
+const FLAT_SHEET_BLOOM = `${FLAT_BLOOM}, ${FLAT_BLOOM_AT("inset ")}`
 
 // The right-hand column is exactly as wide as the top nav's link cells (the nav
 // publishes that width), so its left rule continues the nav's first divider.
@@ -668,14 +674,14 @@ function FlatPanel({ plane, level, works, genreFilter, hoverKey, setHoverKey }) 
           transform: `translateZ(calc(${FLAT_SIDE} * ${level * FLAT_GAP}))`,
           border: `1px solid ${LINE}`,
           background: `color-mix(in srgb, ${PAPER} 70%, transparent)`,
-          boxShadow: STACK,
+          boxShadow: `${STACK}, ${FLAT_SHEET_BLOOM}`,
           // only the badges take the pointer, so a sheet never blocks the one below
           pointerEvents: "none",
         }}
       >
         {/* axis lines */}
-        <div style={{ position: "absolute", left: 0, right: 0, top: "50%", height: "1px", background: LINE }} />
-        <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: "1px", background: LINE }} />
+        <div style={{ position: "absolute", left: 0, right: 0, top: "50%", height: "1px", background: LINE, boxShadow: FLAT_BLOOM }} />
+        <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: "1px", background: LINE, boxShadow: FLAT_BLOOM }} />
         {/* axis end labels */}
         <span style={{ ...FLAT_END_LABEL, left: "6px", top: "50%", transform: "translateY(-140%)" }}>{plane.left}</span>
         <span style={{ ...FLAT_END_LABEL, right: "6px", top: "50%", transform: "translateY(-140%)" }}>{plane.right}</span>

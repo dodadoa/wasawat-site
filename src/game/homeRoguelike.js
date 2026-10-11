@@ -218,9 +218,9 @@ const T = 16 // tile size in art pixels; sprites are 16 wide and as tall as they
 // on a phone the status panel and the help strip sit over the map; on desktop
 // they are in the left column and only the view switcher is in the way
 /** how far the paper blooms over the ink, 0 to 1 */
-const BLOOM = 0.4
+const BLOOM = 0.32
 /** how far the ink glows out onto the paper round it, 0 to 1 */
-const GLOW_INK = 0.45
+const GLOW_INK = 0.32
 const HUD_TOP = 120
 const HUD_BOTTOM = 130
 const SWITCHER_BOTTOM = 56
