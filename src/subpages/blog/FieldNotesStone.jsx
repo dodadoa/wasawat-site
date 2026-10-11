@@ -863,6 +863,8 @@ const DISSOLVE_MAP = `
 `
 
 // ---------------------------------------------------------------- geometry helpers
+const YUP = new THREE.Vector3(0, 1, 0)
+
 function blob(a1, a2, a3, detail) {
   const g = new THREE.IcosahedronGeometry(1, detail === undefined ? 3 : detail)
   const p = g.attributes.position,
@@ -1166,7 +1168,7 @@ function buildWorld(host, ui) {
     ),
     surface(
       new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.96, metalness: 0 }),
-      () => specimenSheet(TREE_NOTES, "canopy, est.", OBJECTS),
+      () => specimenSheet(TREE_NOTES, "crown, conical", OBJECTS),
       0,
       32,
     ),
@@ -1356,44 +1358,76 @@ function buildWorld(host, ui) {
   }
 
   // ---------------------------------------------------------------- growth
-  // recursive branching, then one merged mesh per tree so the draw count stays low
+  // a conifer: one tapered trunk that leans a little, whorls of branches that
+  // shorten and lift toward the top, each carrying sprigs of needles, and a
+  // leader spike above the lot. merged into one mesh per tree so the draw
+  // count stays low.
   function treeGeometry(k) {
-    const root = new THREE.Object3D()
-    const segs = [],
-      tips = []
+    const parts = []
+    const H = (4.2 + rng() * 2.2) * k
+    const swayX = (rng() - 0.5) * 0.5 * k,
+      swayZ = (rng() - 0.5) * 0.5 * k
+    // the trunk is not a straight line: it drifts as it rises
+    const axis = (t) => new THREE.Vector3(swayX * t * t, H * t, swayZ * t * t)
 
-    function grow(parent, len, rad, depth, first) {
-      const node = new THREE.Object3D()
-      parent.add(node)
-      const spread = first ? 0.1 : 0.85
-      node.rotation.set((rng() - 0.5) * spread, rng() * 6.283, (rng() - 0.5) * spread)
-      const end = new THREE.Object3D()
-      end.position.y = len
-      node.add(end)
-      segs.push({ node, len, rad })
-      if (depth <= 0) {
-        tips.push(end)
-        return
-      }
-      const n = 2 + Math.floor(rng() * 2)
-      for (let i = 0; i < n; i++) grow(end, len * (0.58 + rng() * 0.22), rad * 0.62, depth - 1, false)
-    }
-    grow(root, 2.3 * k, 0.24 * k, 3, true)
-    root.updateMatrixWorld(true)
-
-    const parts = segs.map((sg) => {
-      const g = new THREE.CylinderGeometry(sg.rad * 0.62, sg.rad, sg.len, 7, 1, true)
-      g.translate(0, sg.len / 2, 0)
-      g.applyMatrix4(sg.node.matrixWorld)
+    const tube = (a, b, r0, r1, radial) => {
+      const dir = new THREE.Vector3().subVectors(b, a)
+      const len = dir.length()
+      const g = new THREE.CylinderGeometry(r1, r0, len, radial, 1, true)
+      g.translate(0, len / 2, 0)
+      g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(YUP, dir.normalize()))
+      g.translate(a.x, a.y, a.z)
       return g
-    })
-    for (const t of tips) {
-      const r = (0.5 + rng() * 0.45) * k
-      const g = blob(rng() * 10, rng() * 10, rng() * 10, 2)
-      g.scale(r, r * 0.78, r)
-      g.applyMatrix4(t.matrixWorld)
-      parts.push(g)
     }
+    // one sprig of needles: a slim open cone, tip pointing the way it grows
+    const sprig = (at, dir, len, rad) => {
+      const g = new THREE.ConeGeometry(rad, len, 6, 1, true)
+      g.translate(0, len / 2, 0)
+      g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(YUP, dir))
+      g.translate(at.x, at.y, at.z)
+      return g
+    }
+
+    const rBase = 0.16 * k
+    const SEG = 6
+    for (let i = 0; i < SEG; i++) {
+      const t0 = i / SEG,
+        t1 = (i + 1) / SEG
+      parts.push(tube(axis(t0), axis(t1), rBase * (1 - 0.85 * t0), rBase * (1 - 0.85 * t1), 7))
+    }
+
+    const crown = (1.5 + rng() * 0.9) * k
+    const whorls = 6 + Math.floor(rng() * 4)
+    for (let w = 0; w < whorls; w++) {
+      const t = 0.2 + (w / whorls) * 0.76
+      const base = axis(t)
+      const len = crown * Math.pow(1 - t, 0.8) * (0.75 + rng() * 0.5)
+      if (len < 0.12 * k) continue
+      const n = 4 + Math.floor(rng() * 3)
+      const off = rng() * Math.PI * 2
+      for (let j = 0; j < n; j++) {
+        const az = off + (j / n) * Math.PI * 2 + (rng() - 0.5) * 0.5
+        const el = (t - 0.6) * 1.1 + (rng() - 0.5) * 0.25 // droops low down, lifts near the top
+        const dir = new THREE.Vector3(
+          Math.cos(az) * Math.cos(el),
+          Math.sin(el),
+          Math.sin(az) * Math.cos(el),
+        ).normalize()
+        parts.push(tube(base, base.clone().addScaledVector(dir, len), 0.045 * k * (1 - t * 0.5), 0.015 * k, 5))
+        const tufts = 2 + Math.floor(rng() * 2)
+        for (let s = 0; s < tufts; s++) {
+          const at = base.clone().addScaledVector(dir, len * (0.25 + (s / tufts) * 0.7))
+          const d = dir
+            .clone()
+            .add(new THREE.Vector3((rng() - 0.5) * 0.5, (rng() - 0.5) * 0.5 - 0.12, (rng() - 0.5) * 0.5))
+            .normalize()
+          parts.push(sprig(at, d, len * (0.45 + rng() * 0.4), (0.13 + rng() * 0.12) * k * (1.1 - t * 0.6)))
+        }
+      }
+    }
+
+    parts.push(sprig(axis(1).addScaledVector(YUP, -0.35 * k), YUP, (0.7 + rng() * 0.5) * k, 0.2 * k))
+
     const merged = mergeGeos(parts)
     parts.forEach((g) => g.dispose())
     smoothNormals(merged)

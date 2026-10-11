@@ -1,7 +1,5 @@
 ---
 // Hidden page — not linked from navigation, excluded from search engines.
-import "@fontsource/jetbrains-mono/400.css"
-import "@fontsource/jetbrains-mono/700.css"
 ---
 
 <!DOCTYPE html>
@@ -142,24 +140,52 @@ import "@fontsource/jetbrains-mono/700.css"
     </main>
 
     <style>
-      :root { color-scheme: light; }
+      @font-face {
+        font-family: "DepartureMono";
+        src: url("/fonts/DepartureMono-Regular.woff2") format("woff2"),
+             url("/fonts/DepartureMono-Regular.woff") format("woff");
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "403Mesapholic";
+        src: url("/fonts/403 Mesapholic (Extended)/WEB/403Mesapholic-Regular.woff2") format("woff2"),
+             url("/fonts/403 Mesapholic (Extended)/WEB/403Mesapholic-Regular.woff") format("woff");
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+      /* 1-bit document: ink on paper grey, same four values as the site */
+      :root {
+        color-scheme: light;
+        --bg: #e4e4e4;
+        --ink: #141414;
+        --soft: #666666;
+        --line: #b4b4b4;
+        --f-display: "403Mesapholic", monospace;
+        --f-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --f-pixel: "DepartureMono", monospace;
+        --f-data: "PragmataPro Mono", ui-monospace, Menlo, monospace;
+      }
+      *, *::before, *::after { border-radius: 0; }
+      ::selection { background: var(--ink); color: var(--bg); }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
-        font-family: Times, "Times New Roman", serif;
-        background: #e8e8e8;
-        color: #111;
+        font-family: var(--f-body);
+        background: var(--bg);
+        color: var(--ink);
         font-size: 12.5px;
         line-height: 1.65;
       }
       .page {
         max-width: 210mm;
         margin: 2rem auto;
-        background: #fff;
+        background: var(--bg);
         padding: 14mm 16mm;
-        box-shadow: 0 2px 20px rgba(0,0,0,0.12);
       }
       header {
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid var(--line);
         padding-bottom: 0.9rem;
         margin-bottom: 1.6rem;
       }
@@ -172,12 +198,12 @@ import "@fontsource/jetbrains-mono/700.css"
         margin-top: 0.3rem;
         font-size: 12px;
         letter-spacing: 0.02em;
-        color: #555;
+        color: var(--soft);
       }
       .contact {
         margin-top: 0.3rem;
         font-size: 11.5px;
-        color: #555;
+        color: var(--soft);
       }
       a { color: inherit; }
 
@@ -185,13 +211,13 @@ import "@fontsource/jetbrains-mono/700.css"
         font-size: 13px;
         font-weight: 400;
         letter-spacing: 0.01em;
-        color: #111;
+        color: var(--ink);
         margin-bottom: 0.7rem;
       }
       section { margin-bottom: 1.8rem; }
       .profile {
         font-size: 12.5px;
-        color: #333;
+        color: var(--ink);
         max-width: 78ch;
       }
 
@@ -202,11 +228,11 @@ import "@fontsource/jetbrains-mono/700.css"
       }
       .artist {
         font-size: 12.5px;
-        color: #333;
+        color: var(--ink);
         line-height: 1.5;
       }
-      .artist-name { font-weight: 700; color: #111; }
-      .artist-detail { color: #777; }
+      .artist-name { font-weight: 700; color: var(--ink); }
+      .artist-detail { color: var(--soft); }
 
       .row {
         display: grid;
@@ -215,10 +241,10 @@ import "@fontsource/jetbrains-mono/700.css"
         margin-bottom: 0.55rem;
         align-items: baseline;
       }
-      .row-year { font-size: 11px; color: #999; white-space: nowrap; }
-      .row-body { font-size: 12.5px; color: #333; line-height: 1.55; }
-      .row-title { font-weight: 700; color: #111; }
-      .row-body em { font-style: italic; color: #555; }
+      .row-year { font-size: 11px; color: var(--soft); white-space: nowrap; }
+      .row-body { font-size: 12.5px; color: var(--ink); line-height: 1.55; }
+      .row-title { font-weight: 700; color: var(--ink); }
+      .row-body em { font-style: italic; color: var(--soft); }
 
       ul { list-style: none; }
       li {
@@ -227,7 +253,7 @@ import "@fontsource/jetbrains-mono/700.css"
         text-indent: -1rem;
         font-size: 12.5px;
       }
-      li::before { content: "— "; color: #ccc; }
+      li::before { content: "— "; color: var(--line); }
 
       .skills-grid {
         display: grid;
@@ -238,12 +264,12 @@ import "@fontsource/jetbrains-mono/700.css"
         font-size: 10.5px;
         text-transform: uppercase;
         letter-spacing: 0.12em;
-        color: #aaa;
+        color: var(--soft);
         margin-bottom: 0.1rem;
       }
       .skills-grid p:not(.skills-cat) {
         font-size: 12.5px;
-        color: #333;
+        color: var(--ink);
       }
 
       @media (max-width: 600px) {
@@ -259,38 +285,91 @@ import "@fontsource/jetbrains-mono/700.css"
         justify-content: space-between;
       }
       .breadcrumb-link {
-        font-family: "JetBrains Mono", monospace;
+        font-family: var(--f-pixel);
         font-size: 11px;
         letter-spacing: 0.06em;
-        color: #6a6a6a;
+        color: var(--soft);
         text-decoration: none;
       }
-      .breadcrumb-link:hover { color: #111; }
+      .breadcrumb-link:hover { color: var(--ink); }
       .pdf-btn {
-        font-family: "JetBrains Mono", monospace;
+        font-family: var(--f-pixel);
         font-size: 11px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        background: #111;
-        color: #fff;
+        background: var(--ink);
+        color: var(--bg);
         border: none;
         padding: 0.5rem 1rem;
-        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%23111' stroke-width='1.5'/%3E%3C/svg%3E") 16 16, pointer;
+        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%23141414' stroke-width='1.5'/%3E%3C/svg%3E") 16 16, pointer;
       }
       .pdf-btn:hover {
-        background: #333;
-        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E") 16 16, pointer;
+        background: var(--ink);
+        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%23e4e4e4' stroke-width='1.5'/%3E%3C/svg%3E") 16 16, pointer;
       }
       .pdf-btn:active {
-        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='%23fff'/%3E%3C/svg%3E") 16 32, pointer;
+        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='%23e4e4e4'/%3E%3C/svg%3E") 16 32, pointer;
       }
       @media print {
         .toolbar { display: none; }
-        body { background: #fff; }
+        body { background: var(--bg); }
         .page { margin: 0; box-shadow: none; max-width: none; }
         a { text-decoration: none; }
         .row { page-break-inside: avoid; }
         section { page-break-inside: avoid; }
+      }
+    
+      /* ── surfaces ── */
+      .page {
+        background: color-mix(in srgb, var(--bg) 80%, transparent);
+        border: 1px solid var(--line);
+        box-shadow: 10px 10px 0 -1px var(--bg), 10px 10px 0 0 var(--line);
+        margin-bottom: 4rem;
+      }
+      h1 {
+        font-family: var(--f-display);
+        font-weight: 400;
+        font-size: 44px;
+        line-height: 1.16;
+        letter-spacing: -0.02em;
+        text-transform: none;
+      }
+      header { border-bottom: 3px solid var(--ink); }
+      .tagline, .contact, .work-venue, .also, .artist-detail {
+        font-family: var(--f-data);
+        font-style: normal;
+        line-height: 1.6;
+      }
+      .row-year, .perf-table td.year { font-family: var(--f-data); }
+      .skills-cat, .work-meta { font-family: var(--f-pixel); letter-spacing: 0.08em; }
+      .work-title, .row-title { font-weight: 400; }
+      .work-title { font-family: var(--f-display); letter-spacing: -0.02em; }
+      .row-title { font-weight: 700; }
+      .work-images img {
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+      li::before { content: "→ "; font-family: var(--f-pixel); color: var(--soft); }
+      .breadcrumb-link, .pdf-btn {
+        font-family: var(--f-pixel);
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .pdf-btn {
+        background: transparent;
+        color: var(--ink);
+        border: 1px solid var(--ink);
+        padding: 0.75em 1em;
+        line-height: 1;
+      }
+      .pdf-btn:hover, .pdf-btn:active {
+        background: var(--ink);
+        color: var(--bg);
+      }
+      @media print {
+        body { background: #fff; }
+        .page { background: none; border: 0; box-shadow: none; margin: 0; }
       }
     </style>
   </body>

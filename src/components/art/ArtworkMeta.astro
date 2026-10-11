@@ -28,40 +28,47 @@ const visible = fields.filter((f) => f.value)
 )}
 
 <style is:global>
+  /* spec sheet: pixel-font labels against data-mono values, one ruled row each */
   .art-meta {
     display: grid;
     grid-template-columns: max-content 1fr;
     gap: 0;
-    font-family: "DepartureMono", monospace;
-    font-size: calc(11px * var(--ui-scale, 1));
     line-height: 1.6;
-    border-top: 1px solid var(--border-subtle);
-    border-bottom: 1px solid var(--border-subtle);
-    padding: 10px 0;
-    margin-bottom: 1.6rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 2.4rem;
+    max-width: 64ch;
   }
 
   .art-meta-row {
     display: contents;
   }
 
+  .art-meta dt,
+  .art-meta dd {
+    border-top: 1px solid var(--line);
+    padding: 0.6rem 0;
+  }
+
   .art-meta dt {
-    padding: 2px 16px 2px 0;
-    color: var(--text-dim);
+    padding-right: 2.5rem;
+    font-family: var(--f-pixel);
+    color: var(--soft);
     white-space: nowrap;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: calc(10px * var(--ui-scale, 1));
+    letter-spacing: 0.1em;
+    font-size: 11px;
+    line-height: 1.9;
   }
 
   .art-meta dd {
-    padding: 2px 0;
-    color: var(--text-body);
+    font-family: var(--f-data);
+    font-size: 14px;
+    color: var(--ink);
     margin: 0;
   }
 
   .art-meta dd a {
-    color: var(--text-muted);
+    color: var(--ink);
     font-weight: normal;
     text-decoration: underline;
     text-underline-offset: 3px;

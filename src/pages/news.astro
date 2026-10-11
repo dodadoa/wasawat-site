@@ -9,29 +9,34 @@ const { upcoming, archive } = splitNews()
 ---
 
 <Layout title="News — Wasawat Somno" description="Upcoming events and news">
-  <div class="relative z-10 font-mono w-full mt-16 pb-24 px-8 lg:w-4/5 max-w-3xl">
-
-    <p class="uppercase text-[13px] tracking-widest mb-10 font-normal" style="color: var(--text-muted)">
-      ~News
-    </p>
+  <div class="news-page relative z-10 w-full">
+    <header class="news-head">
+      <p class="kicker wipe">[news] — {String(upcoming.length).padStart(2, "0")} upcoming / {String(archive.length).padStart(2, "0")} past</p>
+      <h1 class="wipe">News</h1>
+    </header>
 
     {upcoming.length === 0 && (
-      <p class="news-empty">Nothing scheduled at the moment — past events are in the archive below.</p>
+      <p class="news-empty wipe"><span>Nothing scheduled at the moment — past events are in the archive below.</span></p>
     )}
 
-    {upcoming.map((entry, i) => (
-      <NewsEntry entry={entry} last={archive.length === 0 && i === upcoming.length - 1} />
-    ))}
+    {upcoming.length > 0 && (
+      <div class="news-list wipe">
+        {upcoming.map((entry, i) => (
+          <NewsEntry entry={entry} index={i + 1} />
+        ))}
+      </div>
+    )}
 
     {archive.length > 0 && (
-      <details class="news-archive">
+      <details class="news-archive wipe">
         <summary>
-          <span class="news-archive-label">~Archive</span>
-          <span class="news-archive-count">{archive.length} past {archive.length === 1 ? "event" : "events"}</span>
+          <span class="news-archive-label">Archive</span>
+          <span class="news-archive-count">{String(archive.length).padStart(2, "0")} past {archive.length === 1 ? "event" : "events"}</span>
+          <span class="news-archive-toggle" aria-hidden="true"></span>
         </summary>
         <div class="news-archive-list">
           {archive.map((entry, i) => (
-            <NewsEntry entry={entry} past last={i === archive.length - 1} />
+            <NewsEntry entry={entry} past index={i + 1} />
           ))}
         </div>
       </details>
@@ -41,44 +46,108 @@ const { upcoming, archive } = splitNews()
 </Layout>
 
 <style>
+  .news-page {
+    padding: 2rem 2rem 6rem;
+    max-width: 1080px;
+  }
+
+  .news-head {
+    margin: 2.5rem 0 5rem;
+  }
+
+  .news-head h1 {
+    margin-top: 0.6rem;
+  }
+
+  /* nothing on: a dashed placeholder on a 12% screen; the note itself sits
+     in a padded paper box so the dither never runs behind the letters */
   .news-empty {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-bottom: 3rem;
+    border: 1px dashed var(--soft);
+    background: var(--dither-12);
+    padding: 1.6rem;
+    margin-bottom: 4rem;
+    max-width: 34rem;
+  }
+
+  .news-empty span {
+    display: block;
+    font-family: var(--f-data);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--bg);
+    padding: 0.8rem 1rem;
+  }
+
+  .news-list {
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 4rem;
+  }
+
+  .news-archive {
+    border-top: 3px solid var(--ink);
   }
 
   .news-archive summary {
     cursor: pointer;
     list-style: none;
     display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    color: var(--text-muted);
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1rem 0;
+    color: var(--ink);
   }
+
   .news-archive summary::-webkit-details-marker {
     display: none;
   }
-  .news-archive summary:hover {
-    color: var(--text-body);
-  }
-  .news-archive summary::after {
-    content: "[+]";
-    font-size: 11px;
-    letter-spacing: 0.04em;
-  }
-  .news-archive[open] summary::after {
-    content: "[–]";
-  }
+
   .news-archive-label {
-    font-size: 13px;
+    font-family: var(--f-pixel);
+    font-size: 15px;
     text-transform: uppercase;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.12em;
   }
+
   .news-archive-count {
-    font-size: 11px;
-    opacity: 0.7;
+    font-family: var(--f-data);
+    font-size: 13px;
+    color: var(--soft);
   }
-  .news-archive-list {
-    margin-top: 2.5rem;
+
+  /* open/close control is a small button that inverts on hover */
+  .news-archive-toggle {
+    margin-left: auto;
+    font-family: var(--f-pixel);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid var(--ink);
+    padding: 0.6em 0.9em;
+    line-height: 1;
+  }
+
+  .news-archive-toggle::after {
+    content: "open +";
+  }
+
+  .news-archive[open] .news-archive-toggle::after {
+    content: "close –";
+  }
+
+  .news-archive summary:hover .news-archive-toggle,
+  .news-archive[open] .news-archive-toggle {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  @media (max-width: 640px) {
+    .news-page {
+      padding: 1.25rem 1rem 4rem;
+    }
+
+    .news-head {
+      margin: 1.5rem 0 3rem;
+    }
   }
 </style>

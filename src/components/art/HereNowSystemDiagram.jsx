@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useId, useEffect } from "react"
 
 const mono = "'DepartureMono', monospace"
-const display = "'TimesNewerRoman', 'Times New Roman', serif"
+const display = "'403Mesapholic', monospace"
 const fs = (px) => `calc(${px}px * var(--ui-scale, 1))`
 
 const VW = 900
@@ -196,7 +196,7 @@ export default function HereNowSystemDiagram() {
     }
   }, [minPair.a, minPair.b, isClose])
 
-  const accent = isClose ? "#c0392b" : "#2f7a4f"
+  const accent = isClose ? "#141414" : "#666666"
   const flowSpeed = isClose ? "0.7s" : "2.4s"
 
   // ---- fixed layout coordinates for the flow diagram ----
@@ -226,8 +226,8 @@ export default function HereNowSystemDiagram() {
           to { stroke-dashoffset: -24; }
         }
         @keyframes hn-pulse-${uid} {
-          0%, 100% { opacity: 0.55; }
-          50% { opacity: 1; }
+          0%, 49.99% { visibility: visible; }
+          50%, 100% { visibility: hidden; }
         }
         .hn-flow-${uid} {
           stroke-dasharray: 5 7;
@@ -235,8 +235,7 @@ export default function HereNowSystemDiagram() {
         }
         .hn-node-${uid} { cursor: grab; }
         .hn-node-${uid}:active { cursor: grabbing; }
-        .hn-exhibit-${uid} { cursor: pointer; transition: transform 0.15s ease; }
-        .hn-exhibit-${uid}:hover { transform: translateY(-2px); }
+        .hn-exhibit-${uid} { cursor: pointer; }
       `}</style>
 
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
@@ -284,17 +283,17 @@ export default function HereNowSystemDiagram() {
         >
           <defs>
             <pattern id={`dots-${uid}`} width="18" height="18" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1" fill="currentColor" opacity="0.12" />
+              <rect x="2" y="2" width="1" height="1" fill="currentColor" />
             </pattern>
             <marker id={`arrow-${uid}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity="0.55" />
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
             </marker>
           </defs>
 
-          <rect x="0" y="0" width={VW} height={VH} fill={`url(#dots-${uid})`} style={{ color: "var(--text-muted, #999)" }} />
+          <rect x="0" y="0" width={VW} height={VH} fill={`url(#dots-${uid})`} style={{ color: "var(--line)" }} />
 
           {/* ===== title ===== */}
-          <text x="40" y="52" style={{ fontFamily: display, fontWeight: "bold", fontSize: "40px", fill: "var(--text, #1a1a1a)" }}>
+          <text x="40" y="52" style={{ fontFamily: display, fontWeight: 400, fontSize: "36px", letterSpacing: "-0.02em", fill: "var(--text, #1a1a1a)" }}>
             3 CELESTIAL BODIES
           </text>
           <text x="40" y="76" style={{ fontFamily: mono, fontSize: "10.5px", letterSpacing: "0.02em", fill: "var(--text-muted, #888)" }}>
@@ -339,7 +338,7 @@ export default function HereNowSystemDiagram() {
           <g transform={`translate(${VW - 300},${TRI.top - 10})`}>
             <rect x="0" y="0" width="260" height="46" fill="none" stroke={accent} strokeWidth="1.2" />
             <circle cx="16" cy="23" r="4" fill={accent}>
-              <animate attributeName="opacity" values="0.5;1;0.5" dur={flowSpeed} repeatCount="indefinite" />
+              <animate attributeName="opacity" values="1;0" calcMode="discrete" dur={flowSpeed} repeatCount="indefinite" />
             </circle>
             <text x="30" y="19" style={{ fontFamily: mono, fontSize: "9.5px", fontWeight: "bold", fill: accent }}>
               {minPair.a}–{minPair.b} · {isClose ? "CLOSE" : "FAR"}
@@ -354,14 +353,14 @@ export default function HereNowSystemDiagram() {
           <path d={`M ${storyBox.x + storyBox.w * 0.28} ${storyBox.y + storyBox.h} L ${branchFar.x + branchFar.w / 2} ${branchFar.y}`} fill="none" stroke="var(--text-muted,#999)" strokeWidth="1" markerEnd={`url(#arrow-${uid})`} />
           <path d={`M ${storyBox.x + storyBox.w * 0.72} ${storyBox.y + storyBox.h} L ${branchClose.x + branchClose.w / 2} ${branchClose.y}`} fill="none" stroke="var(--text-muted,#999)" strokeWidth="1" markerEnd={`url(#arrow-${uid})`} />
 
-          <FlowBox {...branchFar} label="IF FAR AWAY" text="" active={!isClose} accent="#2f7a4f" small />
-          <FlowBox {...branchClose} label="IF CLOSE" text="" active={isClose} accent="#c0392b" small />
+          <FlowBox {...branchFar} label="IF FAR AWAY" text="" active={!isClose} accent="#666666" small />
+          <FlowBox {...branchClose} label="IF CLOSE" text="" active={isClose} accent="#141414" small />
 
           <line x1={branchFar.x + branchFar.w / 2} y1={branchFar.y + branchFar.h} x2={resultFar.x + resultFar.w / 2} y2={resultFar.y} stroke="var(--text-muted,#999)" strokeWidth="1" />
           <line x1={branchClose.x + branchClose.w / 2} y1={branchClose.y + branchClose.h} x2={resultClose.x + resultClose.w / 2} y2={resultClose.y} stroke="var(--text-muted,#999)" strokeWidth="1" />
 
-          <FlowBox {...resultFar} label="" text="Suggests good diplomatic relationship — when they drift apart, tension eases." active={!isClose} accent="#2f7a4f" italic />
-          <FlowBox {...resultClose} label="" text="Suggests conflict — trade wars, space rivalries, the slow pressure that forces every nation to choose a side." active={isClose} accent="#c0392b" italic />
+          <FlowBox {...resultFar} label="" text="Suggests good diplomatic relationship — when they drift apart, tension eases." active={!isClose} accent="#666666" italic />
+          <FlowBox {...resultClose} label="" text="Suggests conflict — trade wars, space rivalries, the slow pressure that forces every nation to choose a side." active={isClose} accent="#141414" italic />
 
           {/* converge to log */}
           <path d={`M ${resultFar.x + resultFar.w / 2} ${resultFar.y + resultFar.h} L ${logBox.x + logBox.w / 2} ${logBox.y}`} fill="none" stroke={!isClose ? accent : "var(--text-muted,#ccc)"} strokeWidth={!isClose ? 1.8 : 1} className={!isClose ? `hn-flow-${uid}` : ""} markerEnd={`url(#arrow-${uid})`} style={{ color: accent }} />
@@ -378,13 +377,13 @@ export default function HereNowSystemDiagram() {
               <g key={ex.id} className={`hn-exhibit-${uid}`} onClick={() => setActiveExhibit(on ? null : ex.id)}>
                 <path d={`M ${genBox.x + genBox.w / 2} ${genBox.y + genBox.h} L ${ex.x + exhibitW / 2} ${exhibitY}`} fill="none" stroke="var(--text-muted,#999)" strokeWidth="1" markerEnd={`url(#arrow-${uid})`} />
                 <rect x={ex.x} y={exhibitY} width={exhibitW} height={exhibitH} fill={on ? "var(--text,#1a1a1a)" : "var(--bg-canvas,#fff)"} stroke="var(--text,#1a1a1a)" strokeWidth="1.2" />
-                <text x={ex.x + 12} y={exhibitY + 20} style={{ fontFamily: mono, fontSize: "9px", fontWeight: "bold", fill: on ? "#fff" : "var(--text,#1a1a1a)" }}>
+                <text x={ex.x + 12} y={exhibitY + 20} style={{ fontFamily: mono, fontSize: "9px", fontWeight: "bold", fill: on ? "var(--bg)" : "var(--text,#1a1a1a)" }}>
                   EXHIBIT {ex.id}
                 </text>
-                <text x={ex.x + 12} y={exhibitY + 38} style={{ fontFamily: mono, fontSize: "8px", fill: on ? "#ddd" : "var(--text-muted,#888)" }}>
+                <text x={ex.x + 12} y={exhibitY + 38} style={{ fontFamily: mono, fontSize: "8px", fill: on ? "var(--bg)" : "var(--text-muted,#888)" }}>
                   {wrap(ex.title, 34)[0]}
                 </text>
-                <text x={ex.x + 12} y={exhibitY + 49} style={{ fontFamily: mono, fontSize: "8px", fill: on ? "#ddd" : "var(--text-muted,#888)" }}>
+                <text x={ex.x + 12} y={exhibitY + 49} style={{ fontFamily: mono, fontSize: "8px", fill: on ? "var(--bg)" : "var(--text-muted,#888)" }}>
                   {wrap(ex.title, 34)[1] || ""}
                 </text>
               </g>
@@ -396,10 +395,10 @@ export default function HereNowSystemDiagram() {
           <path d={`M ${otherBox.x + otherBox.w / 2} ${otherBox.y + otherBox.h} L ${exhibitD.x + exhibitD.w / 2} ${exhibitD.y}`} fill="none" stroke="var(--text-muted,#999)" strokeWidth="1" markerEnd={`url(#arrow-${uid})`} />
           <g className={`hn-exhibit-${uid}`} onClick={() => setActiveExhibit(activeExhibit === "D" ? null : "D")}>
             <rect x={exhibitD.x} y={exhibitD.y} width={exhibitD.w} height={exhibitD.h} fill={activeExhibit === "D" ? "var(--text,#1a1a1a)" : "var(--bg-canvas,#fff)"} stroke="var(--text,#1a1a1a)" strokeWidth="1.2" />
-            <text x={exhibitD.x + 10} y={exhibitD.y + 18} style={{ fontFamily: mono, fontSize: "9px", fontWeight: "bold", fill: activeExhibit === "D" ? "#fff" : "var(--text,#1a1a1a)" }}>EXHIBIT D</text>
-            <text x={exhibitD.x + 10} y={exhibitD.y + 34} style={{ fontFamily: mono, fontSize: "8px", fill: activeExhibit === "D" ? "#ddd" : "var(--text-muted,#888)" }}>Floral</text>
-            <text x={exhibitD.x + 10} y={exhibitD.y + 46} style={{ fontFamily: mono, fontSize: "8px", fill: activeExhibit === "D" ? "#ddd" : "var(--text-muted,#888)" }}>installation</text>
-            <text x={exhibitD.x + 10} y={exhibitD.y + 62} style={{ fontFamily: mono, fontSize: "7px", fill: activeExhibit === "D" ? "#bbb" : "var(--text-muted,#aaa)" }}>tap for detail →</text>
+            <text x={exhibitD.x + 10} y={exhibitD.y + 18} style={{ fontFamily: mono, fontSize: "9px", fontWeight: "bold", fill: activeExhibit === "D" ? "var(--bg)" : "var(--text,#1a1a1a)" }}>EXHIBIT D</text>
+            <text x={exhibitD.x + 10} y={exhibitD.y + 34} style={{ fontFamily: mono, fontSize: "8px", fill: activeExhibit === "D" ? "var(--bg)" : "var(--text-muted,#888)" }}>Floral</text>
+            <text x={exhibitD.x + 10} y={exhibitD.y + 46} style={{ fontFamily: mono, fontSize: "8px", fill: activeExhibit === "D" ? "var(--bg)" : "var(--text-muted,#888)" }}>installation</text>
+            <text x={exhibitD.x + 10} y={exhibitD.y + 62} style={{ fontFamily: mono, fontSize: "7px", fill: activeExhibit === "D" ? "var(--line)" : "var(--text-muted,#aaa)" }}>tap for detail →</text>
           </g>
           <path d={`M ${exhibitD.x + exhibitD.w / 2} ${exhibitD.y + exhibitD.h} L ${exhibitD.x + exhibitD.w / 2} ${plantsY0}`} fill="none" stroke="var(--text-muted,#999)" strokeWidth="1" markerEnd={`url(#arrow-${uid})`} />
           {PLANTS.map((p, i) => (
@@ -433,10 +432,10 @@ export default function HereNowSystemDiagram() {
         marginTop: "1px",
         padding: "12px 14px",
         background: "var(--text, #1a1a1a)",
-        color: "#fff",
+        color: "var(--bg)",
         borderLeft: `3px solid ${accent}`,
       }}>
-        <div style={{ fontSize: fs(8), letterSpacing: "0.14em", color: "#999", textTransform: "uppercase", marginBottom: "6px" }}>
+        <div style={{ fontSize: fs(8), letterSpacing: "0.14em", color: "var(--line)", textTransform: "uppercase", marginBottom: "6px" }}>
           Visual generate · fake speculative fiction, live
         </div>
         <div style={{ fontSize: fs(10.5), lineHeight: 1.6, fontStyle: "italic" }}>
@@ -473,10 +472,10 @@ function wrap(str, n) {
 
 function FlowBox({ x, y, w, h, label, text, active = true, accent, small, italic, centered, fill, textColor }) {
   const border = accent && active ? accent : "var(--text, #1a1a1a)"
-  const opacity = active ? 1 : 0.32
+  // the branch not taken is a placeholder: dashed, in dimmed ink
   return (
-    <g opacity={opacity}>
-      <rect x={x} y={y} width={w} height={h} fill={fill || "var(--bg-canvas, #fff)"} stroke={border} strokeWidth={accent && active ? 1.6 : 1} />
+    <g style={active ? undefined : { color: "var(--soft)" }}>
+      <rect x={x} y={y} width={w} height={h} fill={fill || "var(--bg-canvas, #fff)"} stroke={active ? border : "var(--soft)"} strokeDasharray={active ? undefined : "3 3"} strokeWidth={accent && active ? 3 : 1} />
       {label && (
         <text x={x + w / 2} y={y + (text ? 18 : h / 2 + 4)} textAnchor="middle" style={{ fontFamily: mono, fontSize: small ? "9px" : "10px", fontWeight: "bold", letterSpacing: "0.04em", fill: textColor || "var(--text, #1a1a1a)" }}>
           {label}

@@ -3,12 +3,12 @@ import Layout from "../layouts/layout.astro"
 import HomeQuadrantView from "../components/HomeQuadrantView.jsx"
 ---
 
-<Layout title="Wasawat Somno" description="Developer/Artist" preview="/images/pages/index.png">
+<Layout title="Wasawat Somno" description="Developer/Artist" preview="/images/pages/index.png" mono>
   <HomeQuadrantView client:only="react">
     <div
       slot="fallback"
       id="home-quadrant"
-      class="fixed left-0 right-0 bottom-0 bg-white"
+      class="fixed left-0 right-0 bottom-0"
       style="top: 2.5rem; height: calc(100vh - 2.5rem); width: 100%;"
     >
       <span class="home-quadrant-loading">loading selected work…</span>
@@ -26,17 +26,20 @@ import HomeQuadrantView from "../components/HomeQuadrantView.jsx"
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-family: "403Mesapholic", monospace;
-    font-size: 13px;
-    letter-spacing: 0.22em;
+    font-family: var(--f-pixel);
+    font-size: 12px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #999;
-    animation: home-quadrant-loading-pulse 1.4s ease-in-out infinite;
+    color: var(--ink);
+    z-index: 2;
+    /* hard blink, no eased pulse */
+    animation: blink-step 1s steps(1, end) infinite;
   }
 
-  @keyframes home-quadrant-loading-pulse {
-    0%, 100% { opacity: 0.35; }
-    50% { opacity: 0.9; }
+  /* the 3d view's labels are crisp: no text bloom (inline halos still apply) */
+  .quadrant-3d,
+  .quadrant-3d * {
+    text-shadow: none;
   }
 
   body:has(#home-quadrant) main {

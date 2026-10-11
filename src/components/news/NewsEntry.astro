@@ -1,15 +1,18 @@
 ---
 /**
  * One news item. Shared by the upcoming list and the archive on /news —
- * `past` dims it, `last` drops the trailing rule at the end of a list.
+ * `past` sets it smaller and in the dimmed ink; `index` is its row counter.
  */
 import { formatRange } from "../../data/news.js"
 
-const { entry, past = false, last = false } = Astro.props
+const { entry, past = false, index } = Astro.props
 ---
 
-<article class:list={["news-entry", past && "news-entry--past", last && "news-entry--last"]}>
-  <div class="news-date">{formatRange(entry.start, entry.end)}</div>
+<article class:list={["news-entry", past && "news-entry--past"]}>
+  <div class="news-date">
+    {index && <span class="news-count">{String(index).padStart(2, "0")} →</span>}
+    <span>{formatRange(entry.start, entry.end)}</span>
+  </div>
   <div class="news-body">
     {entry.venue && (
       <p class="news-venue">
@@ -51,97 +54,144 @@ const { entry, past = false, last = false } = Astro.props
 </article>
 
 <style>
+  /* each item is ruled off on top, with generous air above and below */
   .news-entry {
     display: grid;
-    grid-template-columns: 120px 1fr;
-    gap: 0 2rem;
-    margin-bottom: 3rem;
-    padding-bottom: 3rem;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-  .news-entry--last {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 0 3rem;
+    padding: 2.6rem 0 3.2rem;
+    border-top: 1px solid var(--line);
   }
   .news-date {
-    font-size: 11px;
-    color: var(--text-muted);
-    letter-spacing: 0.04em;
-    padding-top: 0.15rem;
-    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-family: var(--f-data);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--soft);
+  }
+  .news-count {
+    font-family: var(--f-pixel);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--ink);
   }
   .news-venue {
-    font-size: 11px;
-    color: var(--text-muted);
-    letter-spacing: 0.03em;
-    margin-bottom: 0.35rem;
+    font-family: var(--f-pixel);
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--soft);
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+    margin-bottom: 0.9rem;
   }
   .news-venue a {
     color: inherit;
     text-decoration: underline;
     text-underline-offset: 3px;
   }
+  .news-venue a:hover {
+    background: var(--ink);
+    color: var(--bg);
+    text-decoration: none;
+  }
   .news-title {
-    font-size: 22px;
-    font-weight: normal;
-    letter-spacing: 0.01em;
-    margin-bottom: 0.35rem;
-    line-height: 1.25;
+    font-size: 44px;
+    margin-bottom: 0.8rem;
   }
   .news-subtitle {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 0.6rem;
+    font-family: var(--f-body);
+    font-size: 24px;
+    line-height: 1.28;
+    color: var(--ink);
+    margin-bottom: 1.2rem;
     font-style: italic;
   }
   .news-desc {
-    font-size: 12px;
-    line-height: 1.65;
-    color: var(--text-body);
-    max-width: 64ch;
+    font-family: var(--f-body);
+    font-size: 18px;
+    line-height: 1.45;
+    color: var(--ink);
+    max-width: 60ch;
+  }
+  .news-desc :global(a) {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   .news-meta {
-    margin-top: 0.9rem;
-    font-size: 11px;
-    color: var(--text-muted);
+    margin-top: 1.4rem;
+    font-family: var(--f-data);
+    font-size: 13px;
+    color: var(--soft);
     line-height: 1.6;
   }
   .news-links {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1.5rem;
-    margin-top: 0.8rem;
+    margin-top: 1.6rem;
   }
+  /* a strip of bordered cells that share borders; hover inverts */
   .news-links a {
-    font-size: 11px;
-    color: var(--text-muted);
+    font-family: var(--f-pixel);
+    font-size: 12px;
+    color: var(--ink);
     text-decoration: none;
-    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    border: 1px solid var(--ink);
+    padding: 0.75em 1em;
+    margin: 0 -1px -1px 0;
+  }
+  .news-links a::after {
+    content: " →";
   }
   .news-links a:hover {
-    color: var(--text-body);
+    background: var(--ink);
+    color: var(--bg);
   }
 
-  /* Past entries sit quieter than what's coming up. */
+  /* Past entries sit quieter than what's coming up: smaller, in dimmed ink. */
   .news-entry--past {
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
-  }
-  .news-entry--past:hover {
-    opacity: 1;
+    padding: 1.8rem 0 2.2rem;
   }
   .news-entry--past .news-title {
+    font-size: 28px;
+    color: var(--soft);
+  }
+  .news-entry--past .news-count,
+  .news-entry--past .news-subtitle,
+  .news-entry--past .news-desc {
+    color: var(--soft);
+  }
+  .news-entry--past .news-subtitle {
     font-size: 18px;
   }
+  .news-entry--past .news-desc {
+    font-size: 16px;
+  }
+  .news-entry--past:hover .news-title,
+  .news-entry--past:hover .news-count,
+  .news-entry--past:hover .news-subtitle,
+  .news-entry--past:hover .news-desc {
+    color: var(--ink);
+  }
 
-  @media (max-width: 600px) {
+  @media (max-width: 760px) {
     .news-entry {
       grid-template-columns: 1fr;
-      gap: 0.3rem;
+      gap: 1rem;
     }
     .news-date {
-      font-size: 10px;
+      flex-direction: row;
+      gap: 1rem;
+    }
+    .news-title {
+      font-size: 32px;
+    }
+    .news-entry--past .news-title {
+      font-size: 24px;
     }
   }
 </style>

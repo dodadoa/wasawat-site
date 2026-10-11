@@ -13,27 +13,97 @@ const allPosts = [...pagePosts, ...mdPosts];
 ---
 
 <Layout title="Wasawat Somno's blog" description="blogs">
-  <div class="px-8 py-8 font-mono">
-    <h1 class="text-3xl">Blogs</h1>
+  <div class="blog-page">
+    <p class="kicker wipe">[blog] — {String(allPosts.length).padStart(2, "0")} posts</p>
+    <h1 class="wipe">Blog</h1>
     {
       allPosts.length === 0 && (
-        <div class="mt-4">
-          <p>No blog post yet.</p>
-        </div>
+        <p class="blog-empty wipe"><span>No blog post yet.</span></p>
       )
     }
     {
       allPosts.length > 0 && (
-        <div class="mt-4">
+        <ul class="blog-list wipe">
           {
-            allPosts.map((post) => (
-              <ul class="cursor-pointer hover:underline mb-4">
-                <a href={post.url}>{post.frontmatter.title}</a>
-              </ul>
+            allPosts.map((post, i) => (
+              <li>
+                <a href={post.url}>
+                  <span class="blog-count">{String(i + 1).padStart(2, "0")} →</span>
+                  <span class="blog-title">{post.frontmatter.title}</span>
+                </a>
+              </li>
             ))
           }
-        </div>
+        </ul>
       )
     }
   </div>
 </Layout>
+
+<style>
+  .blog-page {
+    padding: 2rem 2rem 6rem;
+    max-width: 1080px;
+  }
+
+  .blog-page h1 {
+    margin: 0.6rem 0 5rem;
+  }
+
+  .blog-page .kicker {
+    margin-top: 2.5rem;
+  }
+
+  .blog-empty {
+    border: 1px dashed var(--soft);
+    background: var(--dither-12);
+    padding: 1.6rem;
+    max-width: 34rem;
+  }
+
+  .blog-empty span {
+    display: block;
+    font-family: var(--f-data);
+    font-size: 14px;
+    background: var(--bg);
+    padding: 0.8rem 1rem;
+  }
+
+  .blog-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .blog-list li {
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .blog-list a {
+    display: flex;
+    align-items: baseline;
+    gap: 2rem;
+    padding: 1.4rem 0.6rem;
+    margin: 0 -0.6rem;
+  }
+
+  .blog-list a:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .blog-count {
+    font-family: var(--f-pixel);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  .blog-title {
+    font-family: var(--f-display);
+    font-size: 32px;
+    line-height: 1.16;
+    letter-spacing: -0.02em;
+  }
+</style>

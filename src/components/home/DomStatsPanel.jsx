@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { ACCENTS, REQUEST_TYPE_TEXT_COLORS, TEXT, TEXT_ACCENTS, rgba, tagAccent, tagTextAccent } from "../../data/homeColors.js"
+import { INK, LINE, PAPER, RED, REQUEST_TYPE_TEXT_COLORS, TEXT } from "../../data/homeColors.js"
 import { glassPlain, DitherRamp } from "./panelChrome.jsx"
 
 const OVERLAY_ID = "dom-stats-xray-overlay"
 const mono = "'DepartureMono', monospace"
-const displayMono = "'TimesNewerRoman', Times, 'Times New Roman', serif"
+const dataMono = "'PragmataPro Mono', ui-monospace, Menlo, monospace"
 const ink = TEXT.primary
 const inkDim = TEXT.secondary
 const inkFaint = TEXT.tertiary
@@ -87,7 +87,7 @@ function DitherNumber({ value, fontSize: baseFontSize = 13, bold = false, levels
 
     ctx.clearRect(0, 0, w, h)
     ctx.font = fontDecl
-    ctx.fillStyle = tint ?? "#000000"
+    ctx.fillStyle = tint ?? INK
     ctx.textBaseline = "middle"
     ctx.fillText(text, 3 * dpr, h / 2)
 
@@ -97,7 +97,7 @@ function DitherNumber({ value, fontSize: baseFontSize = 13, bold = false, levels
           parseInt(tint.slice(3, 5), 16),
           parseInt(tint.slice(5, 7), 16),
         ]
-      : [0, 0, 0]
+      : [0x14, 0x14, 0x14]
 
     const imageData = ctx.getImageData(0, 0, w, h)
     const data = imageData.data
@@ -199,7 +199,7 @@ function collectMatchMetadata(tag, panelEl) {
     .sort((a, b) => b.rect.width * b.rect.height - a.rect.width * a.rect.height)
 }
 
-function paintXrayBoxes(overlay, tag, panelEl, accent) {
+function paintXrayBoxes(overlay, tag, panelEl) {
   overlay.replaceChildren()
   const elements = collectMatchMetadata(tag, panelEl)
   for (const { rect, selector, size, details } of elements) {
@@ -210,9 +210,9 @@ function paintXrayBoxes(overlay, tag, panelEl, accent) {
       top: `${rect.top}px`,
       width: `${rect.width}px`,
       height: `${rect.height}px`,
-      border: `1px solid ${rgba(accent, 0.45)}`,
-      background: rgba(accent, 0.05),
-      boxShadow: `0 0 12px ${rgba(accent, 0.12)}`,
+      // x-ray outline: a fine red line, nothing filled
+      border: `1px solid ${RED}`,
+      background: "transparent",
       boxSizing: "border-box",
       pointerEvents: "none",
     })
@@ -226,13 +226,13 @@ function paintXrayBoxes(overlay, tag, panelEl, accent) {
       top: placeAbove ? `${rect.top - 4}px` : `${rect.bottom + 4}px`,
       transform: placeAbove ? "translateY(-100%)" : "none",
       fontFamily: mono,
-      fontSize: "calc(8.5px * var(--ui-scale, 1))",
-      letterSpacing: "0.02em",
-      lineHeight: 1.35,
-      color: "#0a0a0a",
-      background: `linear-gradient(160deg, rgba(255,255,255,0.97), ${rgba(accent, 0.06)})`,
-      border: `1px solid ${rgba(accent, 0.28)}`,
-      boxShadow: `3px 3px 0 ${rgba(accent, 0.08)}, 3px 3px 0 1px rgba(0,0,0,0.03)`,
+      fontSize: "calc(10px * var(--ui-scale, 1))",
+      letterSpacing: "0.04em",
+      lineHeight: 1.4,
+      color: INK,
+      background: PAPER,
+      border: `1px solid ${INK}`,
+      boxShadow: `4px 4px 0 -1px ${PAPER}, 4px 4px 0 0 ${INK}`,
       padding: "3px 6px",
       maxWidth: "min(300px, 42vw)",
       pointerEvents: "none",
@@ -250,6 +250,7 @@ function paintXrayBoxes(overlay, tag, panelEl, accent) {
     const meta = document.createElement("div")
     meta.textContent = details.join(" · ")
     meta.style.color = TEXT.tertiary
+    meta.style.fontFamily = dataMono
     meta.style.marginTop = "2px"
     meta.style.wordBreak = "break-all"
     card.appendChild(meta)
@@ -275,13 +276,9 @@ function ensureXrayOverlay() {
   return overlay
 }
 
-function Row({ label, value, faint = false, active = false, accentColor, onEnter, onLeave }) {
-  const labelColor = active
-    ? (accentColor ?? ink)
-    : (faint ? inkFaint : inkDim)
-  const leaderColor = active && accentColor
-    ? rgba(accentColor, 0.45)
-    : inkFaint
+function Row({ label, value, active = false, onEnter, onLeave }) {
+  // hovered row is a full inversion: ink bar, paper text
+  const fg = active ? PAPER : ink
 
   return (
     <div
@@ -289,8 +286,10 @@ function Row({ label, value, faint = false, active = false, accentColor, onEnter
         display: "flex",
         alignItems: "baseline",
         gap: 0,
-        padding: 0,
-        lineHeight: 1.25,
+        padding: "1px 4px",
+        margin: "0 -4px",
+        lineHeight: 1.3,
+        background: active ? INK : "transparent",
         cursor: onEnter ? "crosshair" : "default",
       }}
       onMouseEnter={onEnter}
@@ -299,12 +298,11 @@ function Row({ label, value, faint = false, active = false, accentColor, onEnter
       <span
         style={{
           fontFamily: mono,
-          fontSize: "calc(9px * var(--ui-scale, 1))",
-          letterSpacing: "0.08em",
-          color: labelColor,
+          fontSize: "calc(11px * var(--ui-scale, 1))",
+          letterSpacing: "0.06em",
+          color: fg,
           textTransform: "uppercase",
           whiteSpace: "nowrap",
-          transition: "color 0.12s",
         }}
       >
         {label}
@@ -312,18 +310,13 @@ function Row({ label, value, faint = false, active = false, accentColor, onEnter
       <span
         style={{
           flex: 1,
-          borderBottom: `1px dotted ${leaderColor}`,
+          borderBottom: `1px dotted ${active ? PAPER : LINE}`,
           margin: "0 4px",
           transform: "translateY(-3px)",
           minWidth: "8px",
         }}
       />
-      <DitherNumber
-        value={value}
-        fontSize={10}
-        levels={active ? 2 : 4}
-        tint={active ? accentColor : undefined}
-      />
+      <DitherNumber value={value} fontSize={11} levels={active ? 2 : 4} tint={fg} />
     </div>
   )
 }
@@ -336,14 +329,12 @@ export default function DomStatsPanel() {
   const panelRef = useRef(null)
   const logListRef = useRef(null)
   const hoveredTagRef = useRef(null)
-  const hoveredAccentRef = useRef(ACCENTS.pink)
 
-  const showXray = useCallback((tag, accent) => {
+  const showXray = useCallback((tag) => {
     hoveredTagRef.current = tag
-    hoveredAccentRef.current = accent
     setHoveredTag(tag)
     const overlay = ensureXrayOverlay()
-    paintXrayBoxes(overlay, tag, panelRef.current, accent)
+    paintXrayBoxes(overlay, tag, panelRef.current)
   }, [])
 
   const hideXray = useCallback(() => {
@@ -383,7 +374,7 @@ export default function DomStatsPanel() {
       const tag = hoveredTagRef.current
       if (!tag) return
       const overlay = document.getElementById(OVERLAY_ID)
-      if (overlay) paintXrayBoxes(overlay, tag, panelRef.current, hoveredAccentRef.current)
+      if (overlay) paintXrayBoxes(overlay, tag, panelRef.current)
     }
     window.addEventListener("scroll", update, true)
     window.addEventListener("resize", update)
@@ -407,7 +398,8 @@ export default function DomStatsPanel() {
     minWidth: "clamp(260px, 24vw, 380px)",
     paddingLeft: "2rem",
     paddingRight: "clamp(1.5rem, 3vw, 3rem)",
-    borderRight: `1px solid ${rgba(ACCENTS.violet, 0.22)}`,
+    borderRight: `1px solid ${LINE}`,
+    background: PAPER,
     zIndex: 16777272,
     pointerEvents: "auto",
   }
@@ -435,17 +427,17 @@ export default function DomStatsPanel() {
       >
       <style>{`
         @keyframes request-log-blink {
-          0%, 55% { opacity: 1; }
-          56%, 100% { opacity: 0.15; }
+          0%, 55% { visibility: visible; }
+          56%, 100% { visibility: hidden; }
         }
       `}</style>
 
       <div
         style={{
-          fontFamily: displayMono,
+          fontFamily: mono,
           fontSize: "calc(13px * var(--ui-scale, 1))",
-          letterSpacing: "0.28em",
-          color: inkFaint,
+          letterSpacing: "0.12em",
+          color: ink,
           marginBottom: "0.3rem",
           textTransform: "uppercase",
           pointerEvents: "none",
@@ -456,9 +448,9 @@ export default function DomStatsPanel() {
 
       <div
         style={{
-          fontFamily: displayMono,
-          fontSize: "calc(9px * var(--ui-scale, 1))",
-          letterSpacing: "0.28em",
+          fontFamily: mono,
+          fontSize: "calc(11px * var(--ui-scale, 1))",
+          letterSpacing: "0.12em",
           color: inkFaint,
           marginBottom: "0.3rem",
           textTransform: "uppercase",
@@ -469,47 +461,41 @@ export default function DomStatsPanel() {
       </div>
 
       <div>
-        {stats.topTags.map(([tag, count], i) => {
-          const accent = tagAccent(tag, i)
-          const textAccent = tagTextAccent(tag, i)
+        {stats.topTags.map(([tag, count]) => {
           const active = hoveredTag === tag
           return (
             <Row
               key={tag}
               label={`<${tag}>`}
               value={count}
-              faint={!active}
               active={active}
-              accentColor={textAccent}
-              onEnter={() => showXray(tag, accent)}
+              onEnter={() => showXray(tag)}
               onLeave={hideXray}
             />
           )
         })}
       </div>
 
-      <DitherRamp
-        style={{ margin: "0.55rem 0 0.4rem" }}
-        tint={`linear-gradient(90deg, ${ACCENTS.violet}, ${ACCENTS.magenta}, transparent)`}
-      />
+      <DitherRamp style={{ margin: "0.7rem 0 0.55rem" }} />
 
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "baseline",
-          fontFamily: displayMono,
-          fontSize: "calc(9px * var(--ui-scale, 1))",
-          letterSpacing: "0.28em",
+          fontFamily: mono,
+          fontSize: "calc(11px * var(--ui-scale, 1))",
+          letterSpacing: "0.12em",
           color: inkFaint,
           textTransform: "uppercase",
           marginBottom: "0.3rem",
+          gap: "0.6em",
         }}
       >
-        <span>network.log</span>
-        <span style={{ letterSpacing: "0.08em", display: "flex", gap: "0.7em", alignItems: "baseline" }}>
-          <span style={{ color: inkDim }}>{logTotals.count} req · {fmtBytes(logTotals.bytes)}</span>
-          <span style={{ color: TEXT_ACCENTS.pink, animation: "request-log-blink 1.2s steps(1) infinite" }}>● rec</span>
+        <span>net.log</span>
+        <span style={{ letterSpacing: "0.08em", display: "flex", gap: "0.7em", alignItems: "baseline", whiteSpace: "nowrap" }}>
+          <span style={{ color: inkFaint, fontFamily: dataMono, fontSize: "calc(10px * var(--ui-scale, 1))", letterSpacing: 0 }}>{logTotals.count} req · {fmtBytes(logTotals.bytes)}</span>
+          <span style={{ background: INK, color: PAPER, padding: "0 0.4em", animation: "request-log-blink 1.2s steps(1, end) infinite" }}>rec</span>
         </span>
       </div>
 
@@ -523,21 +509,20 @@ export default function DomStatsPanel() {
                 display: "flex",
                 gap: "6px",
                 alignItems: "baseline",
-                fontFamily: mono,
-                fontSize: "calc(8.5px * var(--ui-scale, 1))",
-                letterSpacing: "0.02em",
-                lineHeight: 1.7,
+                fontFamily: dataMono,
+                fontSize: "calc(10px * var(--ui-scale, 1))",
+                lineHeight: 1.6,
                 whiteSpace: "nowrap",
               }}
             >
-              <span style={{ color: inkFaint, width: "44px", flexShrink: 0, textAlign: "right" }}>
+              <span style={{ color: inkFaint, width: "52px", flexShrink: 0, textAlign: "right" }}>
                 +{(row.at / 1000).toFixed(2)}s
               </span>
-              <span style={{ color: typeColor, width: "40px", flexShrink: 0, fontWeight: 500 }}>{row.type}</span>
-              <span style={{ color: inkDim, flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>
+              <span style={{ color: typeColor, width: "40px", flexShrink: 0 }}>{row.type}</span>
+              <span style={{ color: inkFaint, flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>
                 {row.url}
               </span>
-              <span style={{ color: inkDim, width: "36px", flexShrink: 0, textAlign: "right" }}>
+              <span style={{ color: inkFaint, width: "40px", flexShrink: 0, textAlign: "right" }}>
                 {fmtBytes(row.size)}
               </span>
             </div>

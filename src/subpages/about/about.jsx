@@ -10,7 +10,9 @@ const W = 1000
 // to sit at its own size without being clipped by the SVG viewBox edge
 const ELEV_VB_W = W + 170
 const H = 700
-const mono = "'JetBrains Mono', monospace"
+const mono = "'DepartureMono', monospace"
+const pixel = "var(--f-pixel)"
+const dataMono = "var(--f-data)"
 const CX = 500
 const CY = 360
 const R_TOWER = 68
@@ -87,9 +89,9 @@ function Cell({ idx, a0, a1, label, hovered, onHover }) {
     <g>
       <path
         d={sectorPath(CX, CY, R_CELL_IN, R_CELL_OUT, a0, a1)}
-        fill="currentColor"
-        opacity={hovered ? 0.07 : 0.015}
-        style={{ cursor: "crosshair", transition: "opacity 0.15s" }}
+        // hovered cell fills with a 12% screen; a hard cut, no fade
+        fill={hovered ? "url(#planD12)" : "transparent"}
+        style={{ cursor: "crosshair" }}
         onMouseEnter={() => onHover(idx)}
         onMouseLeave={() => onHover(null)}
       />
@@ -97,10 +99,11 @@ function Cell({ idx, a0, a1, label, hovered, onHover }) {
       <CellDoor am={am} />
       {hovered && (
         <g pointerEvents="none">
-          <circle cx={px} cy={py} r={1.8} fill="currentColor" opacity={0.85} />
+          {/* hover leader: the overlay line is the spot red */}
+          <circle cx={px} cy={py} r={2.4} fill="var(--red)" />
           <polyline
             points={`${px},${py} ${ex},${ey} ${elbowX},${ey}`}
-            fill="none" stroke="currentColor" strokeWidth={0.7} opacity={0.75}
+            fill="none" stroke="var(--red)" strokeWidth={1.6}
           />
           <text
             x={elbowX + dir * 6} y={ey + 5}
@@ -218,7 +221,7 @@ function Section({ hov }) {
         const lit = hov != null && hov % N_FLOORS === r
         return (
           <g key={r}>
-            <rect x={cellX + 1.5} y={y + 1.5} width={x1 - cellX - 3} height={FLOOR_H - 3} fill="currentColor" opacity={lit ? 0.06 : 0} pointerEvents="none" style={{ transition: "opacity 0.15s" }} />
+            <rect x={cellX + 1.5} y={y + 1.5} width={x1 - cellX - 3} height={FLOOR_H - 3} fill={lit ? "url(#planD12)" : "none"} pointerEvents="none" />
             <Wl x1={cellX} y1={y} x2={cellX} y2={y + 16} w={1.3} o={0.7} />
             <path d={`M ${cellX} ${y + 16} A 8 8 0 0 0 ${cellX - 8} ${y + 24}`} fill="none" stroke="currentColor" strokeWidth={0.6} opacity={0.5} />
             <Ln x1={cellX} y1={y + FLOOR_H} x2={cellX - 9} y2={y + FLOOR_H - 9} w={0.5} o={0.4} />
@@ -236,8 +239,8 @@ function Section({ hov }) {
         const skyY = 50, elbowX = sx + 26
         return (
           <g pointerEvents="none">
-            <circle cx={sx} cy={sy} r={1.8} fill="currentColor" opacity={0.85} />
-            <polyline points={`${sx},${sy} ${elbowX},${skyY} ${x1 + 30},${skyY}`} fill="none" stroke="currentColor" strokeWidth={0.7} opacity={0.75} />
+            <circle cx={sx} cy={sy} r={2.4} fill="var(--red)" />
+            <polyline points={`${sx},${sy} ${elbowX},${skyY} ${x1 + 30},${skyY}`} fill="none" stroke="var(--red)" strokeWidth={1.6} />
             <text x={x1 + 55} y={skyY - 6} textAnchor="start" fill="currentColor" opacity={0.92} style={{ fontFamily: mono, fontSize: "13px", letterSpacing: "0.1em" }}>
               {WORDS[hov].toUpperCase()}
             </text>
@@ -296,10 +299,18 @@ function ElevationSection({ hov }) {
 function CombinedPlan() {
   const [hov, setHov] = useState(null)
   return (
-    <div style={{ position: "relative", width: "min(80%, 680px)", margin: "0 auto", color: "var(--text, #000)" }}
+    // .plan-1bit: no antialiasing, then every pixel is thresholded to ink or
+    // paper (see #one-bit in layout.astro) — the drawing's line hierarchy is
+    // carried by weight alone, like a photocopied CAD sheet
+    <div className="plan-1bit" style={{ position: "relative", width: "min(86%, 760px)", margin: "0 0 0 2rem", color: "var(--ink)" }}
     >
       <ElevationSection hov={hov} />
       <svg viewBox={`-250 0 1500 ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
+        <defs>
+          <pattern id="planD12" width="12" height="12" patternUnits="userSpaceOnUse">
+            <rect x="6" y="6" width="4" height="4" fill="currentColor" />
+          </pattern>
+        </defs>
         <circle cx={CX} cy={CY} r={R_CELL_OUT} fill="currentColor" opacity={0.03} />
         <circle cx={CX} cy={CY} r={R_CELL_OUT} fill="none" stroke="currentColor" strokeWidth={2.4} opacity={0.85} />
         {Array.from({ length: N_CELLS }, (_, i) => {
@@ -358,7 +369,7 @@ function CombinedPlan() {
 
 function FullBio() {
   return (
-    <div className="space-y-3" style={{ fontSize: "13px", lineHeight: 1.65 }}>
+    <div className="space-y-4" style={{ fontSize: "17px", lineHeight: 1.45 }}>
       <p>
         He also performs and records under the name <strong>WrappedByte</strong> — a live-coding
         audio/visual project working primarily in TidalCycles and Hydra. As WrappedByte, he has
@@ -478,58 +489,92 @@ const BIO_SECTIONS = [
 
 function WorksList() {
   return (
-    <div style={{ fontFamily: "'DepartureMono', monospace" }}>
-      {BIO_SECTIONS.map((section) => (
-        <div key={section.title} style={{ marginBottom: "2.2rem" }}>
+    <div>
+      {BIO_SECTIONS.map((section, si) => (
+        <div key={section.title} style={{ marginBottom: "3.2rem" }}>
           <p
+            className="kicker"
             style={{
-              fontWeight: 700,
-              fontSize: "11px",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-              marginBottom: "0.45rem",
+              display: "flex",
+              gap: "1em",
+              color: "var(--ink)",
+              borderTop: "3px solid var(--ink)",
+              paddingTop: "0.8rem",
+              marginBottom: "0.9rem",
             }}
           >
+            <span style={{ color: "var(--soft)" }}>{String(si + 1).padStart(2, "0")}</span>
             {section.title}
           </p>
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
             {section.items.map((item, i) => (
               <li
                 key={i}
+                className="about-row"
                 style={{
-                  fontSize: "12.5px",
-                  lineHeight: 1.6,
-                  paddingLeft: "1em",
-                  textIndent: "-1em",
-                  marginBottom: "0.25rem",
-                  color: "var(--text-body)",
+                  display: "grid",
+                  gridTemplateColumns: "2.4em 1fr",
+                  alignItems: "baseline",
+                  borderTop: "1px solid var(--line)",
+                  padding: "0.8rem 0",
+                  margin: 0,
                 }}
               >
-                <span style={{ opacity: 0.4 }}>— </span>
-                {item.url ? (
-                  <a
-                    href={item.url}
-                    target={item.url.startsWith("/") ? undefined : "_blank"}
-                    rel={item.url.startsWith("/") ? undefined : "noopener noreferrer"}
-                    style={{ color: "inherit", textDecoration: "underline", textUnderlineOffset: "3px" }}
-                  >
-                    {item.label}
-                  </a>
-                ) : (
-                  item.label
-                )}
-                {item.meta && <span style={{ opacity: 0.55 }}> ({item.meta})</span>}
+                <span style={{ fontFamily: pixel, fontSize: "12px", color: "var(--soft)" }}>→</span>
+                <span>
+                  {item.url ? (
+                    <a
+                      href={item.url}
+                      className="about-link"
+                      target={item.url.startsWith("/") ? undefined : "_blank"}
+                      rel={item.url.startsWith("/") ? undefined : "noopener noreferrer"}
+                    >
+                      {item.label}
+                    </a>
+                  ) : (
+                    item.label
+                  )}
+                  {item.meta && (
+                    <span style={{ display: "block", fontFamily: dataMono, fontSize: "13px", lineHeight: 1.6, color: "var(--soft)", marginTop: "0.2rem" }}>
+                      {item.meta}
+                    </span>
+                  )}
+                </span>
               </li>
             ))}
           </ul>
           {section.footnote && (
-            <p style={{ fontSize: "11.5px", marginTop: "0.4rem", opacity: 0.6 }}>{section.footnote}</p>
+            <p style={{ fontFamily: dataMono, fontSize: "13px", lineHeight: 1.6, color: "var(--soft)", borderTop: "1px dashed var(--soft)", paddingTop: "0.7rem" }}>
+              {section.footnote}
+            </p>
           )}
         </div>
       ))}
     </div>
   )
+}
+
+/** Section toggle: a pixel-font button, inverted while its section is open. */
+function Toggle({ open, onClick, openLabel, closedLabel }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={open}
+      className={`btn${open ? " is-active" : ""}`}
+      style={{ marginTop: "2.4rem" }}
+    >
+      <span aria-hidden="true">{open ? "–" : "+"}</span>
+      <span>{open ? openLabel : closedLabel}</span>
+    </button>
+  )
+}
+
+// side-notes hang off a dashed rule
+const NOTE = {
+  borderLeft: "1px dashed var(--soft)",
+  paddingLeft: "1.6rem",
+  marginTop: "1.4rem",
 }
 
 // ── Page ──────────────────────────────────────────────────────────────
@@ -541,53 +586,31 @@ const About = () => {
 
   return (
     <div
-      className="relative z-10 w-full mt-16 pb-16"
-      style={{ fontFamily: "Times, 'Times New Roman', serif", color: "var(--text-body)", fontSize: "15px", lineHeight: 1.5 }}
+      className="relative z-10 w-full pb-16"
+      style={{ fontFamily: "var(--f-body)", color: "var(--ink)", fontSize: "18px", lineHeight: 1.45 }}
     >
-      <div className="px-8 lg:w-4/5 max-w-3xl font-thin space-y-5 mb-10">
-        <div className="flex gap-4 mb-8">
+      <style>{`
+        .about-link { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+        .about-link:hover { background: var(--ink); color: var(--bg); text-decoration: none; }
+        .plan-1bit svg { shape-rendering: crispEdges; filter: url(#one-bit); }
+      `}</style>
+      <div className="max-w-3xl" style={{ padding: "2rem 2rem 0", marginBottom: "3rem" }}>
+        <p className="kicker wipe" style={{ marginTop: "2.5rem" }}>[about] — b. 1994, Thailand</p>
+        <h1 className="wipe" style={{ margin: "0.6rem 0 2.4rem" }}>About</h1>
+
+        <div className="flex wipe" style={{ marginBottom: "3.5rem" }}>
           {[
             { href: "/cv", label: "CV" },
             { href: "/resume", label: "Resume" },
-          ].map(({ href, label }) => (
-            <a
-              key={href}
-              href={href}
-              style={{
-                fontFamily: "'DepartureMono', monospace",
-                fontSize: "calc(11px * var(--ui-scale, 1))",
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                background: "linear-gradient(145deg, #f6f6f6, #ececec)",
-                color: "var(--text-muted)",
-                padding: "0.5em 0.8em",
-                borderRadius: "14px",
-                boxShadow: "5px 5px 10px rgba(190,190,190,0.55), -5px -5px 10px rgba(255,255,255,0.95)",
-                transition: "box-shadow 0.18s ease, background 0.18s ease, color 0.15s ease",
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = "linear-gradient(145deg, #ececec, #f6f6f6)"
-                e.currentTarget.style.boxShadow = "inset 4px 4px 8px rgba(190,190,190,0.55), inset -4px -4px 8px rgba(255,255,255,0.95)"
-                e.currentTarget.style.color = "var(--text)"
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = "linear-gradient(145deg, #f6f6f6, #ececec)"
-                e.currentTarget.style.boxShadow = "5px 5px 10px rgba(190,190,190,0.55), -5px -5px 10px rgba(255,255,255,0.95)"
-                e.currentTarget.style.color = "var(--text-muted)"
-              }}
-              onMouseDown={e => {
-                e.currentTarget.style.boxShadow = "inset 6px 6px 12px rgba(180,180,180,0.6), inset -6px -6px 12px rgba(255,255,255,0.9)"
-              }}
-              onMouseUp={e => {
-                e.currentTarget.style.boxShadow = "inset 4px 4px 8px rgba(190,190,190,0.55), inset -4px -4px 8px rgba(255,255,255,0.95)"
-              }}
-            >
-              {label}
+          ].map(({ href, label }, i) => (
+            <a key={href} href={href} className="btn" style={{ marginLeft: i === 0 ? 0 : "-1px" }}>
+              {label} <span aria-hidden="true">→</span>
             </a>
           ))}
         </div>
 
-        <p>
+        <div className="space-y-5 wipe">
+        <p className="lead">
           Wasawat Somno (1994, Thailand) is an artist working with code, audiovisual/sound performance,
           and installation. His practice is organized around the act of mapping — holding two planes of
           context in tension and tracing what passes between them. A computational system and the ethical
@@ -606,116 +629,29 @@ const About = () => {
           The work holds a deliberately semi-serious structure — rigorous in its systems, amateur in its
           posture, sustained by the spirit of DIY.
         </p>
+        </div>
 
-        {/* toggle */}
-        <button
-          onClick={() => setShowFull(v => !v)}
-          style={{
-            display: "flex",
-            width: "fit-content",
-            alignItems: "center",
-            gap: "0.5em",
-            fontFamily: "'DepartureMono', monospace",
-            fontSize: "11px",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "var(--text-muted)",
-            background: "none",
-            border: "none",
-            borderBottom: "1px solid var(--border-subtle)",
-            padding: "0.25em 0",
-            cursor: "pointer",
-            marginTop: "1.6rem",
-            transition: "color 0.15s",
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-          onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
-        >
-          <span style={{ display: "inline-block", transition: "transform 0.2s", transform: showFull ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
-          <span>{showFull ? "collapse" : "extended bio"}</span>
-        </button>
-
-        {/* expanded content */}
+        <Toggle open={showFull} onClick={() => setShowFull(v => !v)} openLabel="collapse bio" closedLabel="extended bio" />
         {showFull && (
-          <div
-            style={{
-              borderLeft: "1px solid var(--border-subtle)",
-              paddingLeft: "1.2rem",
-              marginTop: "1rem",
-            }}
-          >
+          <div style={NOTE}>
             <FullBio />
           </div>
         )}
 
-        {/* works & activity toggle */}
-        <button
-          onClick={() => setShowWorks(v => !v)}
-          style={{
-            display: "flex",
-            width: "fit-content",
-            alignItems: "center",
-            gap: "0.5em",
-            fontFamily: "'DepartureMono', monospace",
-            fontSize: "11px",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "var(--text-muted)",
-            background: "none",
-            border: "none",
-            borderBottom: "1px solid var(--border-subtle)",
-            padding: "0.25em 0",
-            cursor: "pointer",
-            marginTop: "1.6rem",
-            transition: "color 0.15s",
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-          onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
-        >
-          <span style={{ display: "inline-block", transition: "transform 0.2s", transform: showWorks ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
-          <span>{showWorks ? "collapse" : "works & activity"}</span>
-        </button>
-
+        <div>
+          <Toggle open={showWorks} onClick={() => setShowWorks(v => !v)} openLabel="collapse works & activity" closedLabel="works & activity" />
+        </div>
         {showWorks && (
-          <div
-            style={{
-              borderLeft: "1px solid var(--border-subtle)",
-              paddingLeft: "1.2rem",
-              marginTop: "1rem",
-            }}
-          >
+          <div style={{ marginTop: "2.4rem" }}>
             <WorksList />
           </div>
         )}
       </div>
 
       {/* floor plan toggle */}
-      <div style={{ width: "100%", borderTop: "1px solid var(--border-subtle)", marginTop: "1rem" }}>
-        <div className="px-8 lg:w-4/5 max-w-3xl" style={{ paddingTop: "1rem", paddingBottom: showPlan ? "0" : "1rem" }}>
-          <button
-            onClick={() => setShowPlan(v => !v)}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5em",
-              fontFamily: "'DepartureMono', monospace",
-              fontSize: "11px",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-              background: "none",
-              border: "none",
-              borderBottom: "1px solid var(--border-subtle)",
-              padding: "0.25em 0",
-              cursor: "pointer",
-              transition: "color 0.15s",
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
-          >
-            <span style={{ display: "inline-block", transition: "transform 0.2s", transform: showPlan ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
-            <span>{showPlan ? "close plan" : "floor plan"}</span>
-          </button>
+      <div style={{ width: "100%", borderTop: "1px solid var(--line)" }}>
+        <div className="max-w-3xl" style={{ padding: `0 2rem ${showPlan ? "1.5rem" : "1rem"}` }}>
+          <Toggle open={showPlan} onClick={() => setShowPlan(v => !v)} openLabel="close plan" closedLabel="floor plan" />
         </div>
         {showPlan && (
           <CombinedPlan />

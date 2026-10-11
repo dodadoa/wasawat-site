@@ -9,46 +9,92 @@ const { frontmatter } = Astro.props
   preview={frontmatter.preview}
   description={frontmatter.description}
 >
-  <div class="px-6 py-12 font-mono">
-    <header class="text-3xl">
-      {frontmatter.title}
-    </header>
-    <p>{frontmatter.description}</p>
-    <div class="lg:pr-16 mt-8 pr-2">
+  <div class="blog-post">
+    <p class="kicker wipe">[blog]</p>
+    <h1 class="wipe">{frontmatter.title}</h1>
+    <p class="lead wipe">{frontmatter.description}</p>
+    <div class="blog-post-body wipe">
       <slot />
     </div>
   </div>
 </Layout>
 
 <style is:global>
-  h1 {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    font-size: 22px;
+  .blog-post {
+    padding: 2rem 2rem 6rem;
+    max-width: 1080px;
   }
 
-  li {
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
-    margin-left: 1rem;
-    font-size: 16px;
-    list-style-type: circle;
+  .blog-post > .kicker {
+    margin-top: 2.5rem;
   }
 
-  a {
-    color: #15803d;
+  .blog-post > h1 {
+    font-size: clamp(34px, 5.2vw, 76px);
+    margin: 0.6rem 0 2rem;
+    filter: url(#ink-body);
   }
-  a:hover {
+
+  .blog-post-body {
+    margin-top: 3rem;
+    max-width: 64ch;
+    font-family: var(--f-body);
+    font-size: 18px;
+    line-height: 1.45;
+  }
+
+  .blog-post-body h1,
+  .blog-post-body h2 {
+    font-size: 44px;
+    margin: 3rem 0 1rem;
+    filter: url(#ink-small);
+  }
+
+  .blog-post-body h3 {
+    margin: 2.4rem 0 0.8rem;
+  }
+
+  .blog-post-body p {
+    margin-bottom: 1.1em;
+  }
+
+  .blog-post-body ul,
+  .blog-post-body ol {
+    list-style: none;
+    padding: 0;
+    counter-reset: step;
+  }
+
+  .blog-post-body li {
+    position: relative;
+    margin: 0;
+    padding: 0.55em 0 0.55em 3.2em;
+    border-top: 1px solid var(--line);
+    counter-increment: step;
+  }
+
+  .blog-post-body li::before {
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    font-family: var(--f-pixel);
+    font-size: 12px;
+    color: var(--soft);
+    content: "→";
+  }
+
+  .blog-post-body ol > li::before {
+    content: counter(step, decimal-leading-zero);
+  }
+
+  .blog-post-body a {
     text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
-  code {
-    background-color: #f5f5f5;
-    color: #171717;
-    font-style: italic;
-    padding-left: 5px;
-    padding-right: 5px;
-    border: 0.5px solid #e5e5e5;
-    border-radius: 10%;
+  .blog-post-body a:hover {
+    background: var(--ink);
+    color: var(--bg);
+    text-decoration: none;
   }
 </style>

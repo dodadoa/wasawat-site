@@ -44,211 +44,509 @@ function splitSection(section) {
   unselected.sort(byYearDesc)
   return { selected, unselected }
 }
+
+/** One spreadsheet per section: selected rows first, then the archive. */
+const sectionSheets = artSections.map((section, si) => {
+  const { selected, unselected } = splitSection(section)
+  const toRow = (status) => ({ item, groupTitle }) => {
+    const href = item.slug ? `/art/${item.slug}` : item.url
+    const image = (item.slug ? imageBySlug[item.slug] : undefined) ?? item.image
+    const date = (item.slug ? dateBySlug[item.slug] : undefined) ?? item.date
+    return {
+      status,
+      section: section.title,
+      label: item.label,
+      slug: item.slug,
+      href,
+      external: !item.slug && !!item.url,
+      thumb: image && item.slug ? thumbSrc(item.slug) : undefined,
+      medium: groupTitle ?? "—",
+      year: date ? date.slice(0, 4) : "—",
+    }
+  }
+  return {
+    id: `sheet-${si + 1}`,
+    title: section.title,
+    showSection: false,
+    selectedCount: selected.length,
+    rows: [...selected.map(toRow("Selected")), ...unselected.map(toRow("Archive"))],
+  }
+})
+
+/**
+ * The last sheet lists every work across the sections, with an extra
+ * Section column: selected first, then the archive, each newest first.
+ */
+const allRows = sectionSheets.flatMap((sheet) => sheet.rows)
+const byStatusThenYear = (a, b) =>
+  (a.status === b.status ? 0 : a.status === "Selected" ? -1 : 1) ||
+  (b.year === "—" ? "0000" : b.year).localeCompare(a.year === "—" ? "0000" : a.year)
+const sheets = [
+  ...sectionSheets,
+  {
+    id: "sheet-all",
+    title: "All",
+    showSection: true,
+    selectedCount: allRows.filter((row) => row.status === "Selected").length,
+    rows: [...allRows].sort(byStatusThenYear),
+  },
+]
+const sheetCols = (sheet) => (sheet.showSection ? [...COLS, "F"] : COLS)
+
+/** A few blank rows after the data, like the unused part of a sheet. */
+const BLANK_ROWS = 4
+const COLS = ["A", "B", "C", "D", "E"]
+const FIELDS = ["Img", "Title", "Medium", "Year", "Status", "Section"]
+const colClass = (c) => `col-${c.toLowerCase()}`
 ---
 
 <Layout title="Work — Wasawat Somno" description="Index of works">
-  <div class="relative z-10 font-mono p-8 pb-20 w-full">
-    <p class="text-[12px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">[work]</p>
-    <h1 class="font-bold text-3xl lg:text-4xl mb-10" style="color: var(--text);">Work</h1>
+  <div class="work-page relative z-10 w-full">
+    <header class="work-head">
+      <p class="kicker wipe">[work] — works.xlsx · {sectionSheets.length} sections · {allRows.length} works</p>
+      <h1 class="wipe">Work</h1>
+    </header>
 
-    {
-      artSections.map((section) => {
-        const { selected, unselected } = splitSection(section)
-        return (
-          <section class="mb-14">
-            <h2 class="font-bold text-xl mb-4 uppercase tracking-wide" style="color: var(--text);">{section.title}</h2>
+    <div class="workbook wipe">
+      <div class="formula-bar">
+        <span class="name-box" data-name-box>A1</span>
+        <span class="fx" aria-hidden="true">fx</span>
+        <span class="formula" data-formula>Img</span>
+      </div>
 
-            {selected.length > 0 && (
-              <>
-                <p class="text-[11px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">Selected</p>
-                <div class="neu-panel mb-8">
-                <table class="work-table w-full text-[13px] border-collapse">
-                  <colgroup>
-                    <col style="width: 56px;" />
-                    <col />
-                    <col style="width: 180px;" />
-                    <col style="width: 60px;" />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th class="text-left font-normal py-2 pr-4"></th>
-                      <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Title</th>
-                      <th class="text-left font-normal uppercase tracking-widest py-2 pr-4" style="color: var(--text-dim); font-size: 11px;">Medium</th>
-                      <th class="text-right font-normal uppercase tracking-widest py-2" style="color: var(--text-dim); font-size: 11px;">Year</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selected.map(({ item, groupTitle }) => {
-                      const date = dateBySlug[item.slug] ?? item.date
-                      const image = imageBySlug[item.slug] ?? item.image
-                      return (
-                        <tr class="row-link" data-href={`/art/${item.slug}`}>
-                          <td class="py-2 pr-4">
-                            {image ? (
-                              <div class="dither-thumb neu-thumb" style="width: 44px; height: 32px; flex-shrink: 0;">
-                                <img
-                                  src={thumbSrc(item.slug)}
-                                  alt=""
-                                  loading="lazy"
-                                />
-                              </div>
-                            ) : (
-                              <div class="neu-thumb" style="width: 44px; height: 32px;" />
-                            )}
-                          </td>
-                          <td class="py-2 pr-4 work-piece-title" style="color: var(--text-muted);">
-                            <a href={`/art/${item.slug}`} class="hover:underline">
-                              {item.label}
-                            </a>
-                          </td>
-                          <td class="py-2 pr-4" style="color: var(--text-dim);">
-                            {groupTitle ?? "—"}
-                          </td>
-                          <td class="py-2 text-right" style="color: var(--text-dim);">
-                            {date ? date.slice(0, 4) : "—"}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-                </div>
-              </>
-            )}
-
-            {unselected.length > 0 && (
-              <>
-                <p class="text-[11px] uppercase tracking-widest mb-2" style="color: var(--text-dim);">Archive</p>
-                <div class="neu-panel">
-                <table class="work-table w-full text-[13px] border-collapse">
-                  <colgroup>
-                    <col style="width: 56px;" />
-                    <col />
-                    <col style="width: 180px;" />
-                    <col style="width: 60px;" />
-                  </colgroup>
-                  <tbody>
-                    {unselected.map(({ item, groupTitle }) => {
-                      const archiveDate = (item.slug ? dateBySlug[item.slug] : undefined) ?? item.date
-                      const archiveImage = (item.slug ? imageBySlug[item.slug] : undefined) ?? item.image
-                      const href = item.slug ? `/art/${item.slug}` : item.url
-                      return (
-                        <tr
-                          class={href ? "row-link" : undefined}
-                          data-href={href || undefined}
-                          data-external={!item.slug && item.url ? "true" : undefined}
+      {
+        sheets.map((sheet, si) => (
+          <section
+            class="sheet"
+            id={sheet.id}
+            data-sheet={si}
+            data-rows={sheet.rows.length}
+            data-selected={sheet.selectedCount}
+            aria-label={sheet.title}
+          >
+            <h2 class="sheet-title">{sheet.title}</h2>
+            <table class="work-table w-full border-collapse">
+              <thead>
+                <tr class="sheet-cols">
+                  <th class="corner" />
+                  {sheetCols(sheet).map((c) => (
+                    <th class={colClass(c)} scope="col">{c}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="row-fields">
+                  <th class="rownum" scope="row">1</th>
+                  {sheetCols(sheet).map((c, ci) => (
+                    <td class={colClass(c)}>{FIELDS[ci]}</td>
+                  ))}
+                </tr>
+                {sheet.rows.map((row, i) => (
+                  <tr
+                    class={row.href ? "row-link" : "row-plain"}
+                    data-href={row.href || undefined}
+                    data-external={row.external ? "true" : undefined}
+                  >
+                    <th class="rownum" scope="row">{i + 2}</th>
+                    <td class="col-a" data-value={row.thumb ? `=IMAGE("${row.thumb}")` : ""}>
+                      {row.thumb ? (
+                        <div class="dither-thumb work-thumb">
+                          <img src={row.thumb} alt="" loading="lazy" />
+                        </div>
+                      ) : null}
+                    </td>
+                    <td
+                      class="col-b work-piece-title"
+                      data-value={row.href ? `=HYPERLINK("${row.href}", "${row.label}")` : undefined}
+                    >
+                      {row.href ? (
+                        <a
+                          href={row.href}
+                          target={row.external ? "_blank" : undefined}
+                          rel={row.external ? "noopener noreferrer" : undefined}
                         >
-                          <td class="py-2 pr-4">
-                            {archiveImage ? (
-                              <div class="dither-thumb neu-thumb" style="width: 44px; height: 32px; flex-shrink: 0;">
-                                <img
-                                  src={thumbSrc(item.slug)}
-                                  alt=""
-                                  loading="lazy"
-                                />
-                              </div>
-                            ) : (
-                              <div class="neu-thumb" style="width: 44px; height: 32px;" />
-                            )}
-                          </td>
-                          <td class="py-2 pr-4 work-piece-title" style="color: var(--text-muted);">
-                            {item.slug ? (
-                              <a href={`/art/${item.slug}`} class="hover:underline">
-                                {item.label}
-                              </a>
-                            ) : item.url ? (
-                              <a href={item.url} target="_blank" rel="noopener noreferrer" class="hover:underline">
-                                {item.label}
-                              </a>
-                            ) : (
-                              item.label
-                            )}
-                          </td>
-                          <td class="py-2 pr-4" style="color: var(--text-dim);">
-                            {groupTitle ?? "—"}
-                          </td>
-                          <td class="py-2 text-right" style="color: var(--text-dim);">
-                            {archiveDate ? archiveDate.slice(0, 4) : "—"}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-                </div>
-              </>
-            )}
+                          {row.label}
+                        </a>
+                      ) : (
+                        row.label
+                      )}
+                    </td>
+                    <td class="col-c">{row.medium}</td>
+                    <td class="col-d work-year">{row.year}</td>
+                    <td class="col-e">{row.status}</td>
+                    {sheet.showSection && <td class="col-f">{row.section}</td>}
+                  </tr>
+                ))}
+                {Array.from({ length: BLANK_ROWS }, (_, i) => (
+                  <tr class="row-blank">
+                    <th class="rownum" scope="row">{sheet.rows.length + i + 2}</th>
+                    {sheetCols(sheet).map((c) => (
+                      <td class={colClass(c)} />
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </section>
-        )
-      })
-    }
+        ))
+      }
+
+      <div class="sheet-tabs" role="tablist" aria-label="Sheets">
+        {
+          sheets.map((sheet, si) => (
+            <a class="sheet-tab" role="tab" href={`#${sheet.id}`} data-tab={si}>
+              {sheet.title}
+            </a>
+          ))
+        }
+      </div>
+      <div class="status-bar data">
+        <span>Ready</span>
+        <span data-status />
+      </div>
+    </div>
+
+    <footer class="work-foot data">end of index · right-click anywhere for the sitemap</footer>
   </div>
 </Layout>
 
 <style>
-  .neu-panel {
-    --neu-bg: var(--bg-elevated, #f5f5f5);
-    --neu-light: #ffffff;
-    --neu-dark: #dcdce0;
-    background: var(--neu-bg);
-    border-radius: 12px;
-    padding: 4px 16px;
-    box-shadow:
-      3px 3px 6px var(--neu-dark),
-      -3px -3px 6px var(--neu-light);
+  .work-page {
+    padding: 2rem 2rem 6rem;
+    max-width: 1180px;
+  }
+
+  .work-head {
+    margin: 2.5rem 0 2.5rem;
+  }
+
+  .work-head h1 {
+    margin-top: 0.6rem;
+  }
+
+  /* the whole index is one workbook: formula bar, grid, sheet tabs */
+  .workbook {
+    --grid: var(--line);
+    --chrome: color-mix(in srgb, var(--ink) 9%, var(--bg));
+    --chrome-hi: color-mix(in srgb, var(--ink) 22%, var(--bg));
+    border: 1px solid var(--ink);
+    background: var(--bg);
+    font-family: var(--f-data);
+    font-size: 13px;
+    margin-bottom: 4rem;
+  }
+
+  .formula-bar {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid var(--ink);
+    background: var(--chrome);
+    min-height: 28px;
+  }
+
+  .formula-bar > span {
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+  }
+
+  .name-box {
+    flex: 0 0 72px;
+    background: var(--bg);
+    border-right: 1px solid var(--grid);
+  }
+
+  .fx {
+    font-style: italic;
+    color: var(--soft);
+    border-right: 1px solid var(--grid);
+  }
+
+  .formula {
+    flex: 1;
+    min-width: 0;
+    background: var(--bg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block !important;
+    line-height: 28px;
+  }
+
+  .sheet[hidden] {
+    display: none;
+  }
+
+  /* with scripting on, the tab strip names the sheet; the heading is the
+     fallback label when every sheet is stacked */
+  .sheet-title {
+    font-family: var(--f-pixel);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 10px;
+    background: var(--chrome);
+    border-bottom: 1px solid var(--grid);
+  }
+
+  .workbook.is-tabbed .sheet-title {
+    display: none;
   }
 
   .work-table {
     table-layout: fixed;
   }
+
   .work-table th,
   .work-table td {
-    overflow-wrap: anywhere;
+    border-right: 1px solid var(--grid);
+    border-bottom: 1px solid var(--grid);
+    padding: 4px 8px;
+    height: 28px;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+    font-weight: 400;
   }
-  .work-table thead tr {
-    box-shadow: inset 0 -1px 0 var(--neu-dark, #d1d1d6);
+
+  .work-table tr > :last-child {
+    border-right: 0;
   }
-  .work-table tbody tr {
-    transition: background 0.15s ease;
-    border-radius: 10px;
+
+  /* column letters and row numbers */
+  .sheet-cols th,
+  .rownum {
+    background: var(--chrome);
+    color: var(--soft);
+    text-align: center;
+    font-size: 12px;
+    user-select: none;
   }
-  .work-table tbody tr:not(:last-child) {
-    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+
+  .sheet-cols th {
+    height: 22px;
+    padding: 0;
   }
-  .work-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.35);
+
+  .sheet-cols th.is-active,
+  .work-table tr:hover > .rownum {
+    background: var(--chrome-hi);
+    color: var(--ink);
   }
+
+  .corner,
+  .rownum {
+    width: 40px;
+    padding: 0;
+  }
+
+  .sheet-cols .col-a { width: 64px; }
+  .sheet-cols .col-c { width: 220px; }
+  .sheet-cols .col-d { width: 64px; }
+  .sheet-cols .col-e { width: 96px; }
+  .sheet-cols .col-f { width: 150px; }
+
+  /* row 1 holds the field names, frozen-pane style */
+  .row-fields td {
+    font-weight: 700;
+    background: color-mix(in srgb, var(--ink) 4%, var(--bg));
+    border-bottom-color: var(--ink);
+  }
+
   .work-table tbody tr.row-link {
     cursor: pointer;
   }
-  .work-piece-title {
-    font-family: "DepartureMono", monospace;
-    font-size: 13px;
-    letter-spacing: 0.03em;
+
+  .work-table tbody tr.row-link:hover td {
+    background: color-mix(in srgb, var(--ink) 5%, var(--bg));
   }
-  .neu-thumb {
-    border-radius: 5px;
-    background: var(--neu-bg, #f5f5f5);
-    box-shadow:
-      1.5px 1.5px 3px var(--neu-dark, #dcdce0),
-      -1.5px -1.5px 3px var(--neu-light, #ffffff);
-    overflow: hidden;
+
+  /* the cell under the pointer is the selection */
+  .work-table td:hover {
+    outline: 2px solid var(--ink);
+    outline-offset: -2px;
+  }
+
+  .col-a {
+    padding: 2px !important;
+  }
+
+  .work-thumb {
+    display: block;
+    width: 100%;
+    height: 40px;
+  }
+
+  .work-piece-title a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .row-plain td,
+  td.col-c,
+  td.col-e,
+  td.col-f {
+    color: var(--soft);
+  }
+
+  .row-fields td {
+    color: var(--ink) !important;
+  }
+
+  .work-year {
+    text-align: right !important;
+  }
+
+  .sheet-tabs {
+    display: flex;
+    overflow-x: auto;
+    border-top: 1px solid var(--ink);
+    background: var(--chrome);
+    padding-left: 40px;
+  }
+
+  .sheet-tab {
+    flex: none;
+    padding: 6px 14px;
+    border-right: 1px solid var(--grid);
+    color: var(--soft);
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .sheet-tab:first-child {
+    border-left: 1px solid var(--grid);
+  }
+
+  .sheet-tab:hover {
+    color: var(--ink);
+  }
+
+  .sheet-tab.is-active {
+    background: var(--bg);
+    color: var(--ink);
+    font-weight: 700;
+    box-shadow: inset 0 -3px 0 var(--ink);
+    margin-top: -1px;
+  }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--grid);
+    background: var(--chrome);
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--soft);
+  }
+
+  .work-foot {
+    border-top: 1px solid var(--line);
+    padding-top: 1rem;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 720px) {
+    .work-page {
+      padding: 1.25rem 1rem 4rem;
+    }
+
+    .work-head {
+      margin: 1.5rem 0 1.5rem;
+    }
+
+    /* hidden columns, as in a real sheet: the letters skip C, E and F */
+    .col-c,
+    .col-e,
+    .col-f {
+      display: none;
+    }
+
+    .corner,
+    .rownum {
+      width: 28px;
+    }
+
+    .sheet-cols .col-a { width: 52px; }
+    .sheet-cols .col-d { width: 48px; }
+
+    .work-thumb {
+      height: 32px;
+    }
+
+    .name-box {
+      flex-basis: 52px;
+    }
+
+    .sheet-tabs {
+      padding-left: 0;
+    }
   }
 </style>
 
 <script>
-  // Clicking anywhere in a "row-link" row navigates like clicking its title
-  // link, except when the click is on an actual <a> (let that handle itself).
-  document.querySelectorAll(".work-table tbody tr.row-link").forEach((row) => {
-    const href = row.dataset.href
-    if (!href) return
-    row.addEventListener("click", (e) => {
-      if (e.target instanceof Element && e.target.closest("a")) return
-      if (row.dataset.external === "true") {
-        window.open(href, "_blank", "noopener")
-      } else {
-        window.location.href = href
-      }
+  const workbook = document.querySelector<HTMLElement>(".workbook")
+  if (workbook) {
+    const sheets = [...workbook.querySelectorAll<HTMLElement>(".sheet")]
+    const tabs = [...workbook.querySelectorAll<HTMLElement>(".sheet-tab")]
+    const nameBox = workbook.querySelector("[data-name-box]")!
+    const formula = workbook.querySelector("[data-formula]")!
+    const status = workbook.querySelector("[data-status]")!
+
+    // Sheet tabs show one section at a time; the hash keeps it linkable.
+    const showSheet = (index: number) => {
+      sheets.forEach((sheet, i) => (sheet.hidden = i !== index))
+      tabs.forEach((tab, i) => {
+        tab.classList.toggle("is-active", i === index)
+        tab.setAttribute("aria-selected", String(i === index))
+      })
+      const { rows, selected } = sheets[index].dataset
+      status.textContent = `Count: ${rows} · Selected: ${selected}`
+    }
+    const sheetFromHash = () => {
+      const i = sheets.findIndex((sheet) => `#${sheet.id}` === location.hash)
+      return i === -1 ? 0 : i
+    }
+    workbook.classList.add("is-tabbed")
+    showSheet(sheetFromHash())
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", (e) => {
+        e.preventDefault()
+        history.replaceState(null, "", tab.getAttribute("href"))
+        showSheet(i)
+      })
     })
-  })
+    window.addEventListener("hashchange", () => showSheet(sheetFromHash()))
+
+    // The hovered cell is the selection: name box, formula bar, column letter.
+    workbook.addEventListener("mouseover", (e) => {
+      const cell = e.target instanceof Element ? e.target.closest<HTMLTableCellElement>(".work-table td") : null
+      if (!cell) return
+      const row = cell.parentElement as HTMLTableRowElement
+      const letters = cell.closest("table")!.querySelectorAll(".sheet-cols th")
+      letters.forEach((th, i) => th.classList.toggle("is-active", i === cell.cellIndex))
+      nameBox.textContent = `${letters[cell.cellIndex].textContent}${row.cells[0].textContent}`
+      formula.textContent = cell.dataset.value ?? cell.textContent!.trim()
+    })
+
+    // Clicking anywhere in a "row-link" row navigates like clicking its title
+    // link, except when the click is on an actual <a> (let that handle itself).
+    workbook.querySelectorAll<HTMLElement>("tr.row-link").forEach((row) => {
+      const href = row.dataset.href
+      if (!href) return
+      row.addEventListener("click", (e) => {
+        if (e.target instanceof Element && e.target.closest("a")) return
+        if (row.dataset.external === "true") {
+          window.open(href, "_blank", "noopener")
+        } else {
+          window.location.href = href
+        }
+      })
+    })
+  }
 </script>

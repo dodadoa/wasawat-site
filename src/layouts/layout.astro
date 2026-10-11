@@ -2,15 +2,16 @@
 import { SEO } from "astro-seo"
 import Navigator from "../components/navigator.astro"
 import { artSections } from "../data/artArchive.js"
-import "@fontsource/jetbrains-mono/400.css"
 
 export interface Props {
   title?: string
   preview?: string
   description?: string
+  /** @deprecated the whole site is 1-bit now; kept so existing callers still type-check */
+  mono?: boolean
 }
 
-const { title, preview, description } = Astro.props
+const { title, preview, description, mono = false } = Astro.props
 
 // ── right-click sitemap tree ──
 // Built once at build time from the same artSections data that drives
@@ -50,7 +51,7 @@ const sitemapTree = [
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-mono={mono ? "" : undefined}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -124,6 +125,65 @@ const sitemapTree = [
     <title>{title}</title>
   </head>
   <body>
+    <!-- ── ink-bleed filters: blur → warp by coarse noise → threshold the alpha
+         back to a hard edge (slope 6, cut 0.42, so ink spreads a little) →
+         fine grain → over a wide bloom (the strongest glow on the page). Blur ≈ half the stroke width,
+         so there is one per text size. ── -->
+    <svg class="ink-defs" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+      <defs>
+        <!-- line drawings: every pixel snaps to ink or nothing -->
+        <filter id="one-bit" color-interpolation-filters="sRGB">
+          <feComponentTransfer>
+            <feFuncA type="discrete" tableValues="0 1 1 1 1 1 1 1" />
+          </feComponentTransfer>
+        </filter>
+        <filter id="ink-title" x="-6%" y="-35%" width="112%" height="170%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="blur" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="4" result="warp" />
+          <feDisplacementMap in="blur" in2="warp" scale="3.2" xChannelSelector="R" yChannelSelector="G" result="warped" />
+          <feComponentTransfer in="warped" result="hard">
+            <feFuncA type="linear" slope="6" intercept="-2.02" />
+          </feComponentTransfer>
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="1" seed="11" result="grain" />
+          <feDisplacementMap in="hard" in2="grain" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="ink" />
+          <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="wide" />
+          <feComponentTransfer in="wide" result="bloom">
+            <feFuncA type="linear" slope="0.45" />
+          </feComponentTransfer>
+          <feMerge><feMergeNode in="bloom" /><feMergeNode in="ink" /></feMerge>
+        </filter>
+        <filter id="ink-body" x="-6%" y="-40%" width="112%" height="180%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="1.15" result="blur" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="warp" />
+          <feDisplacementMap in="blur" in2="warp" scale="3" xChannelSelector="R" yChannelSelector="G" result="warped" />
+          <feComponentTransfer in="warped" result="hard">
+            <feFuncA type="linear" slope="6" intercept="-2.02" />
+          </feComponentTransfer>
+          <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="1" seed="13" result="grain" />
+          <feDisplacementMap in="hard" in2="grain" scale="1.5" xChannelSelector="R" yChannelSelector="G" result="ink" />
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4.5" result="wide" />
+          <feComponentTransfer in="wide" result="bloom">
+            <feFuncA type="linear" slope="0.42" />
+          </feComponentTransfer>
+          <feMerge><feMergeNode in="bloom" /><feMergeNode in="ink" /></feMerge>
+        </filter>
+        <filter id="ink-small" x="-6%" y="-45%" width="112%" height="190%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="0.6" result="blur" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="9" result="warp" />
+          <feDisplacementMap in="blur" in2="warp" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="warped" />
+          <feComponentTransfer in="warped" result="hard">
+            <feFuncA type="linear" slope="6" intercept="-2.02" />
+          </feComponentTransfer>
+          <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="1" seed="17" result="grain" />
+          <feDisplacementMap in="hard" in2="grain" scale="0.8" xChannelSelector="R" yChannelSelector="G" result="ink" />
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="wide" />
+          <feComponentTransfer in="wide" result="bloom">
+            <feFuncA type="linear" slope="0.4" />
+          </feComponentTransfer>
+          <feMerge><feMergeNode in="bloom" /><feMergeNode in="ink" /></feMerge>
+        </filter>
+      </defs>
+    </svg>
     <div id="site-loader" role="status" aria-live="polite" aria-label="Loading">
 
       <!-- ── 4-quadrant political compass loader ── -->
@@ -188,14 +248,6 @@ const sitemapTree = [
             <line x1="494" y1="215"  x2="506" y2="215"/>   <line x1="494" y1="485"  x2="506" y2="485"/>
             <line x1="494" y1="81"   x2="506" y2="81"/>    <line x1="494" y1="619"  x2="506" y2="619"/>
           </g>
-          <!-- quadrant watermarks -->
-          <text x="365" y="203" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">COMMUNITY</text>
-          <text x="365" y="231" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">GARDEN ART</text>
-          <text x="635" y="226" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">MAKER FAIRE</text>
-          <text x="365" y="483" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">RELATIONAL</text>
-          <text x="365" y="511" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">DESPAIR</text>
-          <text x="635" y="483" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">ACCELER-</text>
-          <text x="635" y="511" text-anchor="middle" fill="#0a0a0a" opacity="0.055" font-family="'JetBrains Mono',monospace" font-size="26" letter-spacing="2">ATIONISM</text>
           <!-- origin -->
           <circle cx="500" cy="350" r="5.5" fill="none" stroke="#0a0a0a" stroke-width="0.7" opacity="0.4"/>
           <circle cx="500" cy="350" r="1.8" fill="#0a0a0a" opacity="0.45"/>
@@ -282,12 +334,8 @@ const sitemapTree = [
         let tickerTimer = null
         if (tickerEl) {
           const showNext = () => {
-            tickerEl.style.opacity = "0"
-            setTimeout(() => {
-              tickerEl.textContent = DOOMSDAY_DATES[tickerIdx % DOOMSDAY_DATES.length]
-              tickerIdx++
-              tickerEl.style.opacity = "1"
-            }, 220)
+            tickerEl.textContent = DOOMSDAY_DATES[tickerIdx % DOOMSDAY_DATES.length]
+            tickerIdx++
           }
           showNext()
           tickerTimer = setInterval(showNext, 2600)
@@ -420,21 +468,56 @@ const sitemapTree = [
     <script type="application/json" id="sitemap-data" set:html={JSON.stringify(sitemapTree)} />
 
     <style is:global>
+      /* ── zine system: ink on paper, plus one spot colour ──
+         Four greys carry everything structural (inversion, dither density,
+         line weight). The second "bit" is a spot red, used only as fine 1px
+         lines on overlays: cursor, connectors, guides, x-ray outlines. */
       :root {
+        color-scheme: light;
         --ui-scale: 1;
-        --bg: #ffffff;
-        --bg-elevated: #f5f5f5;
-        --text: #0a0a0a;
-        --text-body: #1a1a1a;
-        --text-muted: #2a2a2a;
-        --text-dim: #404040;
-        --border: #cccccc;
-        --border-subtle: #e8e8e8;
-        --accent-1: #f90d63;
-        --accent-2: #d25667;
-        --accent-3: #de6ecb;
-        --accent-4: #8b8be9;
-        --accent-5: #99b0ee;
+
+        --bg: #e4e4e4;   /* paper grey, the only ground */
+        --ink: #141414;  /* text, strong borders, fills */
+        --soft: #666666; /* secondary text, captions, dimmed marks */
+        --line: #b4b4b4; /* hairline rules and default borders */
+        --red: #e1251b;  /* spot colour: fine overlay lines only, never fills or text */
+
+        /* four voices, one job each */
+        --f-display: "403Mesapholic", monospace;
+        --f-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --f-pixel: "DepartureMono", monospace;
+        --f-data: "PragmataPro Mono", ui-monospace, Menlo, monospace;
+
+        /* 1-bit fills: 12 = neutral/empty/track, 25 = in-between, 50 = heavy */
+        --dither-50: repeating-conic-gradient(var(--ink) 0 25%, var(--bg) 0 50%) 0 0 / 4px 4px;
+        --dither-25: conic-gradient(var(--ink) 25%, transparent 0) 0 0 / 4px 4px;
+        --dither-12: conic-gradient(at 2px 2px, transparent 75%, var(--ink) 0) 0 0 / 6px 6px;
+
+        --stack: 10px 10px 0 -1px var(--bg), 10px 10px 0 0 var(--line);
+        --stack-hi: 14px 14px 0 -3px var(--bg), 14px 14px 0 0 var(--ink);
+        --halo: 2px 0 0 var(--bg), -2px 0 0 var(--bg), 0 2px 0 var(--bg), 0 -2px 0 var(--bg);
+        --wipe-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+        /* a little over-inked bloom on every piece of text: a tight spread
+           plus a faint wide one, sized in em so it scales with the type and
+           tinted with the text's own colour (so inverted text glows paper) */
+        --bloom:
+          0 0 0.05em color-mix(in srgb, currentColor 50%, transparent),
+          0 0 0.4em color-mix(in srgb, currentColor 30%, transparent);
+
+        /* legacy names, kept so older components resolve to the palette */
+        --bg-elevated: var(--bg);
+        --text: var(--ink);
+        --text-body: var(--ink);
+        --text-muted: var(--ink);
+        --text-dim: var(--soft);
+        --border: var(--line);
+        --border-subtle: var(--line);
+        --accent-1: var(--ink);
+        --accent-2: var(--soft);
+        --accent-3: var(--ink);
+        --accent-4: var(--soft);
+        --accent-5: var(--soft);
       }
 
       html {
@@ -448,8 +531,8 @@ const sitemapTree = [
       body {
         font-size: 18px;
         background-color: var(--bg);
-        color: var(--text-body);
-        font-family: "DepartureMono", monospace;
+        color: var(--ink);
+        font-family: var(--f-body);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
@@ -465,79 +548,153 @@ const sitemapTree = [
         }
       }
 
+      *,
+      *::before,
+      *::after {
+        border-radius: 0;
+      }
+
+      /* set per element rather than inherited, so currentColor resolves to
+         each element's own text colour */
+      *,
+      *::before,
+      *::after {
+        text-shadow: var(--bloom);
+      }
+
       main {
-        color: var(--text-body);
+        color: var(--ink);
       }
 
       p,
       li {
-        color: var(--text-body);
-        line-height: 1.75;
+        color: var(--ink);
+        line-height: 1.45;
       }
 
+      /* display voice — weight 400; emphasis inside a heading is bold, not italic */
       h1,
       h2,
       h3,
       h4 {
-        font-family: "403Mesapholic", monospace;
-        color: var(--text);
-        font-weight: 700;
+        font-family: var(--f-display);
+        color: var(--ink);
+        font-weight: 400;
+        line-height: 1.16;
         letter-spacing: -0.02em;
       }
 
+      h1 {
+        font-size: clamp(48px, 8vw, 110px);
+        filter: url(#ink-title);
+      }
+
+      /* the display face has hairline serifs, so everything under title size
+         takes the smallest bleed or the thin strokes drop out */
+      h2 {
+        font-size: 44px;
+        filter: url(#ink-small);
+      }
+
+      h3 {
+        font-size: 32px;
+        filter: url(#ink-small);
+      }
+
+      /* bleed follows the type size down: under ~70px the title filter
+         would clog the counters */
+      @media (max-width: 880px) {
+        h1 {
+          filter: url(#ink-body);
+        }
+      }
+
+      h1 em,
+      h2 em,
+      h3 em,
+      h1 i,
+      h2 i,
+      h3 i,
+      h1 strong,
+      h2 strong,
+      h3 strong {
+        font-style: normal;
+        font-weight: 700;
+      }
+
+      em,
+      i {
+        font-style: italic;
+      }
+
       a {
-        color: var(--text-muted);
+        color: var(--ink);
         text-decoration: none;
       }
 
       a:hover {
-        color: var(--text);
+        color: var(--ink);
       }
 
       strong {
-        color: var(--text);
+        color: var(--ink);
       }
 
       nav {
-        font-family: "JetBrains Mono", monospace;
-      }
-
-      nav a:hover {
-        color: var(--text);
-      }
-
-      nav a:hover span {
-        color: var(--text);
+        font-family: var(--f-pixel);
       }
 
       ::selection {
-        background: #f90d63;
-        color: #fff;
+        background: var(--ink);
+        color: var(--bg);
       }
 
-      .opacity-80 {
-        opacity: 1;
-        color: var(--text-dim);
+      /* tailwind leftovers resolve to the palette instead of tints */
+      .bg-white {
+        background-color: var(--bg) !important;
       }
 
+      .opacity-80,
       .opacity-70 {
         opacity: 1;
-        color: var(--text-muted);
+        color: var(--soft);
       }
 
       .border-gray-700,
       .border-neutral-800,
       .border-neutral-700,
       .border-neutral-200 {
-        border-color: var(--border) !important;
+        border-color: var(--line) !important;
+      }
+
+      .font-mono {
+        font-family: var(--f-pixel);
       }
 
       figcaption {
-        color: var(--text-dim);
+        font-family: var(--f-data);
+        color: var(--soft);
+        line-height: 1.6;
       }
 
       code {
-        color: var(--text);
+        font-family: var(--f-data);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        padding: 0 0.3em;
+      }
+
+      hr {
+        border: 0;
+        border-top: 1px solid var(--line);
+      }
+
+      /* photographs and video are shown as they are: the original picture,
+         framed with a hairline on a white backing */
+      main figure img,
+      main figure video {
+        border: 1px solid var(--line);
+        background: #fff;
       }
 
       .ig-mention {
@@ -548,11 +705,156 @@ const sitemapTree = [
         text-decoration: underline;
       }
 
-      /* ── dithered thumbnail ── */
+      /* ── voices as utilities ── */
+      .kicker,
+      .label {
+        font-family: var(--f-pixel);
+        text-transform: uppercase;
+        font-weight: 400;
+        font-style: normal;
+        line-height: 1.4;
+      }
+
+      .kicker {
+        font-size: 15px;
+        letter-spacing: 0.12em;
+        color: var(--soft);
+      }
+
+      .label {
+        font-size: 12px;
+        letter-spacing: 0.08em;
+      }
+
+      .data {
+        font-family: var(--f-data);
+        color: var(--soft);
+        line-height: 1.6;
+      }
+
+      .lead {
+        font-family: var(--f-body);
+        font-size: clamp(22px, 2.2vw, 28px);
+        line-height: 1.3;
+        letter-spacing: -0.01em;
+      }
+
+      /* ── ink-bleed, three sizes ── */
+      .ink-title { filter: url(#ink-title); }
+      .ink-body { filter: url(#ink-body); }
+      .ink-small { filter: url(#ink-small); }
+      .ink-none { filter: none; }
+
+      /* ── surfaces ── */
+      .card {
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--bg) 80%, transparent);
+        box-shadow: var(--stack);
+      }
+
+      .card--hi {
+        border: 3px solid var(--ink);
+        box-shadow: var(--stack-hi);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6em;
+        font-family: var(--f-pixel);
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        line-height: 1;
+        color: var(--ink);
+        background: transparent;
+        border: 1px solid var(--ink);
+        padding: 0.75em 1em;
+        text-decoration: none;
+      }
+
+      .btn:hover,
+      .btn:active,
+      .btn[aria-pressed="true"],
+      .btn.is-active {
+        background: var(--ink);
+        color: var(--bg);
+      }
+
+      .btn:disabled,
+      .btn[aria-disabled="true"] {
+        color: var(--line);
+        border-color: var(--line);
+        background: transparent;
+      }
+
+      .dither-12 { background: var(--dither-12); }
+      .dither-25 { background: var(--dither-25); }
+      .dither-50 { background: var(--dither-50); }
+
+      /* text sitting on a dither keeps a hard paper edge */
+      .halo,
+      .halo * {
+        text-shadow: var(--halo);
+      }
+
+      /* big numerals / backdrop words filled with the 50% screen */
+      .dither-text {
+        color: transparent;
+        background: var(--dither-50);
+        -webkit-background-clip: text;
+        background-clip: text;
+      }
+
+      /* ── motion: top-down wipe in, staggered; nothing eased loops ── */
+      @keyframes wipe-in {
+        from { clip-path: inset(0 -100vw 100% -100vw); }
+        to   { clip-path: inset(0 -100vw -100vh -100vw); }
+      }
+
+      @keyframes rise-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes blink-step {
+        0%, 49.99% { visibility: visible; }
+        50%, 100%  { visibility: hidden; }
+      }
+
+      @keyframes invert-step {
+        0%, 49.99% { filter: none; }
+        50%, 100%  { filter: invert(1); }
+      }
+
+      /* `backwards` only: the hidden state holds through the delay, and once
+         the wipe ends the clip is gone, so shadows and margin notes that
+         overflow the box are never cut off */
+      body:not(.is-loading) .wipe {
+        animation: wipe-in 600ms var(--wipe-ease) calc(var(--i, 0) * 70ms) backwards;
+      }
+
+      body:not(.is-loading) .rise {
+        animation: rise-in 450ms var(--wipe-ease) calc(var(--i, 0) * 70ms) backwards;
+      }
+
+      /* content is not hidden while the loader is up — the loader covers the
+         page, and the wipe's first keyframe takes over the moment it lifts */
+
+      .wipe:nth-child(2), .rise:nth-child(2) { --i: 1; }
+      .wipe:nth-child(3), .rise:nth-child(3) { --i: 2; }
+      .wipe:nth-child(4), .rise:nth-child(4) { --i: 3; }
+      .wipe:nth-child(5), .rise:nth-child(5) { --i: 4; }
+      .wipe:nth-child(6), .rise:nth-child(6) { --i: 5; }
+      .wipe:nth-child(n + 7), .rise:nth-child(n + 7) { --i: 6; }
+
+      /* ── thumbnail: the original image in a hairline frame ── */
       .dither-thumb {
         position: relative;
         display: inline-block;
         overflow: hidden;
+        background: #fff;
+        border: 1px solid var(--line);
       }
 
       .dither-thumb img {
@@ -560,21 +862,9 @@ const sitemapTree = [
         width: 100%;
         height: 100%;
         object-fit: cover;
-        filter: contrast(1.08) saturate(1.1);
       }
 
-      /* Fine 2×2 Bayer dither overlay — dark pixels only, colour preserved */
-      .dither-thumb::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2'%3E%3Crect x='0' y='0' width='1' height='1' fill='%23000' fill-opacity='0.18'/%3E%3C/svg%3E");
-        background-size: 2px 2px;
-        mix-blend-mode: multiply;
-      }
-
-      /* ── site loader — circular liquid fill, gates first paint of content ── */
+      /* ── site loader — gates first paint of content ── */
       body.is-loading {
         overflow: hidden;
       }
@@ -588,20 +878,21 @@ const sitemapTree = [
         align-items: center;
         justify-content: center;
         gap: 0.6rem;
-        background: var(--bg, #ffffff);
-        transition: opacity 0.55s ease, visibility 0.55s ease;
+        background: var(--bg);
+        clip-path: inset(0 0 0 0);
+        transition: clip-path 600ms var(--wipe-ease), visibility 0s linear 600ms;
         padding: 2rem;
         box-sizing: border-box;
       }
 
+      /* leaves by the same top-down wipe the content arrives with */
       #site-loader.is-hidden {
-        opacity: 0;
+        clip-path: inset(100% 0 0 0);
         visibility: hidden;
         pointer-events: none;
       }
 
-      /* stop the step-sequencer the moment loading finishes — otherwise the
-         quadrants keep firing through the fade-out and read as flicker */
+      /* stop the step-sequencer the moment loading finishes */
       #site-loader.is-hidden .loader-quad {
         animation: none;
       }
@@ -620,59 +911,77 @@ const sitemapTree = [
         width: 100%;
         height: auto;
         display: block;
-        opacity: 0;
-        animation: loader-compass-in 0.8s ease 0.05s forwards;
+        shape-rendering: crispEdges;
       }
 
-      @keyframes loader-compass-in {
-        from { opacity: 0; }
-        to   { opacity: 1; }
+      /* the drawing is ink only: no tints by opacity */
+      .loader-compass [opacity] {
+        opacity: 1;
+      }
+
+      .loader-compass [fill="#0a0a0a"] {
+        fill: var(--ink);
+      }
+
+      .loader-compass [stroke="#0a0a0a"] {
+        stroke: var(--ink);
+      }
+
+      .loader-compass circle[r="2"] {
+        fill: var(--soft);
+      }
+
+      .loader-compass circle[r="6.5"] {
+        stroke: var(--soft);
       }
 
       /* quadrant dither fills fire like a 4-step sequencer — TL→TR→BR→BL,
          each quadrant hard-on for exactly one step (1/4 of the cycle) */
       .loader-quad {
-        opacity: calc(var(--qo, 0.3) * 0.45);
-        animation: loader-quad-step 1.6s linear var(--qd, 0s) infinite;
+        visibility: hidden;
+        animation: loader-quad-step 1.6s steps(1, end) var(--qd, 0s) infinite;
       }
 
       @keyframes loader-quad-step {
-        0%, 24.99% { opacity: calc(var(--qo, 0.3) * 2.1); }
-        25%, 100%  { opacity: calc(var(--qo, 0.3) * 0.45); }
-      }
-
-      /* mine dots — static while loading */
-      .loader-compass-mine {
-        opacity: 0.6;
+        0%, 24.99% { visibility: visible; }
+        25%, 100%  { visibility: hidden; }
       }
 
       .loader-label {
-        font-family: "DepartureMono", monospace;
-        font-size: 10px;
-        letter-spacing: 0.28em;
+        font-family: var(--f-pixel);
+        font-size: 12px;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: var(--text-dim);
+        color: var(--ink);
       }
 
-      /* deadpan doomsday ticker — same voice as loader-label, fades between entries */
+      /* deadpan doomsday ticker — hard cut between entries */
       .loader-ticker {
-        font-family: "DepartureMono", monospace;
-        font-size: 9px;
-        letter-spacing: 0.14em;
+        font-family: var(--f-data);
+        font-size: 11px;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
-        color: var(--text-muted);
-        min-height: 1.4em;
-        opacity: 1;
-        transition: opacity 0.22s ease;
+        color: var(--soft);
+        min-height: 1.6em;
       }
-
-      /* dither stays scoped to the node-graph svg itself (via #loaderDither
-         inside the <svg>) — the loader's page background stays plain white */
 
       /* keep the custom cursor from popping over the loader before content is ready */
       body.is-loading #custom-cursor,
       body.is-loading #cursor-thought {
         display: none !important;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+
+        .loader-quad {
+          visibility: visible;
+        }
       }
     </style>
   <script>
@@ -707,119 +1016,90 @@ const sitemapTree = [
       position: absolute;
       top: 50%; left: 50%;
       width: 1px; height: 1px;
-      background: #0a0a0a;
+      background: var(--red);
       /* horizontal arm left, right; vertical arm up, down */
       box-shadow:
-        -10px 0 0 0 #0a0a0a,
-         10px 0 0 0 #0a0a0a,
-        0 -10px 0 0 #0a0a0a,
-        0  10px 0 0 #0a0a0a;
+        -10px 0 0 0 var(--red),
+         10px 0 0 0 var(--red),
+        0 -10px 0 0 var(--red),
+        0  10px 0 0 var(--red);
     }
 
-    /* center dot */
+    /* center dot — hard, no bloom */
     #custom-cursor::before {
       content: '';
       position: absolute;
       top: 50%; left: 50%;
       width: 3px; height: 3px;
-      background: #0a0a0a;
-      border-radius: 50%;
+      background: var(--ink);
       transform: translate(-50%, -50%);
-      box-shadow:
-        0 0 10px 6px rgba(10,10,10,0.15),
-        0 0 28px 14px rgba(10,10,10,0.07);
-      animation: cursor-bloom 2.5s ease-in-out infinite;
     }
 
-    @keyframes cursor-bloom {
-      0%, 100% { box-shadow: 0 0 10px 6px rgba(10,10,10,0.15), 0 0 28px 14px rgba(10,10,10,0.07); }
-      50%       { box-shadow: 0 0 18px 12px rgba(10,10,10,0.22), 0 0 50px 26px rgba(10,10,10,0.09); }
-    }
-
-    /* ring around the crosshair — expands to call out clickable targets */
+    /* ring around the crosshair — snaps larger to call out clickable targets */
     #custom-cursor .cursor-circle {
       position: absolute;
       top: 50%; left: 50%;
       width: 28px; height: 28px;
       border-radius: 50%;
-      border: 1px solid rgba(10,10,10,0.3);
-      background: rgba(10,10,10,0.02);
-      transform: translate(-50%, -50%) scale(1);
-      transition: width 0.2s cubic-bezier(0.22,1,0.36,1), height 0.2s cubic-bezier(0.22,1,0.36,1),
-        border-color 0.2s ease, background 0.2s ease;
-    }
-
-    #custom-cursor.cursor--hover {
-      transform-origin: center center;
+      border: 1px solid var(--red);
+      transform: translate(-50%, -50%);
     }
 
     #custom-cursor.cursor--hover::after {
       box-shadow:
-        -16px 0 0 0 #0a0a0a,
-         16px 0 0 0 #0a0a0a,
-        0 -16px 0 0 #0a0a0a,
-        0  16px 0 0 #0a0a0a;
-      transition: box-shadow 0.15s ease;
-    }
-
-    #custom-cursor.cursor--hover::before {
-      animation: cursor-bloom-hover 1s ease-in-out infinite;
-    }
-
-    @keyframes cursor-bloom-hover {
-      0%, 100% { box-shadow: 0 0 14px 10px rgba(10,10,10,0.2),  0 0 40px 20px rgba(10,10,10,0.09); }
-      50%       { box-shadow: 0 0 26px 18px rgba(10,10,10,0.28), 0 0 70px 36px rgba(10,10,10,0.1); }
+        -16px 0 0 0 var(--red),
+         16px 0 0 0 var(--red),
+        0 -16px 0 0 var(--red),
+        0  16px 0 0 var(--red);
     }
 
     /* larger ring — visually calls out the bigger effective click target */
     #custom-cursor.cursor--hover .cursor-circle {
       width: 56px; height: 56px;
-      border-color: rgba(10,10,10,0.5);
-      background: rgba(10,10,10,0.04);
+      border-color: var(--red);
+      animation: invert-ring 0.8s steps(1, end) infinite;
+    }
+
+    @keyframes invert-ring {
+      0%, 49.99% { border-style: solid; }
+      50%, 100%  { border-style: dashed; }
     }
 
     /*
-      ── hover label — smooth pill, sits below the cursor ──
+      ── hover label — inverted pill, sits below the cursor ──
       #cursor-thought's own `transform` is driven imperatively from JS every
       mousemove (to track the cursor position), so the horizontal centering
-      and entrance scale live on the inner `.cursor-label` instead — that way
-      they're free to animate via CSS without fighting the JS-driven position.
+      lives on the inner `.cursor-label` instead.
     */
     #cursor-thought {
       position: fixed;
       top: 0; left: 0;
       pointer-events: none;
       z-index: 2147483646;
-      opacity: 0;
-      transition: opacity 0.15s ease;
+      visibility: hidden;
     }
 
     #cursor-thought.visible {
-      opacity: 1;
+      visibility: visible;
     }
 
     #cursor-thought .cursor-label {
       display: inline-block;
       white-space: nowrap;
-      background: #0a0a0a;
-      color: #ffffff;
-      font-family: "DepartureMono", monospace;
-      font-size: 9px;
+      background: var(--ink);
+      color: var(--bg);
+      font-family: var(--f-pixel);
+      font-size: 11px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       padding: 6px 12px;
       border-radius: 999px;
       pointer-events: none;
       user-select: none;
-      transform: translateX(-50%) scale(0.9);
-      transition: transform 0.22s cubic-bezier(0.34,1.5,0.64,1);
+      transform: translateX(-50%);
     }
 
-    #cursor-thought.visible .cursor-label {
-      transform: translateX(-50%) scale(1);
-    }
-
-    /* ── right-click sitemap menu ── */
+    /* ── right-click sitemap menu — a paper card with a hard stack shadow ── */
     .site-context-menu {
       position: fixed;
       top: 0;
@@ -827,29 +1107,25 @@ const sitemapTree = [
       min-width: 200px;
       max-width: min(320px, calc(100vw - 16px));
       background: var(--bg);
-      border: 1px solid var(--border);
-      box-shadow: 0 6px 24px rgba(10, 10, 10, 0.14);
-      font-family: "JetBrains Mono", monospace;
+      border: 1px solid var(--ink);
+      box-shadow: 6px 6px 0 -1px var(--bg), 6px 6px 0 0 var(--ink);
+      font-family: var(--f-pixel);
       padding: 8px 0;
       z-index: 2147483647;
-      opacity: 0;
+      visibility: hidden;
       pointer-events: none;
-      transform: scale(0.96);
-      transform-origin: top left;
-      transition: opacity 0.12s ease, transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .site-context-menu.visible {
-      opacity: 1;
+      visibility: visible;
       pointer-events: auto;
-      transform: scale(1);
     }
 
     .scm-label {
-      font-size: 9px;
-      letter-spacing: 0.18em;
+      font-size: 11px;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--text-dim);
+      color: var(--soft);
       padding: 2px 14px 6px;
       margin: 0;
     }
@@ -873,21 +1149,22 @@ const sitemapTree = [
       min-width: 0;
       padding: 0 6px 0 14px;
       cursor: pointer !important;
-      transition: background 0.08s ease, color 0.08s ease;
+      color: var(--ink);
     }
 
+    /* hover/active is a full inversion, classic menu-bar style */
     .scm-row:hover,
     .scm-row.scm-row-active {
-      background: var(--bg-elevated);
-      color: var(--text);
+      background: var(--ink);
+      color: var(--bg);
     }
 
     .scm-link {
       flex: 1 1 auto;
       min-width: 0;
       display: block;
-      font-size: 11px;
-      letter-spacing: 0.03em;
+      font-size: 12px;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       text-decoration: none;
       color: inherit;
@@ -898,47 +1175,38 @@ const sitemapTree = [
       text-overflow: ellipsis;
     }
 
+    .scm-row:hover .scm-link,
+    .scm-row.scm-row-active .scm-link {
+      color: var(--bg);
+    }
+
     .scm-nonlink {
-      color: var(--text-dim);
+      color: var(--soft);
       cursor: default !important;
     }
 
-    .scm-row:hover .scm-nonlink,
-    .scm-row.scm-row-active .scm-nonlink {
-      color: var(--text);
-    }
-
-    .scm-link.scm-current {
-      color: var(--accent-1);
-    }
-
     .scm-link.scm-current::after {
-      content: " ·";
+      content: " ←";
     }
 
     .scm-chevron {
       flex: 0 0 auto;
       margin-left: 8px;
       font-size: 12px;
-      color: var(--text-dim);
+      color: inherit;
       pointer-events: none;
-    }
-
-    .scm-row:hover .scm-chevron,
-    .scm-row.scm-row-active .scm-chevron {
-      color: var(--text);
     }
 
     .scm-sep {
       height: 1px;
       margin: 6px 0;
-      background: var(--border-subtle);
+      background: var(--line);
     }
 
     .scm-here {
-      font-size: 9px;
-      letter-spacing: 0.04em;
-      color: var(--text-dim);
+      font-family: var(--f-data);
+      font-size: 11px;
+      color: var(--soft);
       padding: 4px 14px 2px;
       margin: 0;
       white-space: nowrap;

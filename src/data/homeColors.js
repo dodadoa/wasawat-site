@@ -1,95 +1,78 @@
-/** Site accent palette (matches layout.astro :root) */
-export const ACCENTS = {
-  pink: "#f90d63",
-  coral: "#d25667",
-  magenta: "#de6ecb",
-  violet: "#8b8be9",
-  periwinkle: "#99b0ee",
+/**
+ * 1-bit palette — ink on paper. There is no hue anywhere: the old accent
+ * names are kept as keys so existing callers resolve, but every value is one
+ * of the four palette steps. Distinction between genres/axes is carried by
+ * dither density and line weight (see DITHER), never by colour.
+ */
+export const PAPER = "#e4e4e4"
+export const INK = "#141414"
+export const SOFT = "#666666"
+export const LINE = "#b4b4b4"
+/** spot colour — fine 1px overlay lines only (axes, guides, x-ray outlines) */
+export const RED = "#e1251b"
+
+/** CSS background shorthands for the three dither steps */
+export const DITHER = {
+  50: "repeating-conic-gradient(var(--ink) 0 25%, var(--bg) 0 50%) 0 0 / 4px 4px",
+  25: "conic-gradient(var(--ink) 25%, transparent 0) 0 0 / 4px 4px",
+  12: "conic-gradient(at 2px 2px, transparent 75%, var(--ink) 0) 0 0 / 6px 6px",
 }
 
-export const ACCENT_LIST = [
-  ACCENTS.pink,
-  ACCENTS.violet,
-  ACCENTS.magenta,
-  ACCENTS.coral,
-  ACCENTS.periwinkle,
-]
+/** hard 2px paper halo for text sitting on a dither */
+export const HALO = `2px 0 0 ${PAPER}, -2px 0 0 ${PAPER}, 0 2px 0 ${PAPER}, 0 -2px 0 ${PAPER}`
+
+export const ACCENTS = {
+  pink: INK,
+  coral: SOFT,
+  magenta: INK,
+  violet: INK,
+  periwinkle: SOFT,
+}
+
+export const ACCENT_LIST = [INK]
 
 export const GENRE_COLORS = {
-  installations: ACCENTS.pink,
-  netart: ACCENTS.violet,
-  performance: ACCENTS.magenta,
-  audiovisual: ACCENTS.magenta,
-  "tech-art": ACCENTS.coral,
-  audio: ACCENTS.violet,
-  visual: ACCENTS.periwinkle,
+  installations: INK,
+  netart: INK,
+  performance: INK,
+  audiovisual: INK,
+  "tech-art": INK,
+  audio: INK,
+  visual: INK,
 }
 
-export const GENRE_GRADIENTS = {
-  all: `linear-gradient(180deg, ${ACCENTS.pink} 0%, ${ACCENTS.violet} 52%, ${ACCENTS.magenta} 100%)`,
-  installations: `linear-gradient(180deg, ${ACCENTS.pink}, ${ACCENTS.coral})`,
-  netart: `linear-gradient(180deg, ${ACCENTS.violet}, ${ACCENTS.periwinkle})`,
-  performance: `linear-gradient(180deg, ${ACCENTS.magenta}, ${ACCENTS.pink})`,
-  audiovisual: `linear-gradient(180deg, ${ACCENTS.magenta}, ${ACCENTS.pink})`,
-  "tech-art": `linear-gradient(180deg, ${ACCENTS.coral}, ${ACCENTS.pink})`,
-  audio: `linear-gradient(180deg, ${ACCENTS.violet}, ${ACCENTS.periwinkle})`,
-  visual: `linear-gradient(180deg, ${ACCENTS.periwinkle}, ${ACCENTS.violet})`,
-}
+export const GENRE_GRADIENTS = { all: INK }
 
-export const AXIS_COLORS = {
-  x: ACCENTS.pink,
-  y: ACCENTS.violet,
-  z: ACCENTS.magenta,
-}
+export const AXIS_COLORS = { x: INK, y: INK, z: INK }
 
-/** High-contrast text on white (WCAG AA+) */
 export const TEXT = {
-  primary: "#0a0a0a",
-  secondary: "#2a2a2a",
-  tertiary: "#404040",
+  primary: INK,
+  secondary: INK,
+  tertiary: SOFT,
 }
 
-/** Accent hues tuned for readable body/small text on white */
 export const TEXT_ACCENTS = {
-  pink: "#b8004a",
-  coral: "#9e3344",
-  magenta: "#9a3a8f",
-  violet: "#4f4fbf",
-  periwinkle: "#4a62a8",
+  pink: INK,
+  coral: SOFT,
+  magenta: INK,
+  violet: INK,
+  periwinkle: SOFT,
 }
 
-export const TEXT_ACCENT_LIST = [
-  TEXT_ACCENTS.pink,
-  TEXT_ACCENTS.violet,
-  TEXT_ACCENTS.magenta,
-  TEXT_ACCENTS.coral,
-  TEXT_ACCENTS.periwinkle,
-]
+export const TEXT_ACCENT_LIST = [INK]
 
-export const GENRE_TEXT_COLORS = {
-  installations: TEXT_ACCENTS.pink,
-  netart: TEXT_ACCENTS.violet,
-  performance: TEXT_ACCENTS.magenta,
-  audiovisual: TEXT_ACCENTS.magenta,
-  "tech-art": TEXT_ACCENTS.coral,
-  audio: TEXT_ACCENTS.violet,
-  visual: TEXT_ACCENTS.periwinkle,
-}
+export const GENRE_TEXT_COLORS = GENRE_COLORS
 
-export const AXIS_TEXT_COLORS = {
-  x: TEXT_ACCENTS.pink,
-  y: TEXT_ACCENTS.violet,
-  z: TEXT_ACCENTS.magenta,
-}
+export const AXIS_TEXT_COLORS = { x: INK, y: INK, z: INK }
 
 export const REQUEST_TYPE_TEXT_COLORS = {
-  doc: TEXT_ACCENTS.pink,
-  script: TEXT_ACCENTS.violet,
-  css: TEXT_ACCENTS.periwinkle,
-  img: TEXT_ACCENTS.magenta,
-  fetch: TEXT_ACCENTS.coral,
-  font: TEXT_ACCENTS.coral,
-  other: TEXT.tertiary,
+  doc: INK,
+  script: INK,
+  css: INK,
+  img: INK,
+  fetch: INK,
+  font: INK,
+  other: SOFT,
 }
 
 /** @param {string} genreId */
@@ -121,11 +104,11 @@ export function tagAccent(tag, i = 0) {
   return ACCENT_LIST[n % ACCENT_LIST.length]
 }
 
-/** @param {string} hex @param {number} alpha */
+/**
+ * Translucent tints don't exist on paper: anything that used to be a faint
+ * wash of an accent is now a hairline, anything stronger is ink.
+ * @param {string} hex @param {number} alpha
+ */
 export function rgba(hex, alpha) {
-  const h = hex.replace("#", "")
-  const r = parseInt(h.slice(0, 2), 16)
-  const g = parseInt(h.slice(2, 4), 16)
-  const b = parseInt(h.slice(4, 6), 16)
-  return `rgba(${r},${g},${b},${alpha})`
+  return alpha < 0.5 ? LINE : hex
 }

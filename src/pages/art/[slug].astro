@@ -62,15 +62,16 @@ if (!artwork || !Content) {
 ---
 
 <Layout title={artwork.title}>
-  <div class="relative z-10 p-8 pb-20 max-w-4xl lg:max-w-[max(56rem,70vw)]">
-    <div class="back-index-wrap">
-      <a href="/work" class="back-index-link">
+  <div class="art-page relative z-10">
+    <div class="art-chrome wipe">
+      <a href="/work" class="btn back-index-link" aria-label="back to work">
         <span class="back-arrow" aria-hidden="true">←</span>
         <span class="back-label">Work</span>
       </a>
+      <span class="data art-chrome-path">/art/{slug}</span>
     </div>
-    <h1 class="art-detail-title mt-6 mb-2">{artwork.title}</h1>
-    <div class="art-detail-body">
+    <h1 class="art-detail-title wipe">{artwork.title}</h1>
+    <div class="art-detail-body wipe">
       <Content />
     </div>
   </div>
@@ -88,16 +89,11 @@ if (!artwork || !Content) {
     const full = document.createElement("img")
     overlay.appendChild(full)
 
+    // hard cut on close: there is no fade to wait for
     const close = () => {
       overlay.classList.remove("is-open")
-      overlay.addEventListener(
-        "transitionend",
-        () => {
-          overlay.remove()
-          full.removeAttribute("src")
-        },
-        { once: true }
-      )
+      overlay.remove()
+      full.removeAttribute("src")
     }
 
     overlay.addEventListener("click", close)
@@ -193,70 +189,33 @@ if (!artwork || !Content) {
 </script>
 
 <style>
-  /* title sized like the news page (.news-title: 22px, normal weight) */
-  .art-detail-title {
-    font-size: calc(26px * var(--ui-scale, 1));
-    font-weight: normal;
-    letter-spacing: 0.01em;
-    line-height: 1.25;
-    color: var(--text);
+  /* left-hung column with a wide empty margin of paper on the right */
+  .art-page {
+    padding: 2rem 2rem 6rem;
+    max-width: max(56rem, 70vw);
   }
 
-  /* neumorphic (soft-UI) pill: raised at rest, pressed-in on hover/active */
-  .back-index-wrap {
-    display: inline-flex;
-    opacity: 0;
-    transform: translateX(-10px);
-    animation: back-link-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
-    border: none;
-    border-radius: 14px;
-    background: linear-gradient(145deg, #f6f6f6, #ececec);
-    box-shadow:
-      5px 5px 10px rgba(190, 190, 190, 0.55),
-      -5px -5px 10px rgba(255, 255, 255, 0.95);
-    transition: box-shadow 0.18s ease, background 0.18s ease;
-  }
-
-  .back-index-wrap:has(.back-index-link:hover) {
-    background: linear-gradient(145deg, #ececec, #f6f6f6);
-    box-shadow:
-      inset 4px 4px 8px rgba(190, 190, 190, 0.55),
-      inset -4px -4px 8px rgba(255, 255, 255, 0.95);
-  }
-
-  .back-index-wrap:has(.back-index-link:active) {
-    box-shadow:
-      inset 6px 6px 12px rgba(180, 180, 180, 0.6),
-      inset -6px -6px 12px rgba(255, 255, 255, 0.9);
-  }
-
-  .back-index-link {
+  .art-chrome {
     display: flex;
     align-items: center;
-    gap: 0.5em;
-    width: 100%;
-    color: var(--text-muted);
-    font-family: "DepartureMono", monospace;
-    font-size: calc(11px * var(--ui-scale, 1));
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    text-decoration: none;
-    padding: 0.5em 0.8em;
-    border: none;
-    transition: color 0.15s ease;
+    gap: 1.2rem;
+    margin-top: 1rem;
   }
 
-  .back-index-link:hover {
-    color: var(--text);
+  .art-chrome-path {
+    font-size: 12px;
   }
 
-  .back-index-link:hover .back-arrow {
-    transform: translateX(-3px);
+  /* work titles run long, so they sit a step under the page-title scale */
+  .art-detail-title {
+    font-size: clamp(34px, 5.2vw, 76px);
+    line-height: 1.08;
+    max-width: 18em;
+    margin: 2.6rem 0 2.4rem;
+    filter: url(#ink-body);
   }
 
   .back-arrow {
-    display: inline-block;
-    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
     font-size: 1.1em;
     line-height: 1;
   }
@@ -266,10 +225,15 @@ if (!artwork || !Content) {
     pointer-events: none;
   }
 
-  @keyframes back-link-in {
-    to {
-      opacity: 1;
-      transform: translateX(0);
+  @media (max-width: 900px) {
+    .art-detail-title {
+      filter: url(#ink-small);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .art-page {
+      padding: 1.25rem 1rem 4rem;
     }
   }
 </style>
@@ -277,9 +241,9 @@ if (!artwork || !Content) {
 <style is:global>
   .art-detail-body {
     position: relative;
-    font-family: "DepartureMono", monospace;
-    font-size: calc(12px * var(--ui-scale, 1));
-    line-height: 1.5;
+    font-family: var(--f-body);
+    font-size: 1rem;
+    line-height: 1.45;
   }
   /* every subpage root carries mt-4; keep title and content close instead */
   .art-detail-body > .mt-4 {
@@ -288,63 +252,130 @@ if (!artwork || !Content) {
   .art-detail-body a {
     font-weight: normal;
     text-decoration: underline;
+    text-decoration-thickness: 1px;
     text-underline-offset: 3px;
   }
-  /* keep the measure readable: mono at 13px runs wide across max-w-3xl */
+  .art-detail-body a:hover {
+    background: var(--ink);
+    color: var(--bg);
+    text-decoration: none;
+  }
   .art-detail-body p,
   .art-detail-body li {
-    line-height: 1.5;
-    max-width: 90ch;
+    line-height: 1.45;
+    max-width: 64ch;
   }
   /* pages with long-form essay text opt into a wider measure */
   .art-detail-body .art-wide p,
   .art-detail-body .art-wide li {
-    max-width: 115ch;
+    max-width: 76ch;
   }
-  /* section headers - never all-caps; keep the markup's own Title Case */
+  /* no bullets: unordered lists get a mono arrow, ordered ones a zero-padded
+     counter in the pixel font, each row ruled off on top */
+  .art-detail-body ul,
+  .art-detail-body ol {
+    list-style: none;
+    padding: 0;
+    max-width: 64ch;
+  }
+  .art-detail-body ol {
+    counter-reset: step;
+  }
+  .art-detail-body ul > li,
+  .art-detail-body ol > li {
+    position: relative;
+    margin: 0;
+    padding: 0.55em 0 0.55em 3.2em;
+    border-top: 1px solid var(--line);
+  }
+  .art-detail-body ul > li::before,
+  .art-detail-body ol > li::before {
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    font-family: var(--f-pixel);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--soft);
+    line-height: 1.4;
+  }
+  .art-detail-body ul > li::before {
+    content: "→";
+  }
+  .art-detail-body ol > li {
+    counter-increment: step;
+  }
+  .art-detail-body ol > li::before {
+    content: counter(step, decimal-leading-zero);
+  }
+  /* section headers — never all-caps; keep the markup's own Title Case */
   .art-detail-body h2,
   .art-detail-body .text-xl {
-    font-family: "403Mesapholic", monospace;
+    font-family: var(--f-display);
     text-transform: none;
-    font-size: calc(20px * var(--ui-scale, 1));
+    font-size: calc(32px * var(--ui-scale, 1));
     font-weight: 400;
-    letter-spacing: 0.02em;
-    line-height: 1.25;
-    margin-top: 2.4rem;
-    margin-bottom: 0.7rem;
+    letter-spacing: -0.02em;
+    line-height: 1.16;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    filter: url(#ink-small);
   }
-  /* meta: captions, credits footer, inline labels ("References", "Line-up") */
+  /* small pixel-font section kickers ("How to use", "References") */
+  .art-detail-body h2.art-kicker {
+    font-family: var(--f-pixel);
+    font-size: 15px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border-top: 3px solid var(--ink);
+    padding-top: 0.8rem;
+    margin-top: 3.5rem;
+    filter: none;
+    max-width: 64ch;
+  }
+  /* meta: captions, credits footer, inline labels — the data voice */
   .art-detail-body figcaption,
   .art-detail-body p.text-sm,
   .art-detail-body div.text-sm,
   .art-detail-body ul.text-sm,
-  .art-detail-body ol.text-sm {
-    font-size: calc(11px * var(--ui-scale, 1));
-    line-height: 1.4;
+  .art-detail-body ol.text-sm,
+  .art-detail-body .text-sm p,
+  .art-detail-body .text-sm li {
+    font-family: var(--f-data);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--soft);
   }
-  /* the one tagline under the title - opted in per page, never inferred from
+  /* the one tagline under the title — opted in per page, never inferred from
      .opacity-80, which also tags small labels and footnotes */
   .art-detail-body .art-lead {
-    font-size: calc(14px * var(--ui-scale, 1));
-    line-height: 1.35;
-    color: var(--text-muted);
-    margin-bottom: 1.7rem;
-    max-width: 62ch;
+    font-family: var(--f-body);
+    font-size: clamp(22px, 2.2vw, 28px);
+    line-height: 1.28;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 2.2rem;
+    max-width: 30em;
   }
   .art-detail-body code {
-    font-size: calc(12px * var(--ui-scale, 1));
+    font-size: 0.85em;
   }
   .art-detail-body video {
     width: 100%;
     max-width: min(720px, 100%);
     height: auto;
     display: block;
+    border: 1px solid var(--line);
+  }
+  .art-detail-body iframe {
+    border: 1px solid var(--line);
   }
   /* academic footnotes (P.S. notes) */
   .art-footnotes {
     position: relative;
-    margin-top: 2.4rem;
-    padding-top: 0.7rem;
+    margin-top: 3rem;
+    padding-top: 0.9rem;
   }
   .art-footnotes::before {
     content: "";
@@ -352,14 +383,15 @@ if (!artwork || !Content) {
     top: 0;
     left: 0;
     width: 72px;
-    border-top: 1px solid var(--text-dim);
+    border-top: 1px solid var(--ink);
   }
   .art-footnotes p {
-    font-size: calc(11px * var(--ui-scale, 1));
-    line-height: 1.45;
-    color: var(--text-dim);
-    padding-left: 1.4em;
-    text-indent: -1.4em;
+    font-family: var(--f-data);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--soft);
+    padding-left: 1.6em;
+    text-indent: -1.6em;
     margin: 0 0 0.4rem;
     max-width: 62ch;
   }
@@ -367,13 +399,16 @@ if (!artwork || !Content) {
     font-size: 0.75em;
     margin-right: 0.45em;
   }
-  /* media section: all images/videos gathered in a grid below the text */
+  /* media section: all images/videos gathered in a grid below the text;
+     cells butt up against each other and share their hairlines */
   .art-detail-body .art-media-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 14px;
     align-items: start;
-    margin-top: 2.5rem;
+    margin-top: 3.5rem;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
   }
   .art-detail-body .art-media-grid figure {
     margin: 0;
@@ -384,6 +419,8 @@ if (!artwork || !Content) {
     max-width: 100%;
     height: auto;
     display: block;
+    border: 1px solid var(--line);
+    background: #fff;
   }
   .art-detail-body .art-media-grid .art-media-full {
     grid-column: 1 / -1;
@@ -392,6 +429,12 @@ if (!artwork || !Content) {
   .art-detail-body .art-media-grid img,
   .art-detail-body .art-zoomable {
     cursor: zoom-in;
+  }
+  .art-detail-body .art-media-grid img:hover,
+  .art-detail-body .art-zoomable:hover {
+    border-color: var(--ink);
+    outline: 2px solid var(--ink);
+    outline-offset: -3px;
   }
   /* annotation callout: a boxed phrase in the text pointing at a small
      image to its right (clickable to enlarge) */
@@ -414,28 +457,27 @@ if (!artwork || !Content) {
   .art-detail-body .art-callout-row .art-lead {
     margin-bottom: 0;
     flex: 0 0 auto;
-    font-size: calc(20px * var(--ui-scale, 1));
   }
   .art-detail-body .art-callout {
     display: inline-block;
     text-decoration: underline;
-    text-decoration-style: dotted;
-    text-decoration-color: var(--text-muted);
+    text-decoration-style: dashed;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--soft);
     text-underline-offset: 4px;
   }
   /* connector stretches so the figure lands flush right, footnote-style;
-     hidden until the reader hovers the row */
+     hidden until the reader hovers the row — a hard cut, no fade */
   .art-detail-body .art-callout-arrow {
     flex: 1 1 auto;
     min-width: 2.5rem;
     height: 0;
-    border-top: 1px solid var(--text-muted);
+    border-top: 1px solid var(--red);
     position: relative;
-    opacity: 0;
-    transition: opacity 0.25s ease;
+    visibility: hidden;
   }
   .art-detail-body .art-callout-row:hover .art-callout-arrow {
-    opacity: 1;
+    visibility: visible;
   }
   .art-detail-body .art-callout-arrow::after {
     content: "";
@@ -444,8 +486,8 @@ if (!artwork || !Content) {
     top: 50%;
     width: 7px;
     height: 7px;
-    border-top: 1px solid var(--text-muted);
-    border-right: 1px solid var(--text-muted);
+    border-top: 1px solid var(--red);
+    border-right: 1px solid var(--red);
     transform: translateY(-58%) rotate(45deg);
   }
   .art-detail-body .art-callout-figure {
@@ -461,31 +503,30 @@ if (!artwork || !Content) {
     display: block;
   }
   .art-detail-body .art-callout-figure figcaption {
-    font-size: calc(9px * var(--ui-scale, 1));
-    line-height: 1.4;
+    font-size: 11px;
+    line-height: 1.5;
   }
   /* tall margin note (interactive diagrams): floats right so text wraps
-     beside it and grids/blocks below clear it on their own */
+     beside it and grids/blocks below clear it on their own. Side-notes are
+     framed with a dashed rule. */
   .art-detail-body .art-margin-note {
     float: right;
     width: 240px;
     margin: 0 0 1rem 4rem;
-    outline: 1px solid transparent;
+    outline: 1px dashed var(--soft);
     outline-offset: 8px;
-    transition: outline-color 0.25s ease;
   }
   /* hovering (or focusing) an inline callout that links to a margin note
-     highlights the note it refers to, on the right */
+     highlights the note it refers to: the rule goes to a fine red line */
   .art-detail-body:has(.art-callout:hover) .art-margin-note,
   .art-detail-body:has(.art-callout:focus-visible) .art-margin-note {
-    outline-color: var(--text-muted);
+    outline: 1px solid var(--red);
   }
   a.art-callout {
     cursor: pointer;
   }
-  /* curved connector from an inline callout to its margin note, drawn in
-     JS since the note can land anywhere in the flow (unlike the row
-     pattern's fixed-position arrow); shown on hover/focus */
+  /* right-angle connector from an inline callout to its margin note, drawn
+     in JS since the note can land anywhere in the flow; shown on hover/focus */
   .art-detail-body .art-callout-connector {
     position: absolute;
     top: 0;
@@ -494,20 +535,20 @@ if (!artwork || !Content) {
     height: 100%;
     overflow: visible;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.25s ease;
+    visibility: hidden;
     z-index: 1;
+    shape-rendering: crispEdges;
   }
   .art-detail-body .art-callout-connector.is-visible {
-    opacity: 1;
+    visibility: visible;
   }
   .art-detail-body .art-callout-connector path {
     fill: none;
-    stroke: var(--text-muted);
+    stroke: var(--red);
     stroke-width: 1;
   }
   .art-detail-body .art-callout-connector .art-callout-connector-head {
-    fill: var(--text-muted);
+    fill: var(--red);
   }
   @media (max-width: 640px) {
     .art-detail-body .art-callout-connector {
@@ -546,6 +587,7 @@ if (!artwork || !Content) {
       margin-top: 0.7rem;
     }
   }
+  /* lightbox: the print laid on a 50% screen, framed like a highlighted card */
   .art-lightbox {
     position: fixed;
     inset: 0;
@@ -553,14 +595,14 @@ if (!artwork || !Content) {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4vmin;
-    background: rgba(10, 10, 10, 0.88);
+    padding: 5vmin;
+    background: var(--dither-50);
     cursor: zoom-out;
-    opacity: 0;
-    transition: opacity 0.18s ease;
+    clip-path: inset(0 0 100% 0);
   }
   .art-lightbox.is-open {
-    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    transition: clip-path 600ms var(--wipe-ease);
   }
   .art-lightbox img {
     max-width: 100%;
@@ -568,7 +610,9 @@ if (!artwork || !Content) {
     width: auto;
     height: auto;
     display: block;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    background: #fff;
+    border: 3px solid var(--ink);
+    box-shadow: var(--stack-hi);
   }
   @media (max-width: 640px) {
     .art-detail-body .art-media-grid {
