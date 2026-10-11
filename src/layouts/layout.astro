@@ -540,6 +540,8 @@ const sitemapTree = [
         --stack-hi: 14px 14px 0 -3px var(--bg), 14px 14px 0 0 var(--ink);
         --halo: 2px 0 0 var(--bg), -2px 0 0 var(--bg), 0 2px 0 var(--bg), 0 -2px 0 var(--bg);
         --wipe-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+        --hover-t: 180ms;
+        --hover-ease: ease-out;
 
         /* a little over-inked bloom on every piece of text: a tight spread
            plus a faint wide one, sized in em so it scales with the type and
@@ -734,6 +736,35 @@ const sitemapTree = [
 
       a:hover {
         color: var(--ink);
+      }
+
+      /* hover states ease between their two looks instead of cutting */
+      a,
+      button,
+      summary,
+      .btn,
+      .tb-btn,
+      .scm-row,
+      .nav-mobile-count,
+      .rogue-no,
+      .rogue-icon,
+      .news-title,
+      .news-count,
+      .news-subtitle,
+      .news-desc,
+      .news-archive-toggle,
+      .work-table td,
+      .work-table .rownum,
+      .art-zoomable,
+      .art-media-grid img,
+      .art-margin-note {
+        transition:
+          background-color var(--hover-t) var(--hover-ease),
+          color var(--hover-t) var(--hover-ease),
+          border-color var(--hover-t) var(--hover-ease),
+          outline-color var(--hover-t) var(--hover-ease),
+          text-decoration-color var(--hover-t) var(--hover-ease),
+          filter var(--hover-t) var(--hover-ease);
       }
 
       strong {
@@ -1138,6 +1169,7 @@ const sitemapTree = [
          10px 0 0 0 var(--red),
         0 -10px 0 0 var(--red),
         0  10px 0 0 var(--red);
+      transition: box-shadow var(--hover-t) var(--hover-ease);
     }
 
     /* center dot — hard, no bloom */
@@ -1150,7 +1182,7 @@ const sitemapTree = [
       transform: translate(-50%, -50%);
     }
 
-    /* ring around the crosshair — snaps larger to call out clickable targets */
+    /* ring around the crosshair — grows to call out clickable targets */
     #custom-cursor .cursor-circle {
       position: absolute;
       top: 50%; left: 50%;
@@ -1158,6 +1190,7 @@ const sitemapTree = [
       border-radius: 50%;
       border: 1px solid var(--red);
       transform: translate(-50%, -50%);
+      transition: width var(--hover-t) var(--hover-ease), height var(--hover-t) var(--hover-ease);
     }
 
     #custom-cursor.cursor--hover::after {

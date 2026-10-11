@@ -531,8 +531,8 @@ function Quadrant2DView({ genreFilter, inset = false }) {
       style={{
         zIndex: 1,
         paddingBottom: "3.5rem",
-        // desktop: stay clear of the document-stats panel (left) and genre tabs (right)
-        paddingLeft: inset ? "clamp(310px, 26vw, 410px)" : 0,
+        // desktop: sit flush against the document-stats panel (left) and genre tabs (right)
+        paddingLeft: inset ? "clamp(280px, 24vw, 380px)" : 0,
         paddingRight: inset ? RIGHT_W : 0,
       }}
     >
@@ -571,7 +571,7 @@ function Quadrant2DView({ genreFilter, inset = false }) {
                       href={`/art/${work.slug}`}
                       style={{
                         fontFamily: displayMono,
-                        fontSize: "calc(16px * var(--ui-scale, 1))",
+                        fontSize: "calc(19px * var(--ui-scale, 1))",
                         letterSpacing: "-0.01em",
                         color: INK,
                         textDecoration: "none",
@@ -586,7 +586,7 @@ function Quadrant2DView({ genreFilter, inset = false }) {
                   ) : (
                     <span style={{
                       fontFamily: displayMono,
-                      fontSize: "calc(16px * var(--ui-scale, 1))",
+                      fontSize: "calc(19px * var(--ui-scale, 1))",
                       letterSpacing: "-0.01em",
                       color: SOFT,
                     }}>
@@ -653,16 +653,33 @@ const FLAT_PLANES = [
     left: "Machine", right: "Human", top: "Future", bottom: "Past" },
 ]
 
+// an axis end's name stands off its sheet: lifted clear of the surface, turned
+// to face the screen and set just past the edge it names, on a paper chip so
+// the rules and sheets behind never run through the type
+const FLAT_END_LIFT = "22px"
+const FLAT_END_OUT = "0.9rem"
 const FLAT_END_LABEL = {
   position: "absolute",
+  padding: "0.2em 0.5em 0.15em",
   fontFamily: mono,
-  fontSize: "calc(10px * var(--ui-scale, 1))",
+  fontSize: "calc(11px * var(--ui-scale, 1))",
+  lineHeight: 1.2,
   letterSpacing: "0.1em",
   textTransform: "uppercase",
   whiteSpace: "nowrap",
   pointerEvents: "none",
-  color: SOFT,
+  color: INK,
+  background: PAPER,
 }
+// where each end sits on the sheet, and which way is outwards (in sheet axes).
+// The turned stack puts the left and bottom ends on the screen's left, so those
+// two hang from their right-hand end and read away from the sheet.
+const FLAT_ENDS = [
+  { side: "left", at: { left: 0, top: "50%" }, out: [-1, 0], hang: "right" },
+  { side: "right", at: { left: "100%", top: "50%" }, out: [1, 0], hang: "left" },
+  { side: "top", at: { left: "50%", top: 0 }, out: [0, -1], hang: "left" },
+  { side: "bottom", at: { left: "50%", top: "100%" }, out: [0, 1], hang: "right" },
+]
 
 function FlatPanel({ plane, level, works, genreFilter, hoverKey, setHoverKey }) {
   return (
@@ -683,10 +700,22 @@ function FlatPanel({ plane, level, works, genreFilter, hoverKey, setHoverKey }) 
         <div style={{ position: "absolute", left: 0, right: 0, top: "50%", height: "1px", background: LINE, boxShadow: FLAT_BLOOM }} />
         <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: "1px", background: LINE, boxShadow: FLAT_BLOOM }} />
         {/* axis end labels */}
-        <span style={{ ...FLAT_END_LABEL, left: "6px", top: "50%", transform: "translateY(-140%)" }}>{plane.left}</span>
-        <span style={{ ...FLAT_END_LABEL, right: "6px", top: "50%", transform: "translateY(-140%)" }}>{plane.right}</span>
-        <span style={{ ...FLAT_END_LABEL, left: "50%", top: "6px", transform: "translateX(8px)" }}>{plane.top}</span>
-        <span style={{ ...FLAT_END_LABEL, left: "50%", bottom: "6px", transform: "translateX(8px)" }}>{plane.bottom}</span>
+        {FLAT_ENDS.map(({ side, at, out, hang }) => (
+          <span
+            key={side}
+            style={{
+              ...FLAT_END_LABEL,
+              ...at,
+              transformOrigin: `${hang === "right" ? "100%" : "0"} 50%`,
+              transform:
+                `translate(${hang === "right" ? "-100%" : "0"}, -50%) ` +
+                `translate3d(calc(${FLAT_END_OUT} * ${out[0]}), calc(${FLAT_END_OUT} * ${out[1]}), ${FLAT_END_LIFT}) ` +
+                FLAT_BILLBOARD,
+            }}
+          >
+            {plane[side]}
+          </span>
+        ))}
 
         {/* works scattered by this projection's two coords — numbered badges,
             same numbers as the 3d view */}
@@ -1290,9 +1319,17 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
 
           {/* the hovered work's details; the space is a fixed height (a taller
               card overflows it) so the genre rows above never move when a card
-              comes and goes or its title wraps */}
-          {!isMobile && viewMode !== "table" && (
-            <div style={{ marginTop: "2.2rem", height: "340px", flexShrink: 0 }}>
+              comes and goes or its title wraps. The table has no hover card, but
+              the space stays so the rows sit where they do in the other views */}
+          {!isMobile && (
+            <div
+              style={{
+                marginTop: "2.2rem",
+                height: "340px",
+                flexShrink: 0,
+                visibility: viewMode === "table" ? "hidden" : undefined,
+              }}
+            >
               <div
                 style={{
                   fontFamily: mono,

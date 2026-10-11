@@ -73,8 +73,14 @@ export const artSections = [
             image: "/images/the-abstraction-of-violence/field-note-1.jpg",
           },
           {
+            label: "Get in user, we're ordering pizza!: A HTML strike back",
+            slug: "get-in-user",
+            date: "2026-10-08",
+          },
+          {
             label: "QUERY",
             slug: "query",
+            unlisted: true,
             date: "2026-09-20",
             image: "/images/query/query-cover.jpg",
           },
@@ -208,6 +214,7 @@ export const artworkPages = {
   },
   "the-abstraction-of-violence": { title: "Business As Usual: The Abstraction of violence" },
   query: { title: "QUERY" },
+  "get-in-user": { title: "Get in user, we're ordering pizza!: A HTML strike back" },
   "tentacular-territoria": { title: "Tentacular Territoria" },
   "i-will-always-think-of-you-fondly": {
     title: "I will always think of you fondly. (with Tewprai Bualoi)",

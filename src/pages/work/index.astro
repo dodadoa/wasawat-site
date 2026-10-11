@@ -388,9 +388,13 @@ const colClass = (c) => `col-${c.toLowerCase()}`
   }
 
   /* the cell under the pointer is the selection */
-  .work-table td:hover {
-    outline: 2px solid var(--ink);
+  .work-table td {
+    outline: 2px solid transparent;
     outline-offset: -2px;
+  }
+
+  .work-table td:hover {
+    outline-color: var(--ink);
   }
 
   .col-a {

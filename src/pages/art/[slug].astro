@@ -21,6 +21,7 @@ import WebsiteForTDBKK from "../../subpages/art/WebsiteForTDBKK.astro"
 import PoeticGarden from "../../subpages/art/PoeticGarden.astro"
 import TheAbstractionOfViolence from "../../subpages/art/TheAbstractionOfViolence.astro"
 import Query from "../../subpages/art/Query.astro"
+import GetInUser from "../../subpages/art/GetInUser.astro"
 
 const components = {
   "do-the-npcs-hear-the-simulated-wind": DoTheNPCsHearTheSimulatedWind,
@@ -43,6 +44,7 @@ const components = {
   "poetic-garden": PoeticGarden,
   "the-abstraction-of-violence": TheAbstractionOfViolence,
   query: Query,
+  "get-in-user": GetInUser,
 }
 
 export function getStaticPaths() {
@@ -464,12 +466,13 @@ if (!artwork || !Content) {
   .art-detail-body .art-media-grid img,
   .art-detail-body .art-zoomable {
     cursor: zoom-in;
+    outline: 2px solid transparent;
+    outline-offset: -3px;
   }
   .art-detail-body .art-media-grid img:hover,
   .art-detail-body .art-zoomable:hover {
     border-color: var(--ink);
-    outline: 2px solid var(--ink);
-    outline-offset: -3px;
+    outline-color: var(--ink);
   }
   /* annotation callout: a boxed phrase in the text pointing at a small
      image to its right (clickable to enlarge) */
@@ -502,17 +505,18 @@ if (!artwork || !Content) {
     text-underline-offset: 4px;
   }
   /* connector stretches so the figure lands flush right, footnote-style;
-     hidden until the reader hovers the row — a hard cut, no fade */
+     hidden until the reader hovers the row, then fades in */
   .art-detail-body .art-callout-arrow {
     flex: 1 1 auto;
     min-width: 2.5rem;
     height: 0;
     border-top: 1px solid var(--red);
     position: relative;
-    visibility: hidden;
+    opacity: 0;
+    transition: opacity var(--hover-t) var(--hover-ease);
   }
   .art-detail-body .art-callout-row:hover .art-callout-arrow {
-    visibility: visible;
+    opacity: 1;
   }
   .art-detail-body .art-callout-arrow::after {
     content: "";
@@ -546,6 +550,8 @@ if (!artwork || !Content) {
      framed with a dashed rule. */
   .art-detail-body .art-margin-note {
     float: right;
+    /* a second note stacks under the first instead of stepping in beside it */
+    clear: right;
     width: 240px;
     margin: 0 0 1rem 4rem;
     outline: 1px dashed var(--soft);

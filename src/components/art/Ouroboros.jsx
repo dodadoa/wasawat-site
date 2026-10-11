@@ -1,105 +1,94 @@
 import { useEffect, useRef } from "react"
-import { animate, dither, lowRes } from "./dither"
+import { animate, dither, lowRes, PX } from "./dither"
 import "./sims.css"
 
 // the ring is drawn for a square stage this wide and zoomed to fit its box
 const STAGE = 640
-const R = 232 // spine of the snake
-const BODY = 46 // thickest part of the body
-const FLOOR = R - BODY / 2 - 4 // inner surface Sisyphus walks on
-const SPAN = Math.PI * 2 * 0.97 // the tail ends inside the mouth
-const SEGS = 168
-const HEAD = -Math.PI / 2 - 0.3 // the head rests just left of the top
-const FLOW = 5 // segments per second sliding into the mouth
+
+// the engraving, and where its ring sits in it (source pixels)
+const SRC = "/images/ouroboros.jpg"
+const SRC_C = [505, 531]
+const SRC_INNER = 386
+const SRC_OUTER = 460
+
+const INNER = 209 // inner edge of the ring on the stage
+const K = INNER / SRC_INNER
+const OUTER = SRC_OUTER * K
+const FLOOR = INNER - 3 // inner surface Sisyphus walks on
+const TURN = 0.1 // rad/s, the snake chasing its tail
 const TIP = -330 // sword, along its own axis from the centre
 const GUARD = 276
 
-const H = 100 // Sisyphus, heel to crown
-const ROCK = 44
-const REACH = (H * 0.44 + ROCK) / FLOOR // angle between his feet and the rock
-const TOP = 1.12 // how far up the wall he gets before it slips
+// Titian's Sisyphus (1548–49), cut out of the painting along this outline
+const MAN_SRC = "/images/sisyphus.jpg"
+// prettier-ignore
+const MAN = [
+  165,815, 185,860, 250,900, 278,888, 255,850, 268,810, 312,740, 345,655, 358,660, 370,720, 362,790, 365,825,
+  400,830, 480,815, 497,800, 470,790, 420,775, 415,760, 430,680, 450,600, 440,570, 400,530, 355,500, 360,450,
+  370,420, 410,360, 450,310, 460,340, 500,375, 540,385, 590,350, 610,310, 640,280, 640,230, 650,200, 665,170,
+  660,120, 655,85, 600,75, 560,20, 480,5, 400,15, 340,60, 310,110, 300,175, 345,195, 325,215, 268,262, 228,330,
+  207,392, 192,430, 190,485, 240,545, 212,620, 215,650, 240,660, 235,700, 200,765,
+]
+const MAN_FEET = [365, 860] // midway between his feet
+const MAN_SLOPE = 0.34 // the painted ground rises to the right by this much
+const MAN_K = 200 / 895 // stage pixels per source pixel
+const LOW = -0.05 // where he starts on the wall, radians from the bottom
+const HIGH = 0.62 // and where he loses his footing
 
 const TAU = Math.PI * 2
 
-function width(s) {
-  if (s < 0.06) return BODY * (0.78 + (0.22 * s) / 0.06)
-  return BODY * (1 - Math.max(0, (s - 0.55) / 0.45) ** 2 * 0.86)
+// Turns a picture into white ink whose alpha is its darkness, which is what
+// the sims draw in. `white` is the luminance that maps to bare paper and
+// `black` the one that maps to solid ink.
+function toInk(img, white = 255, black = 0) {
+  const ink = document.createElement("canvas")
+  ink.width = img.naturalWidth
+  ink.height = img.naturalHeight
+  const ic = ink.getContext("2d")
+  ic.drawImage(img, 0, 0)
+  const px = ic.getImageData(0, 0, ink.width, ink.height)
+  const d = px.data
+  for (let i = 0; i < d.length; i += 4) {
+    const lum = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114
+    d[i + 3] = Math.max(0, Math.min(1, (white - lum) / (white - black))) * 255
+    d[i] = d[i + 1] = d[i + 2] = 255
+  }
+  ic.putImageData(px, 0, 0)
+  return ink
 }
 
-// The snake holds still with its head at the top; the scales slide along the
-// body into the mouth. `flow` is how far they have slid, in segments.
-function snake(ctx, flow, tongue, zoom) {
-  const shift = flow % 1
-  const band = Math.floor(flow)
-  ctx.lineCap = "butt"
-  for (const pass of ["destination-out", "source-over"]) {
-    // first pass clears whatever lies behind the body (the sword)
-    ctx.globalCompositeOperation = pass
-    for (let i = 0; i <= SEGS; i++) {
-      const s0 = Math.max(0, (i - shift) / SEGS)
-      const s1 = Math.min(1, (i + 1 - shift) / SEGS)
-      const clear = pass === "destination-out"
-      ctx.strokeStyle = `rgba(255,255,255,${clear ? 1 : (i + band) % 3 === 0 ? 0.85 : 0.3})`
-      ctx.lineWidth = width((s0 + s1) / 2) + (clear ? 8 : 0)
-      ctx.beginPath()
-      ctx.arc(0, 0, R, HEAD - s1 * SPAN - 0.004, HEAD - s0 * SPAN)
-      ctx.stroke()
-    }
-  }
-
-  // back and belly, with the bloom
-  ctx.strokeStyle = "#fff"
-  ctx.lineWidth = 4
-  ctx.lineJoin = "round"
-  ctx.shadowColor = "#fff"
-  ctx.shadowBlur = 34 * zoom
-  for (const side of [1, -1]) {
-    ctx.beginPath()
-    for (let i = 0; i <= SEGS; i++) {
-      const s = i / SEGS
-      const a = HEAD - s * SPAN
-      const r = R + (side * width(s)) / 2
-      ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r)
-    }
-    ctx.stroke()
-  }
-
-  // head: x runs along the direction of travel, -y faces out of the ring
-  const a = HEAD + 0.05
-  ctx.save()
-  ctx.translate(Math.cos(a) * R, Math.sin(a) * R)
-  ctx.rotate(a + Math.PI / 2)
-  ctx.fillStyle = "#fff"
+function manPath(ctx) {
   ctx.beginPath()
-  ctx.moveTo(-26, -20)
-  ctx.quadraticCurveTo(-6, -36, 18, -27)
-  ctx.quadraticCurveTo(52, -16, 58, -2)
-  ctx.quadraticCurveTo(52, 16, 18, 27)
-  ctx.quadraticCurveTo(-6, 36, -26, 20)
+  for (let i = 0; i < MAN.length; i += 2) ctx.lineTo(MAN[i], MAN[i + 1])
   ctx.closePath()
-  ctx.shadowBlur = 16 * zoom
-  ctx.fill()
-  ctx.shadowBlur = 0
-  // forked tongue, hanging into the ring
-  ctx.lineWidth = 3
-  ctx.lineCap = "round"
-  ctx.beginPath()
-  ctx.moveTo(34, 20)
-  ctx.quadraticCurveTo(44 + tongue * 6, 44, 36 + tongue * 14, 62)
-  ctx.lineTo(28 + tongue * 16, 74)
-  ctx.moveTo(36 + tongue * 14, 62)
-  ctx.lineTo(44 + tongue * 18, 73)
-  ctx.stroke()
+}
+
+// halves the ink down to roughly `width` pixels, so rotating it each frame
+// samples close to 1:1 instead of skipping lines
+function shrink(ink, width) {
+  let cur = ink
+  while (cur.width / 2 >= width) {
+    const next = document.createElement("canvas")
+    next.width = Math.ceil(cur.width / 2)
+    next.height = Math.ceil(cur.height / 2)
+    next.getContext("2d").drawImage(cur, 0, 0, next.width, next.height)
+    cur = next
+  }
+  return cur
+}
+
+function snake(ctx, art, phi) {
+  // clear whatever lies behind the body (the sword)
   ctx.globalCompositeOperation = "destination-out"
+  ctx.lineWidth = OUTER - INNER
   ctx.beginPath()
-  ctx.arc(10, -14, 5.5, 0, TAU)
-  ctx.fill()
-  ctx.lineWidth = 4
-  ctx.beginPath()
-  ctx.moveTo(22, 5)
-  ctx.quadraticCurveTo(42, 4, 58, -2)
+  ctx.arc(0, 0, (OUTER + INNER) / 2, 0, TAU)
   ctx.stroke()
-  ctx.restore()
+  ctx.globalCompositeOperation = "source-over"
+
+  ctx.rotate(phi)
+  const s = (K * art.full) / art.mip.width
+  ctx.drawImage(art.mip, -SRC_C[0] * K, -SRC_C[1] * K, art.mip.width * s, art.mip.height * s)
 }
 
 function bladePath(ctx) {
@@ -163,7 +152,7 @@ function swordOver(ctx, zoom) {
   ctx.save()
   ctx.rotate(-Math.PI / 4)
   ctx.beginPath()
-  ctx.arc(-R, 0, 62, 0, TAU)
+  ctx.arc(-(OUTER + INNER) / 2, 0, 62, 0, TAU)
   ctx.clip()
   ctx.globalCompositeOperation = "destination-out"
   bladePath(ctx)
@@ -186,89 +175,43 @@ function stand(ctx, alpha, r) {
   ctx.transform(s, -c, c, s, c * r, s * r)
 }
 
-function limb(ctx, x0, y0, x1, y1, len, bend) {
-  const dx = x1 - x0
-  const dy = y1 - y0
-  const d = Math.min(Math.hypot(dx, dy), len * 2 - 0.01) || 0.01
-  const k = Math.sqrt(len * len - (d / 2) ** 2) * bend
-  ctx.beginPath()
-  ctx.moveTo(x0, y0)
-  ctx.lineTo(x0 + dx / 2 + (dy / d) * k, y0 + dy / 2 - (dx / d) * k)
-  ctx.lineTo(x1, y1)
-  ctx.stroke()
-}
-
-// pose: "push" | "walk" | "despair"
-function sisyphus(ctx, alpha, facing, pose, gait, zoom) {
+// `tilt` leans him off the slope he was painted on, `lift` raises a step
+function sisyphus(ctx, art, alpha, tilt, lift) {
   ctx.save()
   stand(ctx, alpha, FLOOR)
-  ctx.scale(facing, 1)
-  ctx.strokeStyle = ctx.fillStyle = "#fff"
-  ctx.lineWidth = 7
-  ctx.lineCap = ctx.lineJoin = "round"
+  ctx.translate(0, -lift)
+  ctx.rotate(MAN_SLOPE + tilt)
+  ctx.scale(MAN_K, MAN_K)
+  ctx.translate(-MAN_FEET[0], -MAN_FEET[1])
 
-  const push = pose === "push"
-  const hip = [push ? -H * 0.06 : 0, -H * (push ? 0.44 : 0.5)]
-  const neck = push ? [H * 0.2, -H * 0.74] : [H * 0.03, -H * 0.82]
-  const head = push ? [H * 0.28, -H * 0.88] : [H * 0.05, -H * 0.95]
-
-  for (const k of [0, 1]) {
-    const p = gait + k * Math.PI
-    const stride = pose === "despair" ? 0 : H * 0.17
-    const fx = (push ? -H * 0.16 : 0) + Math.cos(p) * stride + (pose === "despair" ? (k - 0.5) * 12 : 0)
-    const fy = -Math.max(0, Math.sin(p)) * (stride ? H * 0.09 : 0) - 3
-    limb(ctx, hip[0], hip[1], fx, fy, H * 0.27, 1)
-  }
-
-  ctx.beginPath()
-  ctx.moveTo(hip[0], hip[1])
-  ctx.lineTo(neck[0], neck[1])
-  ctx.stroke()
-
-  for (const k of [0, 1]) {
-    let hand
-    if (push) hand = [H * 0.44, -H * (0.66 - k * 0.18)]
-    else if (pose === "despair") hand = [(k - 0.5) * H * 0.5, -H * 1.12]
-    else hand = [Math.cos(gait + k * Math.PI) * -H * 0.14, -H * 0.5]
-    limb(ctx, neck[0], neck[1], hand[0], hand[1], H * 0.2, pose === "despair" ? (k ? 1 : -1) : -1)
-  }
-
-  ctx.beginPath()
-  ctx.arc(head[0], head[1], H * 0.09, 0, TAU)
+  // he stands in front of everything: clear his outline first
+  manPath(ctx)
+  ctx.strokeStyle = "#fff"
+  ctx.lineJoin = "round"
+  ctx.lineWidth = 9 / MAN_K
+  ctx.globalCompositeOperation = "destination-out"
   ctx.fill()
-  ctx.restore()
-}
+  ctx.stroke()
+  ctx.globalCompositeOperation = "source-over"
 
-function rock(ctx, beta, zoom) {
   ctx.save()
-  stand(ctx, beta, FLOOR - ROCK)
-  // rolling without slipping along the floor
-  ctx.rotate((beta * FLOOR) / ROCK)
-  ctx.fillStyle = "rgba(255,255,255,0.2)"
-  ctx.strokeStyle = ctx.shadowColor = "#fff"
-  ctx.lineWidth = 4
-  ctx.shadowBlur = 12 * zoom
-  ctx.beginPath()
-  for (let i = 0; i < 9; i++) {
-    const a = (i / 9) * TAU
-    const r = ROCK * (i % 3 === 1 ? 0.86 : 1)
-    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r)
-  }
-  ctx.closePath()
-  ctx.fill()
-  ctx.stroke()
-  ctx.shadowBlur = 0
-  ctx.beginPath()
-  ctx.moveTo(-ROCK * 0.5, -ROCK * 0.2)
-  ctx.lineTo(0, ROCK * 0.1)
-  ctx.lineTo(ROCK * 0.15, ROCK * 0.6)
+  ctx.clip()
+  const s = art.full / art.mip.width
+  ctx.drawImage(art.mip, 0, 0, art.mip.width * s, art.mip.height * s)
+  ctx.restore()
+  ctx.lineWidth = 2.5 / MAN_K
   ctx.stroke()
   ctx.restore()
 }
 
-// The ouroboros eats itself, a sword strikes the loop through, and inside it
-// Sisyphus pushes his rock up the wall until it slips, swings back to the
-// bottom, and he walks down after it.
+function mip(art, scale) {
+  const want = art.full * scale
+  if (!art.mip || art.mip.width < want || art.mip.width >= want * 2) art.mip = shrink(art.ink, want)
+}
+
+// The ouroboros turns on itself, a sword strikes the loop through, and inside it
+// Sisyphus carries his rock up the wall until the turning floor takes him
+// back down to where he started.
 export default function Ouroboros() {
   const canvasRef = useRef(null)
 
@@ -277,47 +220,34 @@ export default function Ouroboros() {
     const ctx = canvas.getContext("2d", { willReadFrequently: true })
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
-    let flow = 0
-    let t = 0
-    let alpha = still ? 0.55 : -0.1
-    let beta = alpha + REACH
-    let omega = 0
-    let mode = "push"
-    let wait = 0
-    let facing = 1
+    let phi = 0
+    let alpha = still ? 0.3 : LOW
+    let mode = "climb"
+    let clock = 0
     let gait = 0
+    let snakeArt = null
+    let manArt = null
     let last = performance.now()
 
     const update = (dt) => {
-      flow += FLOW * dt
-      t += dt
-      if (mode === "push") {
-        alpha += 0.15 * (1 - 0.72 * Math.max(0, alpha / TOP)) * dt
-        beta = alpha + REACH
-        gait += dt * 5.2
-        if (alpha >= TOP) {
-          mode = "slip"
-          wait = 1.3
-          omega = 0
+      phi += TURN * dt
+      clock += dt
+      if (mode === "climb") {
+        alpha += 0.085 * (1 - 0.6 * (alpha - LOW) / (HIGH - LOW)) * dt
+        gait += dt * 2.4
+        if (alpha >= HIGH) {
+          mode = "slide"
+          clock = 0
         }
-        return
-      }
-      // the rock is a damped pendulum on the inside of the wheel
-      omega += (-6 * Math.sin(beta) - 2.2 * omega) * dt
-      beta += omega * dt
-      wait -= dt
-      if (wait > 0) return
-      const target = beta - REACH
-      const gap = target - alpha
-      const move = Math.sign(gap) * Math.min(Math.abs(gap), 0.42 * dt)
-      alpha += move
-      if (Math.abs(move) > 1e-4) {
-        facing = Math.sign(move)
-        gait += dt * 7
-      }
-      if (Math.abs(gap) < 0.01 && Math.abs(omega) < 0.03 && Math.abs(beta) < 0.06) {
-        mode = "push"
-        facing = 1
+      } else if (mode === "slide") {
+        const u = Math.min(1, clock / 2.6)
+        alpha = HIGH + (LOW - HIGH) * u * u * (3 - 2 * u)
+        if (u === 1) {
+          mode = "rest"
+          clock = 0
+        }
+      } else if (clock > 0.9) {
+        mode = "climb"
       }
     }
 
@@ -332,17 +262,33 @@ export default function Ouroboros() {
       ctx.translate(w / 2, h / 2)
 
       sword(ctx, zoom)
-      ctx.save()
-      // the tongue flicks now and then
-      snake(ctx, flow, Math.sin(t * 13) * Math.max(0, Math.sin(t * 0.9)) ** 6, zoom)
-      ctx.restore()
+      if (snakeArt) {
+        mip(snakeArt, (K * zoom) / PX)
+        ctx.save()
+        snake(ctx, snakeArt, phi)
+        ctx.restore()
+      }
       swordOver(ctx, zoom)
-      rock(ctx, beta, zoom)
-      const pose = mode === "push" ? "push" : wait > 0 ? "despair" : "walk"
-      sisyphus(ctx, alpha, facing, pose, gait, zoom)
+      if (manArt) {
+        mip(manArt, (MAN_K * zoom) / PX)
+        // he trudges in steps: a lean and a lift on every other beat
+        const beat = mode === "climb" ? Math.floor(gait) % 2 : 0
+        sisyphus(ctx, manArt, alpha, mode === "slide" ? -0.1 : beat * 0.05, beat * 4)
+      }
 
       dither(canvas, ctx, 1.25)
     }
+
+    const load = (src, done) => {
+      const img = new Image()
+      img.onload = () => {
+        done(img)
+        if (still) draw()
+      }
+      img.src = src
+    }
+    load(SRC, (img) => (snakeArt = { ink: toInk(img), full: img.naturalWidth, mip: null }))
+    load(MAN_SRC, (img) => (manArt = { ink: toInk(img, 200, 0), full: img.naturalWidth, mip: null }))
 
     if (!still) return animate(canvas, draw)
     draw()
@@ -351,5 +297,5 @@ export default function Ouroboros() {
     return () => ro.disconnect()
   }, [])
 
-  return <canvas ref={canvasRef} className="sim-canvas" role="img" aria-label="An ouroboros run through by a sword, with Sisyphus pushing his rock inside it" />
+  return <canvas ref={canvasRef} className="sim-canvas" role="img" aria-label="An ouroboros run through by a sword, with Sisyphus carrying his rock inside it" />
 }

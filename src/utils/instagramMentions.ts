@@ -15,6 +15,7 @@ const INSTAGRAM_NAMES: Record<string, string> = {
   "unfest26": "Unfest",
   "bartemp.bkk": "Bar Temp",
   "korborvor_visual_label": "Korborvor Visual Label",
+  "sata_info": "Society Art Technology Asia (SATA)",
   // People
   "renickbell": "Renick Bell",
   "sophiologin": "Yeeun Namkoong (sofolofo)",

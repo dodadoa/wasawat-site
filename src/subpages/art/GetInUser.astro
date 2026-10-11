@@ -1,0 +1,123 @@
+---
+import { linkInstagramMentions } from "../../utils/instagramMentions";
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
+
+const metaBy = linkInstagramMentions("@sata_info, as a programme partner of 10AFEST, with @stack_xyz");
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2026" },
+    { label: "Country", value: "Hong Kong" },
+    { label: "Date", value: "8 October 2026" },
+    { label: "Venue", value: "Eaton HK, Hong Kong" },
+    { label: "For", value: "10AFEST" },
+    { label: "Presented by", value: metaBy, html: true },
+  ]} />
+
+  <p class="mb-4">
+    This is a live audiovisual piece played on an ordinary web page. The performer plays the page like an
+    instrument: moving the mouse, typing and scrolling make the sound. The sound then hits the page back. It
+    shakes, tears and glitches the page, so doing a normal task gets harder and harder.
+  </p>
+
+  <p class="mb-4">
+    As the show goes on, the hidden structure under the website starts to show through. In the end, the website
+    turns on its user and strikes back.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">
+    Fast, beautiful, always there
+  </h2>
+
+  <p class="mb-4">
+    We expect the internet to be fast now. A page that takes more than a few seconds feels broken, and most of us
+    just leave.<sup>1</sup>
+  </p>
+
+  <aside class="art-margin-note" id="availability-note">
+    <p style="font-family: var(--f-data); font-size: 12px; line-height: 1.6; margin: 0;">
+      <strong>Availability</strong>: how much of the time a service answers. It is counted in nines.
+      “Five nines”, 99.999%, allows about five minutes of downtime in a year. The usual way to get
+      there is to run the same thing in several places at once, so most of the machines are there to wait.
+    </p>
+  </aside>
+
+  <p class="mb-4">
+    Corporations and engineers came up with many ideas to solve this. But fast was not enough. The page also had to
+    be beautiful, and it had to be there all the time. So the interface moved from something basic and quick to
+    something much more complex: frameworks, trackers, fonts, video and animation, all loaded before you can read
+    one line.<sup>2</sup>
+  </p>
+
+  <aside class="art-margin-note" id="cdn-note" style="margin-top: 1.5rem;">
+    <p style="font-family: var(--f-data); font-size: 12px; line-height: 1.6; margin: 0;">
+      <strong>CDN</strong>: content delivery network. Copies of a website are kept on many servers around the
+      world, and you are answered by the one nearest to you. The page feels close because a copy of it really
+      is close.
+    </p>
+  </aside>
+
+  <p class="mb-4">
+    To keep that heavy page feeling fast, the infrastructure under it has to grow as well, and so does the
+    investment. <a href="#availability-note" class="art-callout">Availability</a> means many data centers, so
+    that when one fails another one answers. Speed means a <a href="#cdn-note" class="art-callout">CDN</a>, and
+    a CDN means local servers, placed in your own city. Every click on an ordinary page touches a building
+    somewhere, with its own power and cooling.<sup>3</sup>
+  </p>
+
+  <p class="mb-4">
+    None of this is visible. A good interface is one where you never think about what is under it. Ordering a
+    pizza should be the easiest thing the internet does. In this piece I let the weight come back up, until the
+    page can no longer pretend to be light.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">
+    Side read
+  </h2>
+
+  <p class="mb-4">
+    <strong>Permacomputing</strong> takes its name from permaculture. Viznut coined the term in 2020, coming from
+    the demoscene, where people get the most out of very small machines.<sup>4</sup> It asks what computing looks
+    like if we maintain what already exists instead of buying more: keep it small, care for the chips, expose
+    the seams. Low-tech Magazine runs its website on a solar panel in Barcelona, and when the weather is bad
+    for long enough, the site goes offline.<sup>5</sup>
+  </p>
+
+  <aside class="art-margin-note" id="jevons-note">
+    <p style="font-family: var(--f-data); font-size: 12px; line-height: 1.6; margin: 0;">
+      <strong>Jevons paradox</strong>: when a resource gets more efficient to use, we tend to use more of it
+      in total, not less. First described for coal by William Stanley Jevons in <em>The Coal Question</em> (1865).
+    </p>
+  </aside>
+
+  <p class="mb-4">
+    The <strong>green cloud</strong> movement comes from the other direction: keep the cloud, but run it on
+    renewable energy and measure what it emits. The Green Web Foundation keeps an open directory of hosts that
+    run on green energy, and the W3C is drafting sustainability guidelines for the web.<sup>6</sup> The big
+    providers all promise carbon-free or net-zero. A lot of that depends on accounting. One analysis estimated
+    that the real emissions of the in-house data centers of Google, Microsoft, Meta and Apple could be several
+    times higher than reported, because bought renewable certificates are subtracted from the
+    total.<sup>7</sup> And a more efficient cloud is also a cloud we
+    <a href="#jevons-note" class="art-callout">use more</a>.
+  </p>
+
+  <p class="mb-4">
+    One asks us to want less. The other promises we can keep wanting the same, and only change where the power
+    comes from.
+  </p>
+
+  <div class="art-footnotes">
+    <p><sup>1</sup>Google / DoubleClick, <a href="https://blog.google/products/admanager/the-need-for-mobile-speed/" target="_blank" rel="noopener noreferrer">“The need for mobile speed”</a> (2016): 53% of mobile site visits are likely to be abandoned if a page takes longer than 3 seconds to load.</p>
+    <p><sup>2</sup>HTTP Archive, <a href="https://almanac.httparchive.org/en/2024/page-weight" target="_blank" rel="noopener noreferrer">Web Almanac 2024, “Page Weight”</a>. The median desktop page loads 613 KB of JavaScript alone, 14% more than two years before.</p>
+    <p><sup>3</sup>International Energy Agency, <a href="https://www.iea.org/reports/energy-and-ai/executive-summary" target="_blank" rel="noopener noreferrer"><em>Energy and AI</em></a> (2025). Data centers used around 415 TWh in 2024, about 1.5% of the world's electricity, and are projected to reach around 945 TWh by 2030.</p>
+    <p><sup>4</sup>Ville-Matias Heikkilä (Viznut), <a href="http://viznut.fi/texts-en/permacomputing.html" target="_blank" rel="noopener noreferrer">“Permacomputing”</a> (2020). The principles are kept and revised by the community at <a href="https://permacomputing.net/principles/" target="_blank" rel="noopener noreferrer">permacomputing.net</a>.</p>
+    <p><sup>5</sup>Low-tech Magazine, <a href="https://solar.lowtechmagazine.com/about/the-solar-website/" target="_blank" rel="noopener noreferrer">“About the Solar Powered Website”</a>.</p>
+    <p><sup>6</sup><a href="https://www.thegreenwebfoundation.org/" target="_blank" rel="noopener noreferrer">Green Web Foundation</a>; W3C, <a href="https://www.w3.org/TR/web-sustainability-guidelines/" target="_blank" rel="noopener noreferrer">Web Sustainability Guidelines (WSG)</a>.</p>
+    <p><sup>7</sup>Isabel O'Brien, <a href="https://www.theguardian.com/technology/2024/sep/15/data-center-gas-emissions-tech" target="_blank" rel="noopener noreferrer">“Data center emissions probably 662% higher than big tech claims. Can it keep up the ruse?”</a>, The Guardian, 15 September 2024. The figure is the Guardian's own estimate for 2020–22, comparing location-based emissions with the reported market-based ones.</p>
+  </div>
+
+  <p class="text-sm mt-6">
+    <a href="https://www.instagram.com/p/DeKF7Ppku7c/" target="_blank" rel="noopener noreferrer">↗ Instagram</a>
+  </p>
+</div>
