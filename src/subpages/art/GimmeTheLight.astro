@@ -3,7 +3,7 @@ import { linkInstagramMentions } from "../../utils/instagramMentions"
 import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
 
 const metaVenue = linkInstagramMentions("@bartemp.bkk")
-const metaFor = linkInstagramMentions("@nonnonnon_bangkok")
+const metaCurator = linkInstagramMentions("@maehappyair (@nonnonnon_bangkok)")
 const thanks1 = linkInstagramMentions("<strong>Thank you so much</strong><br />@maehappyair<br />@nonnonnon_bangkok<br />All audiences (and folks who help gimme some lights)")
 const thanks2 = linkInstagramMentions(
   "<strong>Special thank</strong><br />@krung_khet — sound setup and website testing"
@@ -15,7 +15,7 @@ const thanks3 = linkInstagramMentions("<strong>Clips by</strong><br />@pin_natth
   <ArtworkMeta fields={[
     { label: "Date", value: "3 October 2024" },
     { label: "Venue", value: metaVenue, html: true },
-    { label: "For", value: metaFor, html: true },
+    { label: "Organized and curated by", value: metaCurator, html: true },
     { label: "Event", value: "Mutant Club" },
   ]} />
 

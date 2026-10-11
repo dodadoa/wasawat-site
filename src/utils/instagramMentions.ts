@@ -27,7 +27,7 @@ const INSTAGRAM_NAMES: Record<string, string> = {
   "puttisinc": "Puttisinn",
   "nawinnuthong": "Nawin Nuthong",
   "pin_natthamon": "Pin Natthamon",
-  "varut_o": "Varut",
+  "varut_o": "Varut Opaswatanakul",
   "putpat13o": "Putpipat Tamtantiwattana",
   "uuunbbb": "Anon Chaisansook",
   "poc9.s": "Sahapon Chootinan",
@@ -41,16 +41,16 @@ const INSTAGRAM_NAMES: Record<string, string> = {
   "nowheredweller": "Thanapat Ogaslert",
   "nanut.t": "nanut.t",
   "gracenaholic": "gracenaholic",
-  "nonnonnon_bangkok": "nonnonnon",
-  "maehappyair": "maehappyair",
-  "krung_khet": "krung_khet",
+  "nonnonnon_bangkok": "NonNonNon",
+  "maehappyair": "Mae Happyair",
+  "krung_khet": "Sutiphong Sudsang",
   "skykys._": "Sippapas Thienwiwat",
   "pxwxriz": "pxwxriz",
-  "lebactan": "lebactan",
-  "pipechch": "pipechch",
-  "kobored": "kobored",
+  "lebactan": "Nguyễn Hoàng Giang",
+  "pipechch": "Pipe Chalodhorn",
+  "kobored": "Pongpassakorn Kob Kulthirathum",
   "anv_50hz": "anv_50hz",
-  "kijjaz": "kijjaz",
+  "kijjaz": "Kijjasak Kijjaz Triyanond",
   "pppppppeeeeeeaaaaarrrryyype": "pppppppeeeeeeaaaaarrrryyype",
 };
 
@@ -59,6 +59,8 @@ const MENTION_URLS: Record<string, string> = {
   "uuunbbb": "https://www.c-nona.com",
   "poc9.s": "https://gaosahapon.com",
   "sthienwiwat": "https://skykys88.github.io",
+  "krung_khet": "https://www.sutiphongsuds.com/",
+  "lebactan": "https://giang.it/",
 };
 
 export function linkInstagramMentions(text: string): string {

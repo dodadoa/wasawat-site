@@ -1,4 +1,4 @@
-/** @typedef {{ label: string, slug?: string }} ArtItem */
+/** @typedef {{ label: string, slug?: string, country?: string }} ArtItem */
 /** @typedef {{ title?: string, items: ArtItem[] }} ArtGroup */
 /** @typedef {{ title: string, groups: ArtGroup[] }} ArtSection */
 
@@ -41,19 +41,23 @@ export const artSections = [
           {
             label: "From Scratch Live Coding From Scratch",
             slug: "from-scratch-live-coding",
+          country: "Thailand / Vietnam",
           },
           {
             label: "Do The NPCs Hear The Simulated Wind",
             slug: "do-the-npcs-hear-the-simulated-wind",
+          country: "Thailand",
           },
           {
             label: "Gimme the light, and you shall receive the praise",
             slug: "gimme-the-light",
+            country: "Thailand",
             image: "/images/las-vegas-sphere.jpg",
           },
           {
-            label: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025",
+            label: "Unfest 2025",
             slug: "unfest2025",
+            country: "Thailand",
             date: "2025-01-01",
           },
           {
@@ -64,17 +68,20 @@ export const artSections = [
           {
             label: "OperationSéance: Purifying the AI Spirits in Latent Space Salon",
             slug: "operation-seance",
+            country: "Thailand",
             date: "2026-01-01",
           },
           {
             label: "Business As Usual: The Abstraction of violence",
             slug: "the-abstraction-of-violence",
+            country: "Vietnam",
             date: "2026-10-10",
             image: "/images/the-abstraction-of-violence/field-note-1.jpg",
           },
           {
             label: "Get in user, we're ordering pizza!: A HTML strike back",
             slug: "get-in-user",
+            country: "Hong Kong",
             date: "2026-10-08",
           },
           {
@@ -87,13 +94,31 @@ export const artSections = [
         ],
       },
       {
+        title: "Live Set",
+        items: [
+          { label: "Synecdoche, Synesthesia — live coding & AV showcase, Bangkok Kunsthalle, w/ Goethe-Institut Thailand", country: "Thailand", date: "2026-01-01" },
+          { label: "Flux", date: "2026-01-01" },
+          { label: "FLOW (Hepna × Saudade), Speaker Box", country: "Thailand", date: "2026-01-01" },
+          { label: "Algorapture", country: "Indonesia", date: "2025-01-01" },
+          { label: "Interlude", country: "Vietnam", date: "2025-01-01" },
+          { label: "AlgoSeoul", country: "South Korea", date: "2025-01-01" },
+          { label: "UNBOUND — sound artist, Theatre Night (Bad Vibes Battle), Host Bangkok", country: "Thailand", date: "2025-01-01" },
+          { label: "Diage Festival, with CRSRCRSR, ShowDC", country: "Thailand", date: "2023-01-01" },
+          { label: "Road to Diage, with CRSRCRSR, Bangkok CityCity Gallery", country: "Thailand", date: "2023-01-01" },
+          { label: "Ghost2565", country: "Thailand" },
+          { label: "NonNonNon Bangkok", country: "Thailand" },
+        ],
+      },
+      {
         title: "VJ",
         items: [
+          { label: "RE:SYNC 2023, People of Ari", country: "Thailand", date: "2023-01-01" },
           {
             label:
               "Gallery night performance With Karnpapon (The Black Codes) at Mal studio, and with Nanut at Tentacles Gallery",
+            country: "Thailand",
           },
-          { label: "Bangkok street noise With Karnpapon (The Black Codes)" },
+          { label: "Bangkok street noise With Karnpapon (The Black Codes)", country: "Thailand" },
           { label: "DXPRN (as JAAG)" },
           { label: "VJing for Jon Samurai at JAM (as JAAG)", hidden: true },
           {
@@ -108,6 +133,7 @@ export const artSections = [
           {
             label:
               "The end is near: a dystopian electronic party. Duo with Thanapat Ogaslert (CSRCSR) at De Commune. Also organize and promote the event.",
+            country: "Thailand",
           },
           { label: "Sonic thread", hidden: true },
           { label: "Sonic thread", hidden: true },
@@ -202,7 +228,7 @@ export const artworkPages = {
   "neonatus-neotokyo": { title: "Neonatus/Neotokyo" },
   "from-scratch-live-coding": { title: "From Scratch Live Coding From Scratch" },
   "gimme-the-light": { title: "Gimme the light, and you shall receive the praise" },
-  unfest2025: { title: "LiveCoding AudioVisual duo with @pasuthh at Unfest2025" },
+  unfest2025: { title: "Unfest 2025" },
   byob: { title: "BYOB (as JAAG)" },
   "eternal-gain-eternal-pain": {
     title: "Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)",

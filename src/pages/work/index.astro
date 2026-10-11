@@ -47,8 +47,17 @@ function splitSection(section) {
   return { selected, unselected }
 }
 
+/** Column E differs per sheet: Country on Performance, Section on All. */
+const EXTRA = {
+  country: { field: "Country", key: "country" },
+  section: { field: "Section", key: "section" },
+}
+
 /** One spreadsheet per section: selected rows first, then the archive. */
-const sectionSheets = artSections.map((section, si) => {
+/** Technical work is listed on /about instead; its pages stay at /art/<slug>. */
+const workSections = artSections.filter((section) => section.title !== "Technical Work")
+
+const sectionSheets = workSections.map((section, si) => {
   const { selected, unselected } = splitSection(section)
   const toRow = (status) => ({ item, groupTitle }) => {
     const href = item.slug ? `/art/${item.slug}` : item.url
@@ -64,20 +73,21 @@ const sectionSheets = artSections.map((section, si) => {
       thumb: image && item.slug ? thumbSrc(item.slug) : undefined,
       medium: groupTitle ?? "—",
       year: date ? date.slice(0, 4) : "—",
+      country: item.country ?? "—",
     }
   }
   return {
     id: `sheet-${si + 1}`,
     title: section.title,
-    showSection: false,
+    extra: section.title === "Performance" ? EXTRA.country : undefined,
     selectedCount: selected.length,
     rows: [...selected.map(toRow("Selected")), ...unselected.map(toRow("Archive"))],
   }
 })
 
 /**
- * The last sheet lists every work across the sections, with an extra
- * Section column: selected first, then the archive, each newest first.
+ * The last sheet lists every work across the sections, with a Section
+ * column: selected first, then the archive, each newest first.
  */
 const allRows = sectionSheets.flatMap((sheet) => sheet.rows)
 const byStatusThenYear = (a, b) =>
@@ -88,12 +98,13 @@ const sheets = [
   {
     id: "sheet-all",
     title: "All",
-    showSection: true,
+    extra: EXTRA.section,
     selectedCount: allRows.filter((row) => row.status === "Selected").length,
     rows: [...allRows].sort(byStatusThenYear),
   },
 ]
-const sheetCols = (sheet) => (sheet.showSection ? [...COLS, "E"] : COLS)
+const sheetCols = (sheet) => (sheet.extra ? [...COLS, "E"] : COLS)
+const sheetFields = (sheet) => (sheet.extra ? [...FIELDS, sheet.extra.field] : FIELDS)
 
 /**
  * Selected and archive are split by a title row spanning the sheet rather
@@ -108,7 +119,7 @@ const sheetLines = (sheet) =>
 /** A few blank rows after the data, like the unused part of a sheet. */
 const BLANK_ROWS = 4
 const COLS = ["A", "B", "C", "D"]
-const FIELDS = ["Img", "Title", "Medium", "Year", "Section"]
+const FIELDS = ["Img", "Title", "Medium", "Year"]
 const colClass = (c) => `col-${c.toLowerCase()}`
 ---
 
@@ -148,14 +159,14 @@ const colClass = (c) => `col-${c.toLowerCase()}`
                 </tr>
               </thead>
               <tbody>
-                <tr class="row-fields">
+                <tr class="row-fields" data-cursor-inert>
                   <th class="rownum" scope="row">1</th>
                   {sheetCols(sheet).map((c, ci) => (
-                    <td class={colClass(c)}>{FIELDS[ci]}</td>
+                    <td class={colClass(c)}>{sheetFields(sheet)[ci]}</td>
                   ))}
                 </tr>
                 {lines.map(({ title, row }, i) => title ? (
-                  <tr class="row-group">
+                  <tr class="row-group" data-cursor-inert>
                     <th class="rownum" scope="row">{i + 2}</th>
                     <td colspan={sheetCols(sheet).length}>{title}</td>
                   </tr>
@@ -163,6 +174,7 @@ const colClass = (c) => `col-${c.toLowerCase()}`
                   <tr
                     class={row.href ? "row-link" : "row-plain"}
                     data-href={row.href || undefined}
+                    data-cursor-inert={row.href ? undefined : ""}
                     data-external={row.external ? "true" : undefined}
                   >
                     <th class="rownum" scope="row">{i + 2}</th>
@@ -191,11 +203,11 @@ const colClass = (c) => `col-${c.toLowerCase()}`
                     </td>
                     <td class="col-c">{row.medium}</td>
                     <td class="col-d work-year">{row.year}</td>
-                    {sheet.showSection && <td class="col-e">{row.section}</td>}
+                    {sheet.extra && <td class="col-e">{row[sheet.extra.key]}</td>}
                   </tr>
                 ))}
                 {Array.from({ length: BLANK_ROWS }, (_, i) => (
-                  <tr class="row-blank">
+                  <tr class="row-blank" data-cursor-inert>
                     <th class="rownum" scope="row">{lines.length + i + 2}</th>
                     {sheetCols(sheet).map((c) => (
                       <td class={colClass(c)} />

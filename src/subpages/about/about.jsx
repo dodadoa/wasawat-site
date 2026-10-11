@@ -745,7 +745,7 @@ function FullBio() {
 
 const BIO_SECTIONS = [
   {
-    title: "Group Exhibition",
+    title: "Selected Exhibitions",
     items: [
       { label: "re:complex", meta: "Goethe-Institut Thailand, 7–13 November 2025", url: "/art/eternal-gain-eternal-pain" },
       { label: "Close Inspection From Afar", meta: "ETA BKK, organised by Cache, July 2025", url: "/art/here-now-absolute-elsewhere" },
@@ -753,46 +753,12 @@ const BIO_SECTIONS = [
     ],
   },
   {
-    title: "Selected Works",
-    items: [
-      { label: "Do The NPCs Hear The Simulated Wind", meta: "PATCH NOTES THAT REFUSE A SETTLED WORLD (co-curated as Stack), Virtual Media Lab, TCDC Bangkok, 2026", url: "/art/do-the-npcs-hear-the-simulated-wind" },
-      { label: "Here-now; absolute-elsewhere.", meta: "Close Inspection From Afar, ETA BKK, 2025", url: "/art/here-now-absolute-elsewhere" },
-      { label: "Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)", meta: "Installation, 2025", url: "/art/eternal-gain-eternal-pain" },
-      { label: "As if you would still be here, if I keep thinking about you.", meta: "Audiovisual performance, 2026", url: "/art/as-if-you-would-still-be-here" },
-      { label: "Poetic Garden", meta: "Un_Unsubscribe pavilion, The Wrong Biennale, 2023", url: "/art/poetic-garden" },
-      { label: "Self-censored Step Sequencer", meta: "Net art, Chrome extension, 2026", url: "/art/self-censored-step-sequencer" },
-      { label: "Neonatus/Neotokyo", meta: "with Nanut Thanapornrapee, Tokyo Hot Restaurant, Bangkok, 2020", url: "/art/neonatus-neotokyo" },
-    ],
-  },
-  {
-    title: "Performances & Live Sets",
-    items: [
-      { label: "From Scratch Live Coding From Scratch — evals", meta: "Bangkok Kunsthalle, 2025", url: "/art/from-scratch-live-coding" },
-      { label: "From Scratch Live Coding From Scratch — Para Cartography", meta: "Nina Next Space, Ho Chi Minh City, 2025", url: "/art/from-scratch-live-coding#vina-v" },
-      { label: "UNFEST2025", meta: "with Pasuth Sa-ingthong, Unformat, Bangkok, 2025", url: "/art/unfest2025" },
-      { label: "Algorapture", meta: "Jakarta, 2025" },
-      { label: "Interlude", meta: "Ho Chi Minh City, 2025" },
-      { label: "AlgoSeoul", meta: "Seoul, 2025" },
-      { label: "UNBOUND", meta: "sound artist, Theatre Night (Bad Vibes Battle), Host Bangkok, 2025" },
-      { label: "Diage Festival", meta: "with CRSRCRSR, ShowDC, Bangkok, 2023" },
-      { label: "Road to Diage & Diage Festival", meta: "with CRSRCRSR, Bangkok CityCity Gallery, 2023" },
-      { label: "Synecdoche, Synesthesia", meta: "Live coding & AV showcase, Bangkok Kunsthalle, w/ Goethe-Institut Thailand, 2026" },
-      { label: "Flux", meta: "2026" },
-      { label: "FLOW (Hepna × Saudade)", meta: "Audio-visual night on movement, sound & light in transition, Speaker Box, 2026" },
-      { label: "RE:SYNC 2023", meta: "VJ, People of Ari, Bangkok, 2023" },
-    ],
-    footnote: "Also: Ghost2565 (Bangkok) · NonNonNon Bangkok",
-  },
-  {
     title: "Curatorial Practice & Organizing",
     items: [
-      { label: "Player 2 Has Entered The Server", meta: "co-curator w/ Pathompong Manakitsomboon, as Stack, Goethe-Institut Thailand, 2025", url: "https://stackth.xyz/" },
-      { label: "PATCH NOTES THAT REFUSE A SETTLED WORLD", meta: "co-curator, as Stack, with Team Stimulant, in collaboration with Goethe-Institut Thailand, 2026", url: "https://stackth.xyz/" },
-      { label: "STACK TOKYO", meta: "as Stack, first live performance in Japan, w/ @kakiaraarai, WPU HOTEL, Shinjuku, Tokyo, 2025", url: "https://stackth.xyz/" },
+      { label: "Stack", meta: "co-curator, ongoing", url: "https://stackth.xyz/" },
       { label: "Cornea Cochlear Club", meta: "co-organizer, curator, ongoing", url: "https://www.instagram.com/corneacochlearclub/" },
-      { label: "BYOB Bangkok (Bring Your Own Beamer)", meta: "co-organizer, as JAAG, ongoing", url: "/art/byob" },
-      { label: "TouchDesigner Bangkok Meetup (TDBKK)", meta: "co-organizer, ongoing", url: "https://tdbkk.xyz/" },
-      { label: "Mal Studio", meta: "co-founder, event space, past", url: "https://www.instagram.com/mal._.bkk/" },
+      { label: "BYOB Bangkok (Bring Your Own Beamer)", meta: "co-organizer, as JAAG, with ZonZon.Studio, 2023", url: "/art/byob" },
+      { label: "TouchDesigner Bangkok Meetup (TDBKK)", meta: "co-organizer, TDBKK vol.1 and TDBKK vol.2, 2025–2026", url: "https://tdbkk.xyz/" },
     ],
   },
   {
