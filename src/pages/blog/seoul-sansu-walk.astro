@@ -7,16 +7,21 @@ import Layout from "../../layouts/layout.astro"
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" />
   <div class="ssw-stage">
-    <canvas
-      id="ssw-canvas"
-      aria-label="First person walk through a watercolor Seoul. Scroll to walk the story's path, drag to look around."
-    ></canvas>
-    <div id="ssw-fps"></div>
-    <div id="ssw-hint">scroll to walk · drag to look</div>
-    <div id="ssw-cap">
-      <div id="ssw-line"></div>
-      <div id="ssw-count"></div>
+    <!-- the two friends talk either side of the walk, one column each -->
+    <div class="ssw-chat ssw-chat-l" id="ssw-chat-l" aria-live="polite"></div>
+    <div class="ssw-phone">
+      <canvas
+        id="ssw-canvas"
+        aria-label="First person walk through a watercolor Seoul. Scroll to walk the story's path, drag to look around."
+      ></canvas>
+      <div id="ssw-hint">scroll to walk · drag to look</div>
+      <div id="ssw-cap">
+        <div id="ssw-line"></div>
+        <div id="ssw-count"></div>
+      </div>
     </div>
+    <div class="ssw-chat ssw-chat-r" id="ssw-chat-r" aria-live="polite"></div>
+    <div id="ssw-fps"></div>
   </div>
   <!-- the scrollbar is the path: the script sizes this to the length of the walk -->
   <div id="ssw-track" aria-hidden="true"></div>
@@ -38,6 +43,123 @@ import Layout from "../../layouts/layout.astro"
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 3vw, 44px);
+    padding: 18px;
+  }
+
+  /* the walk is seen through a phone held upright in the middle of the page */
+  .ssw-phone {
+    position: relative;
+    flex: none;
+    height: 100%;
+    max-width: 100%;
+    aspect-ratio: 9 / 19.5;
+    border-radius: 34px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow:
+      0 0 0 1px rgba(59, 48, 43, 0.35),
+      0 0 0 7px #f8f3e7,
+      0 0 0 8px rgba(59, 48, 43, 0.35),
+      0 18px 50px rgba(59, 48, 43, 0.16);
+  }
+
+  /* what the friends say: newest at the bottom, older lines drifting up and fading out */
+  .ssw-chat {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 300px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 6px;
+    padding-bottom: 12vh;
+    overflow: hidden;
+    font: 15px/1.45 var(--f-ssw);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 4%, #000 38%);
+    mask-image: linear-gradient(to bottom, transparent 4%, #000 38%);
+  }
+
+  .ssw-chat-l {
+    align-items: flex-end;
+  }
+
+  .ssw-chat-r {
+    align-items: flex-start;
+  }
+
+  .ssw-chat :global(p) {
+    flex: none;
+    margin: 0;
+    max-width: 100%;
+    padding: 8px 13px;
+    border-radius: 15px;
+    background: rgba(59, 48, 43, 0.06);
+    text-wrap: pretty;
+    animation: ssw-say 0.7s ease-out;
+  }
+
+  .ssw-chat-l :global(p) {
+    border-bottom-right-radius: 4px;
+  }
+
+  .ssw-chat-r :global(p) {
+    border-bottom-left-radius: 4px;
+  }
+
+  /* the other friend's turn: the same words take up the same room, unseen, so the talk zigzags down the two sides */
+  .ssw-chat :global(p.gap) {
+    visibility: hidden;
+  }
+
+  @keyframes ssw-say {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  /* on a real phone the scene is the whole screen, and the talk floats over the top of it */
+  @media (max-width: 760px) {
+    .ssw-stage {
+      padding: 0;
+    }
+
+    .ssw-phone {
+      width: 100%;
+      aspect-ratio: auto;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .ssw-chat {
+      position: absolute;
+      z-index: 2;
+      top: 44px;
+      width: 46%;
+      height: 24%;
+      padding-bottom: 0;
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    .ssw-chat-l {
+      left: 6px;
+      align-items: flex-start;
+    }
+
+    .ssw-chat-r {
+      right: 6px;
+      align-items: flex-end;
+    }
+
+    .ssw-chat :global(p) {
+      background: rgba(248, 243, 231, 0.78);
+    }
   }
 
   #ssw-canvas {
@@ -67,12 +189,12 @@ import Layout from "../../layouts/layout.astro"
     left: 50%;
     top: 10px;
     transform: translateX(-50%);
-    font: 13px/1 var(--f-ssw);
-    letter-spacing: 0.22em;
+    font: 11px/1 var(--f-ssw);
+    letter-spacing: 0.18em;
     white-space: nowrap;
     /* a wash of paper that feathers out, no box */
     background: radial-gradient(ellipse closest-side, rgba(248, 243, 231, 0.8), rgba(248, 243, 231, 0));
-    padding: 18px 48px;
+    padding: 16px 28px;
     pointer-events: none;
     transition: opacity 0.6s;
   }
@@ -86,10 +208,10 @@ import Layout from "../../layouts/layout.astro"
     left: 50%;
     bottom: calc(22px + env(safe-area-inset-bottom, 0px));
     transform: translateX(-50%);
-    width: min(760px, calc(100% - 16px));
+    width: calc(100% - 8px);
     text-align: center;
     pointer-events: none;
-    padding: 28px 56px 22px;
+    padding: 24px 26px 18px;
   }
 
   /* hanji: translucent paper that blurs the scene behind it and dissolves at the edges */
@@ -113,7 +235,7 @@ import Layout from "../../layouts/layout.astro"
   }
 
   #ssw-line {
-    font: 400 clamp(15px, 1.9vw, 20px) / 1.35 var(--f-ssw);
+    font: 400 15px/1.35 var(--f-ssw);
     letter-spacing: 0.015em;
     text-wrap: balance;
     color: #3b302b;

@@ -1335,6 +1335,64 @@ const story = [
   "I should start running.",
   "Not run from something. I should run for myself.",
 ];
+// what the two friends say along the way, improvised for now: 0 is him on the left, 1 is her on the right.
+// they talk at their own pace whether you walk or stand, and when they run out they start over
+const talk = [
+  [0,"Smell that? Pine resin. It only does this when the sun is on it."],
+  [1,"You say that every time we come up here."],
+  [0,"Because every time it's true."],
+  [1,"My doctor says ten thousand steps. I think she just wants me out of the house."],
+  [0,"Mine told me to sleep. As if I hadn't thought of it."],
+  [1,"Look, a magpie. Two of them. That's supposed to be good news coming."],
+  [0,"For who, though?"],
+  [1,"Whoever saw them first. So, me."],
+  [0,"My knees make a sound now on the way down. Like a door."],
+  [1,"Stretch more. And drink water, you never drink water."],
+  [0,"I drink coffee. Coffee is mostly water."],
+  [1,"Did you call your mother back?"],
+  [0,"...I will tonight."],
+  [1,"She only wants to hear your voice. It takes three minutes."],
+  [0,"There's a poem about that. The mountain doesn't answer, and you love it anyway."],
+  [1,"That's not a poem, you just made that up."],
+  [0,"Somebody has to make them up."],
+  [1,"I think the oaks turn before the maples this year. See the edges?"],
+  [0,"I broke up with someone under a tree like that. Nice tree. Wrong day."],
+  [1,"Do you still talk?"],
+  [0,"We send each other photos of dogs. It's enough."],
+  [1,"I like that. Love that got smaller but didn't leave."],
+  [0,"Now who's making up poems."],
+  [1,"Breathe in for four, out for six. It slows the heart. Try it on this stretch."],
+  [0,"I can't count and walk at the same time."],
+  [1,"Then just walk. That counts too."],
+  [0,"The river looks like it isn't moving from up here."],
+  [1,"Everything far away looks like it has its life together."],
+  [0,"My grandmother read the weather from her ankle. She was never wrong."],
+  [1,"Mine said: eat warm things, forgive quickly, go to bed."],
+  [0,"That's the whole of medicine."],
+  [1,"Yun Dong-ju wanted to count the stars one by one. I get tired after the first few."],
+  [0,"He was twenty-four. You have more patience at twenty-four."],
+  [1,"Do you think we'll still do this when we're old?"],
+  [0,"Slower. With better snacks."],
+  [1,"And you'll still say the thing about the pine resin."],
+  [0,"Because it'll still be true."],
+  [1,"Water. Look how flat it is. Like the day put down what it was carrying."],
+  [0,"Let's not say anything for a bit."],
+  [1,"Okay."],
+];
+// each line goes into both columns, written in the speaker's and left blank in the other, so the two sides stay
+// in step and the talk steps down the page from one side to the other
+const chatL = document.getElementById("ssw-chat-l"), chatR = document.getElementById("ssw-chat-r"), KEEP = 14;
+let talkN = 0, talkT = 1.5;
+function chatter(dt){
+  if((talkT -= dt) > 0) return;
+  const [who,text] = talk[talkN++ % talk.length];
+  for(const [col,mine] of [[chatL,who===0],[chatR,who===1]]){
+    const el = document.createElement("p"); el.textContent = text; if(!mine) el.className = "gap";
+    col.appendChild(el);
+    while(col.children.length > KEEP) col.firstChild.remove();
+  }
+  talkT = 1.4 + text.length*.05;                    // long enough to read it before the answer comes
+}
 const $ = id => document.getElementById(id);
 const track = $("ssw-track"), lineEl = $("ssw-line"), countEl = $("ssw-count"), hintEl = $("ssw-hint");
 const weight = segLen.map(l => 1 + l*.2);          // viewports of scroll per line, long legs take longer
@@ -1622,7 +1680,7 @@ addEventListener("resize", resize); resize();
 let last = performance.now();
 const fpsEl = document.getElementById("ssw-fps"); let fpsN=0, fpsT=performance.now(), fastT=0;
 function frame(now){
-  const dt = Math.min(.05,(now-last)/1000); last = now;
+  const real = Math.min(1,(now-last)/1000), dt = Math.min(.05,real); last = now;
   fpsN++; if(now-fpsT>1000){
     const fps = fpsN*1000/(now-fpsT); fpsEl.textContent = Math.round(fps) + " fps"; fpsN=0; fpsT=now;
     if(fps<28 && RSCALE>.43){ RSCALE=Math.max(.42,RSCALE-.06); resize(); fastT=0; }
@@ -1630,7 +1688,7 @@ function frame(now){
     else fastT=0;
   }
 
-  scrollStep(dt);
+  scrollStep(dt); chatter(real);                               // the talk keeps to the clock, not to the frame rate
   me.y += (walk.ground - me.y)*ease(5,dt);
   friends.update(dt, now/1000); clouds.update(now/1000);
 
