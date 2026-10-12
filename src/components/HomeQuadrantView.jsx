@@ -482,17 +482,20 @@ const COL = {
 }
 
 /** Tiny inline bar for a single axis value: hairline track, ink fill, ink marker */
-function CoordSpark({ value, bare = false }) {
+function CoordSpark({ value, bare = false, inverted = false }) {
   const pct = ((value + 1) / 2) * 100
+  const fill = inverted ? PAPER : INK
+  // the dither token is ink dots; on an inverted row the dots are paper
+  const track = inverted ? `conic-gradient(at 2px 2px, transparent 75%, ${PAPER} 0) 0 0 / 6px 6px` : "var(--dither-12)"
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-      <div style={{ display: bare ? "none" : undefined, width: "32px", height: "4px", background: "var(--dither-12)", position: "relative", flexShrink: 0 }}>
+      <div style={{ display: bare ? "none" : undefined, width: "32px", height: "4px", background: track, position: "relative", flexShrink: 0 }}>
         <div style={{
           position: "absolute",
           left: `${Math.min(pct, 50)}%`,
           width: `${Math.abs(pct - 50)}%`,
           top: 0, bottom: 0,
-          background: INK,
+          background: fill,
         }} />
         <div style={{
           position: "absolute",
@@ -501,10 +504,10 @@ function CoordSpark({ value, bare = false }) {
           transform: "translate(-50%, -50%)",
           width: "1px",
           height: "10px",
-          background: INK,
+          background: fill,
         }} />
       </div>
-      <span style={{ fontFamily: dataMono, fontSize: "calc(10px * var(--ui-scale, 1))", color: SOFT, minWidth: "4.2ch", textAlign: "right" }}>
+      <span style={{ fontFamily: dataMono, fontSize: "calc(10px * var(--ui-scale, 1))", color: inverted ? LINE : SOFT, minWidth: "4.2ch", textAlign: "right" }}>
         {value.toFixed(2)}
       </span>
     </div>
@@ -516,6 +519,8 @@ function CoordSpark({ value, bare = false }) {
 function Quadrant2DView({ genreFilter, inset = false, compact = false }) {
   const works = useMemo(() => collectWorks(), [])
   const visible = genreFilter ? works.filter((w) => w.genreId === genreFilter) : works
+  // the hovered row is a full inversion: ink cells, paper text
+  const [hoverKey, setHoverKey] = useState(null)
 
   const th = (extra = {}) => ({
     ...COL,
@@ -561,17 +566,21 @@ function Quadrant2DView({ genreFilter, inset = false, compact = false }) {
         <tbody>
           {visible.map((work) => {
             const label = work.planeLabel ?? work.label
+            const key = work.slug ?? work.label
+            const on = !!work.slug && hoverKey === key
+            const soft = on ? LINE : SOFT
             return (
               <tr
-                key={work.slug ?? work.label}
+                key={key}
                 // the whole row opens the work, not just its title
                 data-href={work.slug ? `/art/${work.slug}` : undefined}
                 onClick={work.slug ? (e) => {
                   if (e.target.closest("a")) return
                   window.location.href = `/art/${work.slug}`
                 } : undefined}
-                onMouseEnter={work.slug ? (e) => e.currentTarget.style.boxShadow = `inset 3px 0 0 ${INK}` : undefined}
-                onMouseLeave={work.slug ? (e) => e.currentTarget.style.boxShadow = "none" : undefined}
+                onMouseEnter={work.slug ? () => setHoverKey(key) : undefined}
+                onMouseLeave={work.slug ? () => setHoverKey((k) => (k === key ? null : k)) : undefined}
+                style={{ background: on ? INK : undefined, cursor: work.slug ? "pointer" : undefined }}
               >
                 {/* title */}
                 <td style={{ ...COL, paddingLeft: edge }}>
@@ -582,13 +591,9 @@ function Quadrant2DView({ genreFilter, inset = false, compact = false }) {
                         fontFamily: displayMono,
                         fontSize: "calc(19px * var(--ui-scale, 1))",
                         letterSpacing: "-0.01em",
-                        color: INK,
+                        color: on ? PAPER : INK,
                         textDecoration: "none",
-                        padding: "2px 4px",
-                        margin: "0 -4px",
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = INK; e.currentTarget.style.color = PAPER }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = INK }}
                     >
                       {label}
                     </a>
@@ -603,7 +608,7 @@ function Quadrant2DView({ genreFilter, inset = false, compact = false }) {
                     </span>
                   )}
                   {compact && (
-                    <div style={{ marginTop: "6px", letterSpacing: "0.08em", textTransform: "uppercase", color: SOFT }}>
+                    <div style={{ marginTop: "6px", letterSpacing: "0.08em", textTransform: "uppercase", color: soft }}>
                       {work.genreId} · <span style={{ fontFamily: dataMono }}>{work.date ? work.date.slice(0, 4) : "—"}</span>
                     </div>
                   )}
@@ -615,24 +620,24 @@ function Quadrant2DView({ genreFilter, inset = false, compact = false }) {
                     fontSize: "calc(11px * var(--ui-scale, 1))",
                     letterSpacing: "0.08em",
                     textTransform: "uppercase",
-                    color: SOFT,
+                    color: soft,
                   }}>
                     {work.genreId}
                   </span>
                 </td>
                 {/* year */}
-                <td style={{ ...COL, fontFamily: dataMono, color: SOFT, whiteSpace: "nowrap", display: compact ? "none" : undefined }}>
+                <td style={{ ...COL, fontFamily: dataMono, color: soft, whiteSpace: "nowrap", display: compact ? "none" : undefined }}>
                   {work.date ? work.date.slice(0, 4) : "—"}
                 </td>
                 {/* coords — subtle, pushed right */}
                 <td style={{ ...COL, textAlign: "right", ...coordCell }}>
-                  <CoordSpark value={work.x} bare={compact} />
+                  <CoordSpark value={work.x} bare={compact} inverted={on} />
                 </td>
                 <td style={{ ...COL, textAlign: "right", ...coordCell }}>
-                  <CoordSpark value={work.y} bare={compact} />
+                  <CoordSpark value={work.y} bare={compact} inverted={on} />
                 </td>
                 <td style={{ ...COL, textAlign: "right", ...coordCell, paddingRight: edge }}>
-                  <CoordSpark value={work.z ?? 0} bare={compact} />
+                  <CoordSpark value={work.z ?? 0} bare={compact} inverted={on} />
                 </td>
               </tr>
             )
@@ -667,14 +672,17 @@ const FLAT_PLANES = [
     left: "Machine", right: "Human", top: "Future", bottom: "Past" },
 ]
 
-// an axis end's name stands off its sheet: lifted clear of the surface, turned
-// to face the screen and set just past the edge it names, on a paper chip so
-// the rules and sheets behind never run through the type
-const FLAT_END_LIFT = "22px"
-const FLAT_END_OUT = "0.9rem"
+// an axis end's name is a tab on its own sheet's border: an upright paper chip
+// set squarely over the point where the rule it names runs out through the
+// edge, breaking that edge's line. A name between two sheets is then plainly
+// the one whose border it interrupts.
+const FLAT_END_LIFT = 10 // px off the surface, so the upright chip clears it
+// lifting a chip also carries it up the screen; this much back down the sheet
+// (along both axes, towards the near corner) puts it over its edge again
+const FLAT_END_SETTLE = (FLAT_END_LIFT * Math.tan((FLAT_TILT * Math.PI) / 180)) / Math.SQRT2
 const FLAT_END_LABEL = {
   position: "absolute",
-  padding: "0.2em 0.5em 0.15em",
+  padding: "0.25em 0.55em 0.2em",
   fontFamily: mono,
   fontSize: "calc(11px * var(--ui-scale, 1))",
   lineHeight: 1.2,
@@ -684,15 +692,17 @@ const FLAT_END_LABEL = {
   pointerEvents: "none",
   color: INK,
   background: PAPER,
+  border: `1px solid ${LINE}`,
+  transform:
+    `translate(-50%, -50%) ` +
+    `translate3d(${FLAT_END_SETTLE}px, ${FLAT_END_SETTLE}px, ${FLAT_END_LIFT}px) ` +
+    FLAT_BILLBOARD,
 }
-// where each end sits on the sheet, and which way is outwards (in sheet axes).
-// The turned stack puts the left and bottom ends on the screen's left, so those
-// two hang from their right-hand end and read away from the sheet.
 const FLAT_ENDS = [
-  { side: "left", at: { left: 0, top: "50%" }, out: [-1, 0], hang: "right" },
-  { side: "right", at: { left: "100%", top: "50%" }, out: [1, 0], hang: "left" },
-  { side: "top", at: { left: "50%", top: 0 }, out: [0, -1], hang: "left" },
-  { side: "bottom", at: { left: "50%", top: "100%" }, out: [0, 1], hang: "right" },
+  { side: "left", at: { left: 0, top: "50%" } },
+  { side: "right", at: { left: "100%", top: "50%" } },
+  { side: "top", at: { left: "50%", top: 0 } },
+  { side: "bottom", at: { left: "50%", top: "100%" } },
 ]
 
 function FlatPanel({ plane, level, works, genreFilter, hoverKey, setHoverKey }) {
@@ -714,19 +724,8 @@ function FlatPanel({ plane, level, works, genreFilter, hoverKey, setHoverKey }) 
         <div style={{ position: "absolute", left: 0, right: 0, top: "50%", height: "1px", background: LINE, boxShadow: FLAT_BLOOM }} />
         <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: "1px", background: LINE, boxShadow: FLAT_BLOOM }} />
         {/* axis end labels */}
-        {FLAT_ENDS.map(({ side, at, out, hang }) => (
-          <span
-            key={side}
-            style={{
-              ...FLAT_END_LABEL,
-              ...at,
-              transformOrigin: `${hang === "right" ? "100%" : "0"} 50%`,
-              transform:
-                `translate(${hang === "right" ? "-100%" : "0"}, -50%) ` +
-                `translate3d(calc(${FLAT_END_OUT} * ${out[0]}), calc(${FLAT_END_OUT} * ${out[1]}), ${FLAT_END_LIFT}) ` +
-                FLAT_BILLBOARD,
-            }}
-          >
+        {FLAT_ENDS.map(({ side, at }) => (
+          <span key={side} style={{ ...FLAT_END_LABEL, ...at }}>
             {plane[side]}
           </span>
         ))}

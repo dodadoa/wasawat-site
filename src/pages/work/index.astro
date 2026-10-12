@@ -432,14 +432,8 @@ const colClass = (c) => `col-${c.toLowerCase()}`
     cursor: pointer;
   }
 
-  .work-table tbody tr.row-link:hover td,
-  .work-table tbody tr.row-link:hover td a {
-    background: var(--ink);
-    color: var(--bg);
-  }
-
   .work-table tbody tr.row-link:hover td {
-    border-right-color: color-mix(in srgb, var(--bg) 25%, var(--ink));
+    background: color-mix(in srgb, var(--ink) 5%, var(--bg));
   }
 
   /* the cell under the pointer is the selection */
@@ -450,10 +444,6 @@ const colClass = (c) => `col-${c.toLowerCase()}`
 
   .work-table td:hover {
     outline-color: var(--ink);
-  }
-
-  .work-table tbody tr.row-link:hover td:hover {
-    outline-color: var(--bg);
   }
 
   .col-a {
