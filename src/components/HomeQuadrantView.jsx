@@ -1203,6 +1203,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
                 padding: "0.6rem 1rem",
                 cursor: "pointer",
                 border: `1px solid ${INK}`,
+                outline: "none",
                 marginLeft: i === 0 ? 0 : "-1px",
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = INK; e.currentTarget.style.color = PAPER }}

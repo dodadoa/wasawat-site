@@ -13,6 +13,10 @@ export interface Props {
 
 const { title, preview, description, mono = false } = Astro.props
 
+// share cards need an absolute image url; pages without their own preview
+// fall back to the capture of the home page's 1-bit roguelike
+const ogImage = new URL(preview || "/images/pages/og-1bit-rogue.png", Astro.url.origin).href
+
 // ── right-click sitemap tree ──
 // Built once at build time from the same artSections data that drives
 // /index, so the context menu's subtree never drifts from the real archive.
@@ -113,13 +117,23 @@ const sitemapTree = [
     </style>
     <SEO
       title={title}
-      description=""
+      description={description || ""}
       openGraph={{
         basic: {
           title: title || "",
-          image: preview || "",
+          image: ogImage,
           type: "website",
         },
+        optional: {
+          description: description || undefined,
+        },
+        image: preview ? undefined : { width: 1600, height: 840, alt: "A 1-bit museum in plan, walked as a roguelike" },
+      }}
+      twitter={{
+        card: "summary_large_image",
+        title: title || "",
+        description: description || undefined,
+        image: ogImage,
       }}
     />
     <title>{title}</title>
