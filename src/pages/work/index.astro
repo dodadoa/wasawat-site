@@ -267,7 +267,8 @@ const colClass = (c) => `col-${c.toLowerCase()}`
     align-items: stretch;
     border-bottom: 1px solid var(--ink);
     background: var(--chrome);
-    min-height: 28px;
+    /* fixed, not min-height: the bar must not grow when a formula fills it */
+    height: 28px;
   }
 
   .formula-bar > span {
@@ -296,7 +297,8 @@ const colClass = (c) => `col-${c.toLowerCase()}`
     overflow: hidden;
     text-overflow: ellipsis;
     display: block !important;
-    line-height: 28px;
+    /* the bar's 28px less its bottom border */
+    line-height: 27px;
   }
 
   .sheet[hidden] {
