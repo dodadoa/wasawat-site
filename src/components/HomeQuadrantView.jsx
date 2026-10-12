@@ -1338,7 +1338,7 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
                   color: SOFT,
-                  borderTop: `3px solid ${INK}`,
+                  borderTop: `1px solid ${INK}`,
                   padding: "0.7rem 0.6rem 0.8rem",
                 }}
               >

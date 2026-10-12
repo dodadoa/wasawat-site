@@ -418,8 +418,12 @@ export default function DomStatsPanel() {
     >
       <div
         style={{
+          // the panel itself never scrolls; when it runs out of height the
+          // net.log list (the only scroller) gives up the space
+          display: "flex",
+          flexDirection: "column",
           maxHeight: "calc(100vh - 6rem)",
-          overflowY: "auto",
+          overflow: "hidden",
           width: "100%",
           padding: "0.65rem 0.8rem 0.7rem",
           ...glassPlain,
@@ -492,7 +496,7 @@ export default function DomStatsPanel() {
         </span>
       </div>
 
-      <div ref={logListRef} style={{ maxHeight: "clamp(160px, 28vh, 320px)", overflowY: "auto" }}>
+      <div ref={logListRef} style={{ flex: "0 1 auto", minHeight: 0, maxHeight: "clamp(160px, 28vh, 320px)", overflowY: "auto", overscrollBehavior: "contain" }}>
         {logRows.map((row, i) => {
           const typeColor = REQUEST_TYPE_TEXT_COLORS[row.type] ?? REQUEST_TYPE_TEXT_COLORS.other
           return (

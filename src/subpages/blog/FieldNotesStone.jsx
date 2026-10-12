@@ -27,6 +27,9 @@ const NOTES = [
   "catalogued under: pending",
   "the diagram outlives the object",
   "legible only at this angle",
+  "horizontal hold lost at this line",
+  "signal recorded, source not",
+  "fed back until it held",
 ]
 const TREE_NOTES = [
   "standing since before the survey",
@@ -347,16 +350,31 @@ function unit(x, cx, cy, scale, ink, bank, rot) {
 
   const n = int(5, 11),
     rO = range(76, 100)
-  x.beginPath()
+  const pts = []
   for (let i = 0; i < n; i++) {
     const a = (i / n) * TAU - 0.4 + range(-0.25, 0.25) * (TAU / n)
     const r = rO * range(0.72, 1.2)
-    const px = Rt + Math.cos(a) * r,
-      py = Math.sin(a) * r * 0.86
-    i ? x.lineTo(px, py) : x.moveTo(px, py)
+    pts.push([Math.cos(a) * r, Math.sin(a) * r * 0.86])
   }
-  x.closePath()
-  x.stroke()
+  // the object as a camera pointed at its own monitor would see it: the
+  // outline again and again, each one larger, turned, and fainter
+  const echoes = R() < 0.6 ? int(2, 5) : 0,
+    grow = range(0.1, 0.2),
+    turn = range(-0.09, 0.09)
+  for (let e = echoes; e >= 0; e--) {
+    const k = 1 + grow * e,
+      cs = Math.cos(turn * e),
+      sn = Math.sin(turn * e)
+    x.lineWidth = 3 / scale / (1 + e * 0.8)
+    x.beginPath()
+    pts.forEach(([px, py], i) => {
+      const qx = Rt + (px * cs - py * sn) * k,
+        qy = (px * sn + py * cs) * k
+      i ? x.lineTo(qx, qy) : x.moveTo(qx, qy)
+    })
+    x.closePath()
+    x.stroke()
+  }
 
   const bend = range(-40, 40)
   arrow(x, L + rI + 14, 0, Rt - rO * 0.9 - 6, 0, 15, bend)
@@ -570,6 +588,128 @@ function* ground(x, W, H, offs, o) {
       ink = pick(inks)
     yield* stamp(x, offs, seeded(() => hatch(x, cx, cy, rad, ang, gap, ink)))
   }
+
+  yield* signal(x, W, H, offs, o, f, q, U)
+}
+
+// ---------------------------------------------------------------- signal layers
+// the same survey as a video synth would set it down, kept in ink on paper.
+// all of it goes under the units and the captions, which are drawn after
+function* signal(x, W, H, offs, o, f, q, U) {
+  const inks = o.inks,
+    dens = o.density
+
+  // raster scan: a window of the field read off line by line, each line
+  // pushed up by what it finds there, so the reading stands up as relief
+  if (R() < 0.65) {
+    const rows = int(28, 64),
+      gap = H / rows
+    const r0 = int(0, rows - 1),
+      nr = int(5, Math.max(6, Math.round(rows * 0.3)))
+    const x0 = R() * W,
+      ww = range(0.25, 0.7) * W
+    const amp = gap * range(6, 20),
+      mid = q(0.5),
+      dx = 7 * U
+    const p = new Path2D()
+    for (let r = 0; r < nr; r++) {
+      const y = (r0 + r + 0.5) * gap
+      for (let t = 0; t <= ww; t += dx) {
+        const ends = Math.min(1, t / (ww * 0.15), (ww - t) / (ww * 0.15))
+        const py = y - amp * ends * Math.max(0, f((x0 + t) / W, y / H) - mid)
+        t ? p.lineTo(x0 + t, py) : p.moveTo(x0 + t, py)
+      }
+    }
+    const ink = pick(inks),
+      w = range(1.2, 2.2)
+    yield
+    yield* stamp(x, offs, () => {
+      x.strokeStyle = ink
+      x.lineWidth = w
+      x.stroke(p)
+    })
+  }
+
+  // feedback tunnels: one outline shrinking into itself, turning as it goes
+  const nt = int(0, Math.round(2 * dens))
+  for (let i = 0; i < nt; i++) {
+    const cx = R() * W,
+      cy = R() * H,
+      r0 = range(110, 300) * U
+    const sides = int(3, 7),
+      n = int(8, 22),
+      sc = range(0.82, 0.93),
+      turn = range(-0.16, 0.16)
+    const driftX = range(-5, 5) * U,
+      driftY = range(-5, 5) * U
+    const rim = []
+    for (let k = 0; k < sides; k++) rim.push([(k / sides) * TAU + range(-0.2, 0.2), range(0.75, 1.15)])
+    const ink = pick(inks)
+    yield* stamp(x, offs, () => {
+      x.strokeStyle = ink
+      for (let e = 0; e < n; e++) {
+        const r = r0 * Math.pow(sc, e)
+        x.lineWidth = Math.max(1, 2.4 * Math.pow(sc, e))
+        x.beginPath()
+        rim.forEach(([a, m], k) => {
+          const px = cx + driftX * e + Math.cos(a + turn * e) * r * m,
+            py = cy + driftY * e + Math.sin(a + turn * e) * r * m
+          k ? x.lineTo(px, py) : x.moveTo(px, py)
+        })
+        x.closePath()
+        x.stroke()
+      }
+    })
+  }
+
+  // test bars: a grey scale, which the dither then turns into dot patterns
+  if (R() < 0.5) {
+    const cx = R() * W,
+      cy = R() * H,
+      rot = range(-0.3, 0.3)
+    const n = int(5, 9),
+      bw = range(34, 60) * U,
+      bh = range(40, 90) * U
+    const lift = o.inks === INKS_LIGHT ? 0.35 : 1 // the sky's are as pale as the rest of it
+    yield* stamp(x, offs, () => {
+      x.save()
+      x.translate(cx, cy)
+      x.rotate(rot)
+      for (let k = 0; k < n; k++) {
+        const g = Math.round(255 - lift * 255 * (1 - k / n))
+        x.fillStyle = `rgb(${g},${g},${g})`
+        x.fillRect(k * bw, 0, bw, bh)
+      }
+      x.strokeStyle = inks[0]
+      x.lineWidth = 2
+      x.strokeRect(0, 0, n * bw, bh)
+      x.restore()
+    })
+  }
+
+  // horizontal hold: a few rows of everything drawn so far slip sideways, and
+  // come back in at the other edge so a tiled sheet still meets itself
+  if (R() < 0.75) {
+    const c = x.canvas,
+      cw = c.width
+    const band = document.createElement("canvas")
+    band.width = cw
+    const bx = band.getContext("2d")
+    const n = int(3, 9)
+    x.save()
+    x.setTransform(1, 0, 0, 1, 0, 0)
+    for (let i = 0; i < n; i++) {
+      const h = Math.max(4, Math.round(range(0.004, 0.035) * c.height))
+      const y = Math.floor(R() * (c.height - h))
+      const dx = Math.round(range(0.02, 0.14) * cw) * (R() < 0.5 ? 1 : -1)
+      band.height = h
+      bx.drawImage(c, 0, y, cw, h, 0, 0, cw, h)
+      x.drawImage(band, dx, y)
+      x.drawImage(band, dx - Math.sign(dx) * cw, y)
+    }
+    x.restore()
+    yield
+  }
 }
 
 // ---------------------------------------------------------------- sheets
@@ -716,7 +856,7 @@ function* skySheet() {
   const count = int(12, 24)
   for (let i = 0; i < count; i++) {
     const sc = range(0.4, 0.68)
-    const at = slot(620 * sc, 230 * sc, 0.03, 0.58)
+    const at = slot(620 * sc, 230 * sc, 0.16, 0.58)
     if (!at) continue
     const ink = pick(["#8e8e8e", "#a2a2a2", "#b6b6b6"])
     marks.push(at)
@@ -745,7 +885,7 @@ function* skySheet() {
   for (let i = 0; i < nn; i++) {
     const note = caption()
     x.font = `32px ${FONT}`
-    const at = slot(x.measureText(note).width, 44, 0.05, 0.55)
+    const at = slot(x.measureText(note).width, 44, 0.16, 0.55)
     if (!at) continue
     dome(() => label(x, note, at[0], at[1], 32), at[0], at[1])
   }
@@ -845,7 +985,9 @@ function* specimenSheet(notes, headline, bank) {
 
 // ---------------------------------------------------------------- dissolve shader
 // every drawn surface samples two sheets and swaps between them cell by cell,
-// in drifting patches rather than a uniform fade
+// in drifting patches rather than a uniform fade. while they do, the sheet
+// loses its horizontal hold: a few of its rows slip sideways, on the surface
+// itself, and settle as the new edition takes
 const DISSOLVE_UNIFORMS = `
 uniform sampler2D uMapNext;
 uniform float uMix;
@@ -853,11 +995,17 @@ uniform float uGrain;
 `
 const DISSOLVE_MAP = `
 #ifdef USE_MAP
-  vec2 cell = floor( vMapUv * uGrain );
+  float fault = sin( 3.14159265 * uMix );
+  fault *= fault;
+  vec2 row = vec2( floor( vMapUv.y * uGrain * 0.5 ), floor( uMix * 24.0 ) );
+  float slip = fract( sin( dot( row, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
+  float pull = fract( sin( dot( row, vec2( 39.3468, 11.1351 ) ) ) * 24634.6345 ) - 0.5;
+  vec2 heldUv = vMapUv + vec2( step( 1.0 - 0.3 * fault, slip ) * pull * fault * 4.0 / uGrain, 0.0 );
+  vec2 cell = floor( heldUv * uGrain );
   float grain = fract( sin( dot( cell, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
   float drift = 0.5 + 0.5 * sin( cell.x * 0.23 + cell.y * 0.17 + 3.0 * sin( cell.y * 0.11 ) );
   float edge = grain * 0.4 + drift * 0.6;
-  vec4 sampledDiffuseColor = mix( texture2D( map, vMapUv ), texture2D( uMapNext, vMapUv ), uMix > edge ? 1.0 : 0.0 );
+  vec4 sampledDiffuseColor = mix( texture2D( map, heldUv ), texture2D( uMapNext, heldUv ), uMix > edge ? 1.0 : 0.0 );
   diffuseColor *= sampledDiffuseColor;
 #endif
 `
@@ -1138,11 +1286,16 @@ function buildWorld(host, ui) {
   // ---------------------------------------------------------------- renderer
   const size = () => [host.clientWidth || innerWidth, host.clientHeight || innerHeight]
   let [vw, vh] = size()
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+  let ratio = Math.min(devicePixelRatio, 2) // the loop lowers this if the frame rate can't hold
+  renderer.setPixelRatio(ratio)
   renderer.setSize(vw, vh)
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.VSMShadowMap // blurable, gives a true drop shadow
+  // nothing that casts a shadow moves, so the map is only drawn again when the
+  // sun steps to follow you, and now and then for anything that loaded late
+  renderer.shadowMap.autoUpdate = false
+  renderer.shadowMap.needsUpdate = true
   renderer.xr.enabled = true
   const view = renderer.domElement
   view.tabIndex = 0
@@ -1196,8 +1349,10 @@ function buildWorld(host, ui) {
   ground.receiveShadow = true
   scene.add(ground)
 
+  // the sky is a shell of flat plates, few enough that it reads as built
+  // rather than as a dome, with every join ruled in
   const sky = new THREE.Mesh(
-    new THREE.SphereGeometry(360, 60, 40),
+    new THREE.SphereGeometry(360, 10, 6),
     surface(
       new THREE.MeshBasicMaterial({ side: THREE.BackSide, fog: false, toneMapped: false }),
       skySheet,
@@ -1205,6 +1360,12 @@ function buildWorld(host, ui) {
       72,
     ),
   )
+  const skyEdges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(sky.geometry, 1),
+    new THREE.LineBasicMaterial({ color: 0x9a9a9a, fog: false, toneMapped: false }),
+  )
+  skyEdges.scale.setScalar(0.995)
+  sky.add(skyEdges)
   scene.add(sky)
 
   // six sheets shared by every plate. the printed angle matches the tilt
@@ -1599,11 +1760,11 @@ function buildWorld(host, ui) {
 
   // ---------------------------------------------------------------- move
   const keys = Object.create(null)
-  let fly = false
+  let fly = false // Q lifts off, E brings you down, and touching the floor is walking again
   const onKey = (e, down) => {
     if (!started) return
     keys[e.code] = down
-    if (down && e.code === "KeyF") fly = !fly
+    if (down && e.code === "KeyQ") fly = true
     if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault()
   }
   on(window, "keydown", (e) => onKey(e, true))
@@ -1633,8 +1794,8 @@ function buildWorld(host, ui) {
     if (keys.KeyD || keys.ArrowRight) wish.add(right)
     if (keys.KeyA || keys.ArrowLeft) wish.sub(right)
     if (fly) {
-      if (keys.Space) wish.y += 1
-      if (keys.KeyC || keys.ControlLeft) wish.y -= 1
+      if (keys.KeyQ) wish.y += 1
+      if (keys.KeyE) wish.y -= 1
     }
     if (wish.lengthSq() > 0) wish.normalize().multiplyScalar(speed)
 
@@ -1674,8 +1835,10 @@ function buildWorld(host, ui) {
         }
       }
     }
-    if (fly) dolly.position.y = THREE.MathUtils.clamp(dolly.position.y, -1, 66)
-    else dolly.position.y += (0 - dolly.position.y) * Math.min(1, dt * 9)
+    if (fly) {
+      dolly.position.y = THREE.MathUtils.clamp(dolly.position.y, 0, 66)
+      if (keys.KeyE && dolly.position.y <= 0) fly = false
+    } else dolly.position.y += (0 - dolly.position.y) * Math.min(1, dt * 9)
   }
 
   // ---------------------------------------------------------------- vr
@@ -1753,9 +1916,34 @@ function buildWorld(host, ui) {
 
   // ---------------------------------------------------------------- loop
   const clock = new THREE.Clock()
+  const SUN_STEP = 4 // the sun follows in steps this size, so its shadows hold still between them
+  let sunX = NaN,
+    sunZ = NaN,
+    frames = 0,
+    slow = 0,
+    tick = performance.now(),
+    shadowAt = tick
   renderer.setAnimationLoop(() => {
     const dt = Math.min(clock.getDelta(), 0.05)
     move(dt)
+
+    frames++
+    const t = performance.now()
+    if (t - tick >= 500) {
+      const fps = (frames * 1000) / (t - tick)
+      ui.setFps(Math.round(fps))
+      // two seconds under 40 and the picture is drawn a little smaller. not
+      // counted while an edition is being drawn, which costs frames by itself
+      slow = fps < 40 && cycle.state !== "drawing" && !renderer.xr.isPresenting ? slow + 1 : 0
+      if (slow >= 4 && ratio > 1) {
+        ratio = Math.max(1, ratio - 0.25)
+        renderer.setPixelRatio(ratio)
+        sizeBloom()
+        slow = 0
+      }
+      frames = 0
+      tick = t
+    }
 
     if (cycle.state === "idle" && now() >= cycle.nextAt) redraw()
     if (cycle.state === "fading") {
@@ -1766,8 +1954,16 @@ function buildWorld(host, ui) {
     }
 
     sky.position.set(dolly.position.x, 0, dolly.position.z)
-    sun.target.position.set(dolly.position.x, 0, dolly.position.z)
-    sun.position.set(dolly.position.x + 58, 96, dolly.position.z + 38)
+    const sx = Math.round(dolly.position.x / SUN_STEP) * SUN_STEP,
+      sz = Math.round(dolly.position.z / SUN_STEP) * SUN_STEP
+    if (sx !== sunX || sz !== sunZ || t - shadowAt > 2000) {
+      sunX = sx
+      sunZ = sz
+      shadowAt = t
+      sun.target.position.set(sx, 0, sz)
+      sun.position.set(sx + 58, 96, sz + 38)
+      renderer.shadowMap.needsUpdate = true
+    }
     // a headset draws straight to its own eyes, so no bloom in there
     if (renderer.xr.isPresenting) renderer.render(scene, camera)
     else renderBloomed()
@@ -1830,6 +2026,7 @@ export default function FieldNotesStone() {
   const [started, setStarted] = useState(false)
   const [mode, setMode] = useState({ text: "pointer lock: pending", look: "mouse" })
   const [sheet, setSheet] = useState("ed. 01 / held")
+  const [fps, setFps] = useState(null)
   const [enterVr, setEnterVr] = useState(null)
   const [error, setError] = useState(null)
 
@@ -1847,6 +2044,7 @@ export default function FieldNotesStone() {
       worldRef.current = buildWorld(host, {
         setStarted,
         setSheet,
+        setFps,
         setMode: (text, look) => setMode((m) => ({ text, look: look || m.look })),
         setVr: (fn) => setEnterVr(() => fn),
       })
@@ -1890,6 +2088,8 @@ export default function FieldNotesStone() {
         .fns-hud p { margin:0; color:#000; font-size:11px; line-height:1.75; }
         .fns-hud span { display:inline-block; min-width:78px; }
         .fns-mode { opacity:.45; }
+        .fns-fps { position:absolute; right:14px; bottom:12px; z-index:5; font-size:11px; letter-spacing:.02em;
+                   color:#000; opacity:.7; pointer-events:none; font-variant-numeric:tabular-nums; }
         .fns-reticle { position:absolute; left:50%; top:50%; z-index:5; width:11px; height:11px;
                        margin:-6px 0 0 -6px; opacity:.45; pointer-events:none; }
         .fns-reticle:before, .fns-reticle:after { content:""; position:absolute; background:#000; }
@@ -1925,7 +2125,7 @@ export default function FieldNotesStone() {
           <span>run</span>shift
         </p>
         <p>
-          <span>fly</span>F, then space / C
+          <span>up / down</span>Q / E
         </p>
         <p>
           <span>sheet</span>
@@ -1933,6 +2133,8 @@ export default function FieldNotesStone() {
         </p>
         <p className="fns-mode">{mode.text}</p>
       </div>
+
+      {fps !== null && <div className="fns-fps">{fps} fps</div>}
 
       {enterVr && (
         <button className="fns-vr" onClick={enterVr}>

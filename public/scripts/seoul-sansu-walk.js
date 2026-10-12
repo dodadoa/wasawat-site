@@ -133,7 +133,7 @@ renderer.setPixelRatio(dpr);
 renderer.setClearColor(0xffffff,1);
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(62, 1, .02, 400);
+const camera = new THREE.PerspectiveCamera(70, 1, .02, 400);
 
 // terrain mesh
 const _U=(n)=>{ const u=new Float32Array(n*2); for(let i=0;i<u.length;i+=2){ u[i]=.9; u[i+1]=.5; } return new THREE.BufferAttribute(u,2); };
@@ -155,41 +155,64 @@ geo.setAttribute("uv", _U(vc));
 geo.setIndex(new THREE.BufferAttribute(idx,1));
 geo.computeVertexNormals();
 
+const SURFACE_WATERCOLOR = .8;   // 0..1: watercolor painted into the surfaces themselves (ground, trees, figures, clouds), not over the screen
 const GLSL_NOISE = `
 float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
 float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.-2.*f);
   return mix(mix(hash(i),hash(i+vec2(1.,0.)),u.x), mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),u.x), u.y); }
 float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<5;i++){ v+=a*vnoise(p); p=p*2.03+17.1; a*=.5; } return v; }
+// watercolor in the surface: it is anchored to the world, so the washes stay where they were painted as you walk past.
+// s is how fine the brushwork is for this thing, rim is 1 at its silhouette, k scales the whole effect
+vec3 wcolor(vec3 c, vec3 w, float s, float rim, float k){
+  k *= ${SURFACE_WATERCOLOR.toFixed(2)};
+  vec2 p = vec2(w.x + w.y*.6, w.z - w.y*.6)*s;
+  float b = fbm(p*1.7 + 4.);
+  float wash = .72 + .56*vnoise(p*.8 + 3.);                              // the brush carried more water here, less there
+  float ring = smoothstep(.50,.58,b)*(1.-smoothstep(.58,.63,b));         // backrun: a bloom pushes its pigment out to a dark lip
+  float inside = smoothstep(.58,.63,b);
+  float gran = vnoise(p*30.)*.6 + vnoise(p*61. + 5.)*.4;                 // pigment settling in the tooth of the paper
+  float dry = smoothstep(.6,.85, vnoise(p*vec2(7.,1.8) + 11.)*.7 + gran*.3);   // dry brush, the paper left showing in streaks
+  float sep = vnoise(p*2.1 + 9.) - .5;                                   // two pigments in one wash drifting apart
+  vec3 dens = 1.-c;
+  dens *= 1. + k*sep*vec3(.45,-.1,-.4);
+  dens *= mix(1., wash, k);
+  dens *= 1. + k*(ring*.7 - inside*.28 + rim*.6 + (gran-.5)*.55);
+  dens *= 1. - k*.5*dry;
+  return 1.-clamp(dens,0.,1.);
+}
 `;
 
 const GLSL_DITHER = `
 uniform float uDpr, uH;
 float bayer2(vec2 a){ a = floor(a); return fract(a.x/2. + a.y*a.y*.75); }
 float bayer8(vec2 a){ return bayer2(.25*a)*.0625 + bayer2(.5*a)*.25 + bayer2(a); }
+float ign(vec2 a){ return fract(52.9829189*fract(dot(floor(a), vec2(.06711056,.00583715)))); }
+// four screens laid over each other: ordered, halftone dot, hatch, and a blue-ish noise.
+// every one of them is always in the mix, the place and the tone only lean it one way or another
 float screens(vec2 fc, float lum, float region, float region2){
   float tOrder = bayer8(fc);
   float ca = cos(.55), sa2 = sin(.55);
   vec2 rp = mat2(ca,-sa2,sa2,ca)*fc*.77;
   float tDot = .5 + .5*sin(rp.x*3.1416)*sin(rp.y*3.1416);
   float tLine = fract((fc.x + fc.y)*.39 + fbm(fc/13.)*.6);
-  float tGrain = hash(floor(fc*1.2) + 11.);
-  float t = tOrder;
-  t = mix(t, tDot,  smoothstep(.40,.62,region));
-  t = mix(t, tLine, smoothstep(.52,.22,lum)*.75);
-  t = mix(t, tGrain, smoothstep(.58,.78,region2)*.45);
-  return t;
+  float tNoise = ign(fc + 11.);
+  float lean = smoothstep(.40,.62,region);
+  float wO = .85 - .45*lean, wD = .25 + .65*lean;
+  float wL = .2 + .65*smoothstep(.52,.22,lum), wN = .35 + .45*smoothstep(.58,.78,region2);
+  float t = (tOrder-.5)*wO + (tDot-.5)*wD + (tLine-.5)*wL + (tNoise-.5)*wN;
+  return clamp(.5 + t/sqrt(wO*wO + wD*wD + wL*wL + wN*wN), 0., 1.);   // keep the spread of a single screen
 }
 // dither anchored to the world: cells live on the surface, sized to stay about two pixels on screen
 vec3 dither(vec3 painted, vec3 w, float dist){
   vec2 uv = vec2(w.x + w.y*.7, w.z - w.y*.7);
   float lum = dot(painted, vec3(.33));
   float region = fbm(uv/2.4 + 3.), region2 = fbm(uv/1.1 + 19.);
-  float k = max(dist,.02)*5.2/uH;          // world size of one dot, about four pixels
+  float k = max(dist,.02)*3.2/uH;          // world size of one dot, about two pixels
   float lg = log2(k), lv = floor(lg), f = lg-lv;
   float k0 = exp2(lv), k1 = k0*2.;
   float t = mix(screens(uv/k0,lum,region,region2), screens(uv/k1,lum,region,region2), f);
-  float L = 4. + 2.*step(.5,region);
-  return clamp(floor(painted*L + .5 + (t-.5)*1.35)/L, 0., 1.);
+  float L = 5. + 2.*smoothstep(.42,.58,region);
+  return clamp(floor(painted*L + .5 + (t-.5)*1.2)/L, 0., 1.);
 }
 `;
 
@@ -215,10 +238,12 @@ const terrainMat = new THREE.ShaderMaterial({
 float shadowAt(vec4 sc){
   vec3 q = sc.xyz/sc.w;
   if(q.x<0.||q.x>1.||q.y<0.||q.y>1.||q.z>1.) return 1.;
-  float sh = 0.;
-  for(int x=-1;x<=1;x++) for(int y=-1;y<=1;y++)
-    sh += step(q.z-.0012, texture2D(tShadow, q.xy + vec2(float(x),float(y))*uShadowTexel).r);
-  return sh/9.;
+  // dithered: the taps sit on a spiral turned a different way at every pixel, so the edge of a shadow
+  // is a fine grain that fades out, not the square cells of the shadow map
+  float sh = 0., a0 = hash(gl_FragCoord.xy)*6.2831;
+  for(int i=0;i<12;i++){ float fi=float(i); float r=sqrt((fi+.5)/12.)*3.2, a=a0+fi*2.39996;
+    sh += step(q.z-.0016, texture2D(tShadow, q.xy + vec2(cos(a),sin(a))*r*uShadowTexel).r); }
+  return sh/12.;
 }
     ${GLSL_DITHER}
     void main(){
@@ -258,9 +283,10 @@ float shadowAt(vec4 sc){
       dens *= 1. + bandEdge*.55 + rim*.9;
       dens *= 1. + (tooth-.5)*.5;
       c = 1.-clamp(dens,0.,1.);
+      c = wcolor(c, vW, 1., 0., 1.);
       float sh = shadowAt(vSC);
-      shade *= .35 + .65*sh;
-      c = mix(c*vec3(.80,.86,.94), c, shade);
+      shade *= .12 + .88*sh;
+      c = mix(c*vec3(.60,.69,.86), c, shade);
       c = mix(c, vec3(dot(c,vec3(.33))), .22);
       float wn1 = vnoise(vW.xz*.35+7.), wn2 = vnoise(vW.xz*.16+3.);
       vec3 water = mix(mix(vec3(.78,.94,.96), vec3(.86,.96,.93), wn1), vec3(.74,.94,.88), wn2);
@@ -277,7 +303,7 @@ float shadowAt(vec4 sc){
       water += glint*vec3(1.,.97,.85);
       c = mix(c, water, smoothstep(.2,.8,vWater));
       float edge = smoothstep(24.5, 18.5, max(abs(vW.x),abs(vW.z)) + (nz-.5)*4.);
-      float fog = 1.-smoothstep(6.,38.,vDist)*.8;
+      float fog = 1.-smoothstep(4.,34.,vDist)*.85;
       c = mix(vec3(1.), c, edge*fog);
       gl_FragColor = vec4(c,1.);
     }`
@@ -623,8 +649,13 @@ const pineMat = new THREE.ShaderMaterial({
       #endif
       vVar = fract(sin(dot(im[3].xz, vec2(12.9898,78.233)))*43758.5453);
       vec4 wp = modelMatrix*im*vec4(position,1.);
-      float sway = (sin(uTime*1.05 + wp.x*.9 + wp.z*.7) + .45*sin(uTime*2.4 + wp.z*1.9)) * .022 * max(position.y,0.);
-      wp.x += sway; wp.z += sway*.55;
+      // only the leaves stir: trunks, branches, the footpath and the walls all sit on the solid tile and stay put.
+      // a leaf is pinned where it meets the twig (uv.y 0) and its tip rides the wind, each one a little out of step with the next
+      float leaf = clamp(step(.01, abs(uv.x-.9)) + step(.01, abs(uv.y-.5)), 0., 1.) * uv.y;
+      float gust = sin(uTime*.7 + wp.x*.9 + wp.z*.7) + .45*sin(uTime*1.5 + wp.z*1.9);
+      float flut = sin(uTime*1.9 + wp.x*23. + wp.y*17. + wp.z*19.);
+      vec3 stir = vec3(gust + .5*flut, .35*flut, .55*gust - .4*flut) * .004 * leaf;
+      wp.xyz += stir;
       vW = wp.xyz; vCol = aCol;
       vN = normalize(mat3(modelMatrix)*mat3(im)*normal);
       vSC = uShadowMat*wp;
@@ -642,10 +673,12 @@ const pineMat = new THREE.ShaderMaterial({
 float shadowAt(vec4 sc){
   vec3 q = sc.xyz/sc.w;
   if(q.x<0.||q.x>1.||q.y<0.||q.y>1.||q.z>1.) return 1.;
-  float sh = 0.;
-  for(int x=-1;x<=1;x++) for(int y=-1;y<=1;y++)
-    sh += step(q.z-.0012, texture2D(tShadow, q.xy + vec2(float(x),float(y))*uShadowTexel).r);
-  return sh/9.;
+  // dithered: the taps sit on a spiral turned a different way at every pixel, so the edge of a shadow
+  // is a fine grain that fades out, not the square cells of the shadow map
+  float sh = 0., a0 = hash(gl_FragCoord.xy)*6.2831;
+  for(int i=0;i<12;i++){ float fi=float(i); float r=sqrt((fi+.5)/12.)*3.2, a=a0+fi*2.39996;
+    sh += step(q.z-.0016, texture2D(tShadow, q.xy + vec2(cos(a),sin(a))*r*uShadowTexel).r); }
+  return sh/12.;
 }
     void main(){
       vec3 n = normalize(vN);
@@ -664,9 +697,10 @@ float shadowAt(vec4 sc){
       float wash = .78 + .5*fbm(vW.xz*6. + vW.y*4.);
       vec3 dens = (1.-c)*wash*(1. + rim*mix(1.4,.75,isLeaf));
       c = 1.-clamp(dens,0.,1.);
+      c = wcolor(c, vW, 5., 0., 1.);
       float sh = shadowAt(vSC);
-      shade *= .4 + .6*sh;
-      c = mix(c*vec3(.82,.87,.95), c, shade);
+      shade *= .15 + .85*sh;
+      c = mix(c*vec3(.62,.70,.87), c, shade);
       c = mix(c, vec3(dot(c,vec3(.33))), .2);
       // looking through the crown toward the sun: leaves go translucent and the gaps sparkle
       vec3 L = normalize(vec3(-.55,.75,.35));
@@ -678,7 +712,7 @@ float shadowAt(vec4 sc){
       c += sunward*leafy*twinkle*vec3(1.,.95,.75)*1.4;
       float nz = fbm(vW.xz*.8);
       float edge = smoothstep(24.5, 18.5, max(abs(vW.x),abs(vW.z)) + (nz-.5)*4.);
-      float fog = 1.-smoothstep(6.,38.,vDist)*.8;
+      float fog = 1.-smoothstep(4.,34.,vDist)*.85;
       gl_FragColor = vec4(mix(vec3(1.), c, edge*fog), 1.);
     }`
 });
@@ -739,6 +773,68 @@ function grid(E,N){
   const L=(A,st,o)=>(A[k*st+o]*(1-u)+A[(k+1)*st+o]*u)*(1-v)+(A[K*st+o]*(1-u)+A[(K+1)*st+o]*u)*v;
   return {y:L(pos,3,1), w:L(wat,1,0)};
 }
+// exact height of the drawn mesh (each cell is two triangles split b-c), so nothing laid on it sinks or floats
+function meshY(E,N){
+  const fi=Math.max(0,Math.min(SEG-1.001,(E+HALF)/(2*HALF)*SEG)), fj=Math.max(0,Math.min(SEG-1.001,(HALF-N)/(2*HALF)*SEG));
+  const i=Math.floor(fi), j=Math.floor(fj), u=fi-i, v=fj-j, k=j*(SEG+1)+i, K=k+SEG+1;
+  const a=pos[k*3+1], b=pos[k*3+4], c=pos[K*3+1], d=pos[K*3+4];
+  return u+v<=1 ? a+(b-a)*u+(c-a)*v : d+(c-d)*(1-u)+(b-d)*(1-v);
+}
+
+/* ---------- the footpath: one leg per line of the story, and the only place you walk ---------- */
+// one straight line from Namsan to the Doi Tao lake, cut into even legs: no bends, the hills pass by on either side
+const FROM=[1.35,-1.55], TO=[-21,2.6], LEGS=13;                                         // one leg per line
+const route = Array.from({length:LEGS+1}, (_,k)=>[FROM[0]+(TO[0]-FROM[0])*k/LEGS, FROM[1]+(TO[1]-FROM[1])*k/LEGS]);
+const segLen = route.slice(1).map((b,i)=>Math.hypot(b[0]-route[i][0], b[1]-route[i][1]));
+const trail = (() => {
+  const STEP=.04, R=i=>route[Math.max(0,Math.min(route.length-1,i))];
+  // straight legs, and only the corners rounded: each bend is a short arc cut inside the corner, never wider than the legs allow
+  const RAD=.4, last=route.length-1;
+  const bend=j=>{
+    if(j<=0 || j>=last) return null;
+    const p=route[j], r=Math.min(RAD, segLen[j-1]*.45, segLen[j]*.45);
+    const a=route[j-1], b=route[j+1];
+    return [[p[0]+(a[0]-p[0])*r/segLen[j-1], p[1]+(a[1]-p[1])*r/segLen[j-1]], p, [p[0]+(b[0]-p[0])*r/segLen[j], p[1]+(b[1]-p[1])*r/segLen[j]]];
+  };
+  const arc=(c,u)=>{ const v=1-u; return [c[0][0]*v*v+c[1][0]*2*v*u+c[2][0]*u*u, c[0][1]*v*v+c[1][1]*2*v*u+c[2][1]*u*u]; };
+  const E=[], N=[], seg0=[], segN=[];
+  for(let i=0;i<route.length-1;i++){
+    // a leg runs from the middle of one bend to the middle of the next, then the samples go down at even paces so a step is a step everywhere
+    const c0=bend(i), c1=bend(i+1), pts=[], acc=[0], Q=16;
+    if(c0) for(let k=0;k<=Q;k++) pts.push(arc(c0,.5+.5*k/Q)); else pts.push(R(i));
+    if(c1) for(let k=0;k<=Q;k++) pts.push(arc(c1,.5*k/Q)); else pts.push(R(i+1));
+    const K=pts.length-1;
+    for(let k=1;k<=K;k++) acc.push(acc[k-1]+Math.hypot(pts[k][0]-pts[k-1][0], pts[k][1]-pts[k-1][1]));
+    const m=Math.max(2,Math.ceil(acc[K]/STEP));
+    seg0.push(E.length); segN.push(m);
+    for(let k=0, j=0;k<m;k++){ const d=acc[K]*k/m;
+      while(j<K-1 && acc[j+1]<d) j++;
+      const u=(d-acc[j])/Math.max(1e-9,acc[j+1]-acc[j]);
+      E.push(pts[j][0]+(pts[j+1][0]-pts[j][0])*u); N.push(pts[j][1]+(pts[j+1][1]-pts[j][1])*u); }
+  }
+  E.push(route[route.length-1][0]); N.push(route[route.length-1][1]);
+  const n=E.length, g=E.map((e,k)=>meshY(e,N[k])), eye=new Float32Array(n);
+  // the eye line: the ground, but a steep rise ahead lifts you early instead of filling the lens.
+  // only what is in front counts, so coming down off a peak you stay on your feet
+  const GRADE=.7, WIN=45, cone=new Float32Array(n);
+  for(let k=0;k<n;k++){ let m=g[k];
+    for(let j=k; j<=Math.min(n-1,k+WIN); j++) m=Math.max(m, g[j]-GRADE*Math.hypot(E[j]-E[k],N[j]-N[k]));
+    cone[k]=m; }
+  // then the bumps are taken out: the highest point within a few paces either side, and the average of those.
+  // it never dips under the ground, and the eye glides over small rises instead of riding every one of them
+  const SM=8, hi=new Float32Array(n);
+  for(let k=0;k<n;k++){ let m=cone[k];
+    for(let j=Math.max(0,k-SM); j<=Math.min(n-1,k+SM); j++) m=Math.max(m, cone[j]);
+    hi[k]=m; }
+  for(let k=0;k<n;k++){ let a=0, c=0;
+    for(let j=Math.max(0,k-SM); j<=Math.min(n-1,k+SM); j++){ a+=hi[j]; c++; }
+    eye[k]=a/c; }
+  const L=(A,f)=>{ const k=Math.max(0,Math.min(n-2,Math.floor(f))), u=Math.max(0,Math.min(1,f-k)); return A[k]+(A[k+1]-A[k])*u; };
+  return { n, E, N, seg0, segN,
+    at: f => ({E:L(E,f), N:L(N,f), y:L(eye,f)}),
+    dist: (e,nn) => { let d=1e9; for(let k=0;k<n;k++){ const x=E[k]-e, z=N[k]-nn, q=x*x+z*z; if(q<d) d=q; } return Math.sqrt(d); } };
+})();
+
 const forest = (() => {
   let sd = 20260922; const rnd = () => (sd = (sd*16807) % 2147483647) / 2147483647;
   const out = {}; for(const k in species) out[k]=[];
@@ -772,6 +868,7 @@ const forest = (() => {
       castan: th*2.8*ss(.28,.44,h),
     };
     let k = pick(w); if(!k) continue;
+    if(trail.dist(E,N) < .13) continue;                      // nothing grows on the footpath
     const base = {sonamu:.38,lowOak:.36,singal:.36,locust:.32,teak:.48,dipt:.46,bamboo:.3,kesiya:.4,castan:.44}[k];
     if(k==="sonamu") k = ["sonamu","sonamu2","sonamu3"][Math.floor(rnd()*3)];
     else if(k==="kesiya") k = rnd()<.5 ? "kesiya" : "kesiya2";
@@ -783,6 +880,7 @@ const forest = (() => {
     if(g.w>.05) continue;
     const ko = 1-Math.max(0,Math.min(1, ss(-4,-15,E) + (fbm(E*.22+50,N*.22+20)-.5)*1.3));
     if(rnd() > ko*ss(.1,.3,h)*ss(.35,.6,fbm(E*1.7+3,N*1.7))*.9) continue;
+    if(trail.dist(E,N) < .05) continue;
     put("azalea",E,N,g.y-.005, .05+rnd()*.05, 0,0, 1);
   }
   // chunk the forest: one instanced mesh per species per 5 km cell, with its own bounding sphere,
@@ -805,56 +903,158 @@ const forest = (() => {
   scene.add(group); return group;
 })();
 /* ---------- postfx: a second dither that drifts across the glass ---------- */
+const WATERCOLOR = 0;   // 0..1: how much of the paper, wash and pooling is laid over the plain picture, off for now
+const INK_BLEED = 0;    // 0..1: dark marks creep out into the wet paper around them, off for now
+const DOF = 2.5;         // depth of field: blur radius, in css pixels, of what lies furthest from the focus, 0 for none
+const FOCUS = .45;      // how far away the eye is focused, in world units: about where the two friends walk
+const LUMA_BLUR = 3;    // luma blur: extra radius, in css pixels, on the brightest places, so light goes soft and the darks stay crisp
+const PIXEL_DITHER = 1.4; // the world is drawn small and stretched: each screen pixel reads it from a scattered spot this many world pixels wide, so blocks break into grain
+const BLOOM = 1;        // 0..1: light spills out of the bright places
+// the pass runs in this order: halftone, ink bleed, depth of field and luma blur, watercolor, bloom, then the dream light over all of it
+const HALFTONE = 0;      // 0..1: how much of the picture is carried by the dot screen, off for now
+const HALFTONE_CELL = 4; // dot pitch, in css pixels
+const DREAM = 0;       // 0..1: soft glow, mist, lifted pastel light over everything
+const DITHER = false;   // the dither on the glass, off for now
+const DITHER_CELL = 2;  // size of one dither cell, in css pixels
+const DITHER_BLUR = .7; // 0 hard cells and hard steps, 1 cells melt into each other
 let rt;
-function makeRT(w,h){ if(rt) rt.dispose(); rt = new THREE.WebGLRenderTarget(w,h,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter}); }
+function makeRT(w,h){ if(rt){ rt.depthTexture.dispose(); rt.dispose(); }
+  rt = new THREE.WebGLRenderTarget(w,h,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+  rt.depthTexture = new THREE.DepthTexture(w,h); rt.depthTexture.type = THREE.UnsignedIntType; }   // the depth is kept for the focus
 const post = new THREE.ShaderMaterial({
   depthTest:false, depthWrite:false,
-  uniforms:{ tColor:{value:null}, uTime:{value:0}, uDpr:{value:1}, uRes:{value:new THREE.Vector2(1,1)}, uOut:{value:new THREE.Vector2(1,1)} },
+  uniforms:{ tColor:{value:null}, tDepth:{value:null}, uFx:{value:WATERCOLOR}, uBleed:{value:INK_BLEED}, uBloom:{value:BLOOM}, uPix:{value:PIXEL_DITHER}, uDof:{value:DOF}, uFocus:{value:FOCUS}, uLuma:{value:LUMA_BLUR}, uNear:{value:.02}, uFar:{value:400}, uDither:{value:DITHER?1:0}, uDream:{value:DREAM}, uHalf:{value:HALFTONE}, uHCell:{value:HALFTONE_CELL}, uCell:{value:DITHER_CELL}, uBlur:{value:DITHER_BLUR}, uTime:{value:0}, uDpr:{value:1}, uRes:{value:new THREE.Vector2(1,1)}, uOut:{value:new THREE.Vector2(1,1)} },
   vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }`,
   fragmentShader:`
     precision highp float;
-    uniform sampler2D tColor; uniform float uTime, uDpr; uniform vec2 uRes, uOut; varying vec2 vUv;
+    uniform sampler2D tColor, tDepth; uniform float uTime, uDpr, uFx, uDither, uCell, uBlur, uDream, uHalf, uHCell, uBleed, uBloom, uDof, uFocus, uLuma, uNear, uFar, uPix; uniform vec2 uRes, uOut; varying vec2 vUv;
     float bayer2(vec2 a){ a = floor(a); return fract(a.x/2. + a.y*a.y*.75); }
     float bayer8(vec2 a){ return bayer2(.25*a)*.0625 + bayer2(.5*a)*.25 + bayer2(a); }
+    float ign(vec2 a){ return fract(52.9829189*fract(dot(floor(a), vec2(.06711056,.00583715)))); }
     float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
     float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.-2.*f);
       return mix(mix(hash(i),hash(i+vec2(1.,0.)),u.x), mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),u.x), u.y); }
     float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<5;i++){ v+=a*vnoise(p); p=p*2.03+17.1; a*=.5; } return v; }
+    // the cell screens read between cell centres, so a cell fades into its neighbours instead of ending at an edge
+    float bayerS(vec2 p){ p -= .5; vec2 i=floor(p), f=fract(p);
+      return mix(mix(bayer8(i),bayer8(i+vec2(1.,0.)),f.x), mix(bayer8(i+vec2(0.,1.)),bayer8(i+vec2(1.,1.)),f.x), f.y); }
+    float ignS(vec2 p){ p -= .5; vec2 i=floor(p), f=fract(p);
+      return mix(mix(ign(i),ign(i+vec2(1.,0.)),f.x), mix(ign(i+vec2(0.,1.)),ign(i+vec2(1.,1.)),f.x), f.y); }
+    // one ink's screen: a grid turned by ang, each cell a dot whose area is a
+    float dotCov(vec2 p, float ang, float a, float aa){
+      float cs=cos(ang), sn=sin(ang); vec2 g = fract(mat2(cs,-sn,sn,cs)*p)-.5;
+      float r = sqrt(a/3.14159);
+      return 1.-smoothstep(r-aa, r+aa, length(g)); }
+    // halftone: three inks on three angles. each dot is printed lighter than solid and so grows bigger,
+    // which keeps the pale washes as soft dots instead of specks
+    vec3 halftone(vec3 c, vec2 at){
+      if(uHalf <= 0.) return c;
+      vec2 hp = at/uHCell; float aa = 1.2/(uHCell*uDpr) + .03;
+      vec3 ink = sqrt(clamp(1.-c, 0., 1.));              // density of the ink, and the share of the cell it covers
+      vec3 cov = vec3(dotCov(hp,.26,ink.r,aa), dotCov(hp,1.31,ink.g,aa), dotCov(hp,.79,ink.b,aa));
+      return mix(c, 1.-ink*cov, uHalf);
+    }
+    // ink bleed: the darkest thing nearby seeps into this spot, further where the paper is wetter,
+    // so thin dark marks fatten and feather instead of ending on a clean edge
+    vec3 inkBleed(vec3 c, vec2 uv, vec2 fc, vec2 px){
+      if(uBleed <= 0.) return c;
+      float wet = fbm(fc/38. + 2.), R = (2. + 6.*wet)*uDpr, a0 = fbm(fc/60. + 14.)*12.;
+      vec3 m = c;
+      for(int i=0;i<10;i++){ float fi=float(i); float k=sqrt((fi+.5)/10.), a=a0+fi*2.39996;
+        vec3 t = texture2D(tColor, uv + vec2(cos(a),sin(a))*k*R*px).rgb;
+        float inky = 1.-smoothstep(.3,.62, dot(t, vec3(.3,.59,.11)));   // only what is dark enough to be ink runs; the pale washes stay put
+        m = min(m, mix(c, t, inky*(1.-k*k*.85))); }        // strongest close in, thinning as it travels
+      return mix(c, m, uBleed);
+    }
+    // circle of confusion: nothing at the focus distance, growing both nearer and further
+    float coc(vec2 uv){ float z = uNear*uFar/(uFar - texture2D(tDepth, uv).r*(uFar-uNear));
+      float k = clamp(abs(1.-uFocus/z), 0., 1.); return k*sqrt(k); }
     void main(){
       vec2 fc = gl_FragCoord.xy/uDpr;
       vec2 px = 1./uOut;
+      float paperLo = fbm(fc/240.);
+      // wet paper: colour pulled from a wobbled spot
+      vec2 wob = (vec2(fbm(fc/150.), fbm(fc/150.+31.7))-.5)*14.*uFx;
+      vec2 suv = vUv + wob*px*uDpr;
+      suv += (vec2(ign(gl_FragCoord.xy), ign(gl_FragCoord.yx + vec2(37.,17.))) - .5)*uPix/uRes;   // dithered read, hides the stair-steps of the small picture
+      vec3 c = inkBleed(halftone(texture2D(tColor, suv).rgb, suv*uOut/uDpr), suv, fc, px);
+      if(uDof > 0. || uLuma > 0.){
+        // depth of field and luma blur in one gather: the radius comes from how far out of focus this spot is and how bright it is.
+        // a tap counts for as much as it is itself out of focus, so what is sharp does not smear into the soft things behind it,
+        // and bright taps count for more, so lights swell into discs
+        float k0 = coc(suv), l0 = dot(c, vec3(.3,.59,.11));
+        float SR = (uDof*k0 + uLuma*smoothstep(.55,.95,l0))*uDpr;
+        vec3 acc = c; float wsum = 1.;
+        for(int i=0;i<12;i++){ float fi=float(i); float r=sqrt((fi+.5)/12.)*SR; float a=fi*2.39996 + .7;
+          vec2 tuv = suv + vec2(cos(a),sin(a))*r*px; vec3 t = texture2D(tColor, tuv).rgb;
+          float w = (.15 + .85*max(coc(tuv), 1.-k0)) * (1. + 2.*uLuma/3.*smoothstep(.6,1., dot(t, vec3(.3,.59,.11))));
+          acc += t*w; wsum += w; }
+        c = acc/wsum;
+      }
+      if(uFx > 0.){
       // paper: cockle, tooth, fibres
-      float paperLo = fbm(fc/240.), paperHi = fbm(fc/7.);
+      float paperHi = fbm(fc/7.);
       float fibre = vnoise(vec2(fc.x/2.5, fc.y/45.))*.5 + vnoise(vec2(fc.x/45., fc.y/2.5))*.5;
       float paperH = paperLo*.35 + paperHi*.5 + fibre*.15;
-      // wet paper: colour pulled from a wobbled spot
-      vec2 wob = (vec2(fbm(fc/150.), fbm(fc/150.+31.7))-.5)*14.;
-      vec2 suv = vUv + wob*px*uDpr;
       // bleed: a soft ring, and pigment pooling where a wash meets another
-      vec3 col = texture2D(tColor, suv).rgb, wide = vec3(0.);
+      vec3 col = c, wide = vec3(0.);
       float R = 7.*uDpr, ang = hash(fc)*6.2831;
       for(int i=0;i<12;i++){ float fi=float(i); float r=sqrt((fi+.5)/12.)*R; float a=ang+fi*2.39996;
         wide += texture2D(tColor, suv + vec2(cos(a),sin(a))*r*px).rgb; }
       wide /= 12.;
-      col = mix(col, wide, .45);
+      col = mix(col, wide, .3);
       vec3 dens = 1.-col;
       float turb = fbm(fc/90.+5.3);
       dens *= .78 + .46*turb;                               // uneven wash
       float ed = length(col-wide);
       dens += dens*ed*3.2;                                  // edge pooling
-      dens *= 1. + (.5-paperH)*.9;                          // granulation in the tooth
+      dens *= 1. + (.5-paperH)*.6;                          // granulation in the tooth
       dens = mix(dens, floor(dens*6.+turb*.6)/6., .35);     // glazes
       // desaturate a little, on paper
-      vec3 paper = vec3(.98,.965,.93)*(.94+.08*paperH);
-      vec3 c = paper*(1.-clamp(dens,0.,1.));
+      vec3 paper = vec3(.98,.965,.93)*(.955+.055*paperH);
+      vec3 wc = paper*(1.-clamp(dens,0.,1.));
+      wc = mix(vec3(dot(wc, vec3(.3,.59,.11))), wc, .7);
+      c = mix(c, wc, uFx);
+      }
+      if(uDream > 0. || uBloom > 0.){
+        // halation: the whole picture breathed out wide and laid back over itself
+        vec3 glow = vec3(0.); float GR = 34.*uDpr;
+        for(int i=0;i<14;i++){ float fi=float(i); float r=sqrt((fi+.5)/14.)*GR; float a=fi*2.39996 + 1.3;
+          glow += texture2D(tColor, vUv + vec2(cos(a),sin(a))*r*px).rgb; }
+        glow /= 14.;
+        // bloom: only the bright places give light, and it lands on whatever is next to them
+        float gl = dot(glow, vec3(.3,.59,.11));
+        c = 1.-(1.-c)*(1.-glow*smoothstep(.5,.95,gl)*.8*uBloom);
+        c = mix(c, glow*vec3(.99,.975,.96), .14*uDream);                       // soft focus
+        c = 1.-(1.-c)*(1.-glow*glow*.18*uDream);                               // a faint lift everywhere
+        // split tone: shadows drift lilac, lights go warm cream, nothing stays dark
+        float dl = dot(c, vec3(.3,.59,.11));
+        c = mix(c, vec3(.80,.78,.95), (1.-smoothstep(.15,.75,dl))*.30*uDream);
+        c = mix(c, vec3(1.,.975,.93), smoothstep(.6,1.,dl)*.25*uDream);
+        c = mix(c, vec3(dl), -.12*uDream);                                     // a little more colour back, pastel not grey
+        // mist that drifts across the glass, and the edges of the page fading out
+        float veil = fbm(fc/300. + vec2(uTime*.012, -uTime*.008))*.6 + fbm(fc/120. - vec2(uTime*.02, uTime*.006))*.4;
+        c = mix(c, vec3(.985,.975,1.), smoothstep(.42,.8,veil)*.26*uDream);
+        vec2 vg = (vUv-.5)*vec2(1.15,1.3);
+        c = mix(c, vec3(.99,.98,.985), smoothstep(.32,.78,length(vg))*.5*uDream);
+      }
+      if(uDither < .5){ gl_FragColor = vec4(c,1.); return; }
       float lum = dot(c, vec3(.3,.59,.11));
-      c = mix(vec3(lum), c, .7);
-      // ordered dither, slow drift, the sun left alone
-      vec2 drift = vec2(uTime*2., -uTime*3.);
-      float t = bayer8((fc + drift)/2.);
-      float amp = 1.-smoothstep(.86,.98,lum);
-      float L = 8.;
-      gl_FragColor = vec4(floor(c*L + .5 + (t-.5)*amp)/L, 1.);
+      // a fine dither on the glass: ordered, halftone dot, noise and a faint hatch together, slow drift, the sun left alone
+      vec2 drift = vec2(uTime*2., -uTime*3.), dc = gl_FragCoord.xy/max(1., uDpr*uCell);
+      float tB = mix(bayer8(dc + drift), bayerS(dc + drift), uBlur);
+      float tN = mix(ign(dc - drift.yx), ignS(dc - drift.yx), uBlur);
+      float tH = fract((dc.x - dc.y)*.31 + paperLo*3.);
+      vec2 rp = mat2(.8525,-.5227,.5227,.8525)*dc*.7;
+      float tD = .5 + .5*sin(rp.x*3.1416)*sin(rp.y*3.1416);
+      float lean = smoothstep(.4,.62, fbm(fc/170.+9.));        // patches where the dot screen takes over from the ordered one
+      float wB = .8 - .4*lean, wD = .2 + .6*lean, wN = .55, wH = .15 + .45*smoothstep(.6,.25,lum);
+      float t = clamp(.5 + ((tB-.5)*wB + (tD-.5)*wD + (tN-.5)*wN + (tH-.5)*wH)/sqrt(wB*wB + wD*wD + wN*wN + wH*wH), 0., 1.);
+      float amp = (1.-smoothstep(.86,.98,lum))*.7;
+      float L = 10.;
+      vec3 v = c*L + (t-.5)*amp, fv = fract(v);
+      float w = .5*uBlur;                                    // how far a step between two levels is feathered
+      gl_FragColor = vec4((floor(v) + smoothstep(.5-w, .5+w+1e-4, fv))/L, 1.);
     }`
 });
 const postScene = new THREE.Scene();
@@ -869,25 +1069,31 @@ const sunCam = new THREE.OrthographicCamera(-SHR,SHR,SHR,-SHR,1,80);
 const depthMat = new THREE.MeshDepthMaterial({map:leafTex, alphaTest:.35, side:THREE.DoubleSide});
 const biasM = new THREE.Matrix4().set(.5,0,0,.5, 0,.5,0,.5, 0,0,.5,.5, 0,0,0,1);
 for(const m of [terrainMat, pineMat]) m.uniforms.tShadow.value = shadowRT.depthTexture;
+// nothing that casts a shadow moves (the leaves stir only in the colour pass), so the map is good until the walker
+// has gone far enough from its centre. drawing it is most of a frame, and doing that every other frame made the walk stutter
+const shAt = new THREE.Vector3(1e9,0,0), shM = new THREE.Matrix4();
 function renderShadows(){
-  const tx = 2*SHR/SHN*8;
+  const tx = 2*SHR/SHN*24;                                     // re-centre in steps of 24 texels, a third of a km
+  if(Math.max(Math.abs(me.x-shAt.x), Math.abs(me.y-shAt.y), Math.abs(me.z-shAt.z)) < tx*.75) return;
   const cx = Math.round(me.x/tx)*tx, cz = Math.round(me.z/tx)*tx, cy = Math.round(me.y/tx)*tx;
+  shAt.set(cx,cy,cz);
   sunCam.position.set(cx+SUN.x*40, cy+SUN.y*40, cz+SUN.z*40);
   sunCam.lookAt(cx,cy,cz); sunCam.updateMatrixWorld(); sunCam.updateProjectionMatrix();
-  const M = new THREE.Matrix4().multiplyMatrices(sunCam.projectionMatrix, sunCam.matrixWorldInverse).premultiply(biasM);
-  for(const m of [terrainMat, pineMat]) m.uniforms.uShadowMat.value.copy(M);
-  sky.dome.visible=false; rainLines.visible=false;
+  shM.multiplyMatrices(sunCam.projectionMatrix, sunCam.matrixWorldInverse).premultiply(biasM);
+  for(const m of [terrainMat, pineMat]) m.uniforms.uShadowMat.value.copy(shM);
+  sky.dome.visible=false; clouds.group.visible=false; friends.show(false);
   const hidden=[]; forest.traverse(o=>{ if(o.userData.noShadow){ o.visible=false; hidden.push(o); } });
+  for(const b of birds){ b.m.visible=false; hidden.push(b.m); }   // a bird's shadow would stay behind where it was
   scene.overrideMaterial = depthMat;
   renderer.setRenderTarget(shadowRT); renderer.render(scene, sunCam);
   scene.overrideMaterial = null;
   for(const o of hidden) o.visible=true;
-  sky.dome.visible=true; rainLines.visible=true;
+  sky.dome.visible=true; clouds.group.visible=true; friends.show(true);
 }
 
 /* ---------- walker ---------- */
-const EYE = .075;
-const me = {x:.9, z:1.85, y:0, yaw:0, pitch:-.04, bob:0};   // start on Namsan, facing north toward Bukhansan
+const EYE = .095;
+const me = {x:.9, z:1.85, y:0, yaw:0, pitch:-.04};   // start on Namsan, facing north toward Bukhansan
 { const t = terrain(me.x,-me.z); me.y = t.h*EXAG + EYE; }
 const LOOK = .0024;
 function look(dx,dy){ me.yaw -= dx*LOOK; me.pitch = Math.max(-1.2, Math.min(1.2, me.pitch - dy*LOOK)); }
@@ -915,7 +1121,7 @@ function nudge(){ startAudio(); }
   const BX=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
   const at = (lat,lon) => { const [E,N]=KM(lat,lon); return {E,N,y:terrain(E,N).h*EXAG}; };
   const add = (g,x,y,z,ry=0) => { const m=new THREE.Mesh(g,pineMat); m.position.set(x,y,z); m.rotation.y=ry; m.frustumCulled=false; scene.add(m); return m; };
-  const pale=[.88,.87,.85], grey=[.72,.71,.70], gold=[.86,.79,.56], tile=[.46,.43,.45], stone=[.80,.78,.74];
+  const pale=[.88,.87,.85], grey=[.72,.71,.70], stone=[.80,.78,.74];
 
   // N서울타워, 236 m on 남산
   const ns = at(37.5512,126.9882);
@@ -932,17 +1138,6 @@ function nudge(){ startAudio(); }
     part(CY(.042,.105,1.52,4), pale, M(0,.76,0)),
     part(CY(.004,.03,.18,4), grey, M(0,1.6,0)),
   ]), lw.E, lw.y-.02, -lw.N, Math.PI/4);
-
-  // 63빌딩, 250 m on 여의도
-  const sb = at(37.5199,126.9403);
-  add(merge([ part(BX(.075,.74,.21), gold, M(0,.37,0)) ]), sb.E, sb.y-.01, -sb.N, .5);
-
-  // 경복궁, on the axis below 북악산
-  const gb = at(37.5796,126.9770);
-  add(merge([
-    part(BX(.30,.012,.22), tile, M(0,.03,0)),
-    part(BX(.10,.022,.07), tile, M(0,.05,.02)),
-  ]), gb.E, gb.y, -gb.N);
 
   // the old wall line, now just a road over the four inner mountains
   function ribbon(path, w, col, lift){
@@ -972,6 +1167,29 @@ function nudge(){ startAudio(); }
     [37.5800,127.0070],[37.5710,127.0100],[37.5650,127.0100],[37.5512,126.9882],[37.5600,126.9755],
     [37.5690,126.9680],[37.5850,126.9580]].map(q=>KM(q[0],q[1]));
   ribbon(wallPath, .045, [1.,1.,.985], .006);
+
+  // the footpath itself: a worn strip pressed onto the ground, each edge at its own height so it hugs a side slope
+  { const P=[], C=[], I=[], w=.06, col=[.96,.89,.76], SUB=2, n=(trail.n-1)*SUB+1;
+    const xy = f => { const k=Math.max(0,Math.min(trail.n-2,Math.floor(f))), u=f-k;
+      return [trail.E[k]+(trail.E[k+1]-trail.E[k])*u, trail.N[k]+(trail.N[k+1]-trail.N[k])*u]; };
+    for(let i=0;i<n;i++){
+      const f=i/SUB, c=xy(f), a=xy(Math.max(0,f-2)), b=xy(Math.min(trail.n-1,f+2));   // a long tangent keeps the edges from folding on a bend
+      let dx=b[0]-a[0], dn=b[1]-a[1]; const L=Math.hypot(dx,dn)||1; dx/=L; dn/=L;
+      for(const sd of [1,0,-1]){
+        const e=c[0]-dn*w*.5*sd, nn=c[1]+dx*w*.5*sd;
+        P.push(e, meshY(e,nn)+.007, -nn); C.push(col[0],col[1],col[2]);
+      }
+      if(i<n-1){ const k=i*3; I.push(k,k+1,k+3, k+1,k+4,k+3, k+1,k+2,k+4, k+2,k+5,k+4); }
+    }
+    const g=new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(P),3));
+    g.setAttribute("aCol", new THREE.BufferAttribute(new Float32Array(C),3));
+    g.setAttribute("uv", _U(P.length/3));
+    g.setIndex(I); g.computeVertexNormals();
+    // same paint as everything else, but always won against the ground under it, so no hill shows through in patches
+    const pathMat=pineMat.clone(); pathMat.uniforms=pineMat.uniforms;
+    pathMat.polygonOffset=true; pathMat.polygonOffsetFactor=-2; pathMat.polygonOffsetUnits=-4;
+    const m=new THREE.Mesh(g,pathMat); m.frustumCulled=false; scene.add(m); }
 
   // แพ: raft houses moored on the Doi Tao lake
   const raft = merge([
@@ -1035,48 +1253,6 @@ const sky = (() => {
   return {mat, dome};
 })();
 
-/* ---------- rain, in the world ---------- */
-let rainLines;
-const rain = (() => {
-  const N = 7000, BX = 6.5, BY = 3.6;
-  const pos = new Float32Array(N*6), end = new Float32Array(N*2);
-  for(let i=0;i<N;i++){
-    const x=Math.random(), y=Math.random(), z=Math.random();
-    pos[i*6]=x; pos[i*6+1]=y; pos[i*6+2]=z;
-    pos[i*6+3]=x; pos[i*6+4]=y; pos[i*6+5]=z;
-    end[i*2]=0; end[i*2+1]=1;
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.BufferAttribute(pos,3));
-  g.setAttribute("aEnd", new THREE.BufferAttribute(end,1));
-  const mat = new THREE.ShaderMaterial({
-    transparent:true, depthWrite:false, blending:THREE.NormalBlending,
-    uniforms:{ uTime:{value:0}, uCam:{value:new THREE.Vector3()}, uBX:{value:BX}, uBY:{value:BY}, uLen:{value:.04} },
-    vertexShader:`
-      uniform float uTime, uBX, uBY, uLen; uniform vec3 uCam;
-      attribute float aEnd;
-      varying float vA;
-      void main(){
-        float sp = .6 + position.z*.8;
-        float x = fract(position.x + uTime*sp*.012);
-        float y = fract(position.y - uTime*sp*.075);
-        float z = fract(position.z*1.317 + .31 + uTime*sp*.004);
-        vec3 w = uCam + vec3((x-.5)*uBX, (y-.5)*uBY, (z-.5)*uBX);
-        w += aEnd*vec3(.26,-1.,.1)*uLen*(.7+sp*.6);
-        vec4 mv = viewMatrix*vec4(w,1.);
-        float d = length(mv.xyz);
-        vA = (.55*(1.-smoothstep(.4,3.6,d)) + .18) * smoothstep(6.5,3.,d);
-        gl_Position = projectionMatrix*mv;
-      }`,
-    fragmentShader:`
-      precision highp float; varying float vA;
-      void main(){ gl_FragColor = vec4(.72,.85,.88, vA*.5); }`
-  });
-  const lines = new THREE.LineSegments(g, mat);
-  lines.frustumCulled = false; scene.add(lines);
-  rainLines = lines; return mat;
-})();
-
 /* ---------- birds ---------- */
 const birds = (() => {
   const g = new THREE.BufferGeometry();
@@ -1097,22 +1273,12 @@ const birds = (() => {
   return arr;
 })();
 
-/* ---------- rain, frogs, birds, as sound ---------- */
+/* ---------- frogs, birds, as sound ---------- */
 let audio=null;
 function startAudio(){
   if(audio) return;
   const AC = window.AudioContext||window.webkitAudioContext; if(!AC) return;
   const ctx = new AC(); const out = ctx.createGain(); out.gain.value=.5; out.connect(ctx.destination);
-  // rain
-  const buf = ctx.createBuffer(1, ctx.sampleRate*3, ctx.sampleRate), d=buf.getChannelData(0);
-  for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-  const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true;
-  const lp=ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=1600;
-  const hp=ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=320;
-  const rg=ctx.createGain(); rg.gain.value=.10;
-  src.connect(hp); hp.connect(lp); lp.connect(rg); rg.connect(out); src.start();
-  const lfo=ctx.createOscillator(); lfo.frequency.value=.05; const lg=ctx.createGain(); lg.gain.value=.03;
-  lfo.connect(lg); lg.connect(rg.gain); lfo.start();
   audio = {ctx, out};
 
   const pan = v => { const p=ctx.createStereoPanner? ctx.createStereoPanner():null; if(p) p.pan.value=v; return p; };
@@ -1155,56 +1321,288 @@ function startAudio(){
 
 /* ---------- scroll: the story is a path, and the scrollbar is your legs ---------- */
 const story = [
-  "We left Namsan before the fog lifted, three of us, phones face down in our pockets.",
-  "Somebody said the machines had finished arguing and gone quiet, like tired uncles after dinner.",
-  "On the fortress road we tried to remember what we had wanted from them, exactly.",
-  "Faster answers, mostly. Nobody had asked for a better question.",
-  "Below Bugaksan the city was a screen that had learned to be looked away from.",
-  "A friend read a rejection letter out loud, and the pines did not react at all.",
-  "It is a small thing to be told no by something that was never yours.",
-  "We crossed the river at Yeouido and it took us somewhere else, without asking.",
-  "The Ping had widened into a lake and the raft houses drifted toward us, unhurried.",
-  "In Doi Tao the mountains keep the same silence they kept before we needed one.",
-  "So we decided how to use it: for the boring parts, and never for the goodbyes.",
-  "Peace turned out to be a schedule, not a feeling. We wrote it down anyway.",
-  "Then we sat on the shore and let the water finish the sentence for us.",
+  "I'm in Seoul with my friends, and they have an idea: get me to touch more grass.",
+  "So here we are on Namsan, walking and chatting our way across the hills.",
+  "I still look at my phone sometimes. A little later I decide to put it down.",
+  "But I cannot stop thinking about work.",
+  "The scenery up on Bugaksan is quite nice, though, and I like the pine trees a lot.",
+  "Their shape is interesting. We don't have pines like this in Chiang Mai, my hometown, I think.",
+  "Most of the time I'm in my room or in the city. I like the city a lot, I like to see people and buildings.",
+  "But walking in nature reminds me of walking with a friend and my brother at Doi Tao Lake.",
+  "Possibly because I don't go outside to nature much.",
+  "This time, walking with friends feels quite fresh to me,",
+  "even though my body is aching.",
+  "I should start running.",
+  "Not run from something. I should run for myself.",
 ];
-const route = [[1.15,-1.7],[0.6,-1.0],[-0.2,-0.66],[-0.09,1.5],[0.26,2.9],[-1.76,2.1],[-2.9,.9],[-3.3,-5.1],
-               [-7,-2.6],[-15.2,1.1],[-14.5,3.2],[-18,1.6],[-19.5,-.8],[-21,2.6]];    // one segment per line
-const segLen = route.slice(1).map((b,i)=>Math.hypot(b[0]-route[i][0], b[1]-route[i][1]));
 const $ = id => document.getElementById(id);
 const track = $("ssw-track"), lineEl = $("ssw-line"), countEl = $("ssw-count"), hintEl = $("ssw-hint");
 const weight = segLen.map(l => 1 + l*.2);          // viewports of scroll per line, long legs take longer
 const total = weight.reduce((a,b)=>a+b, 0);
 track.style.height = (total+1)*100 + "vh";
-const walk = {line:-1, lit:-1, first:true};
+// the walk runs up the page: you start at the bottom, and scrolling toward the top walks you forward
+history.scrollRestoration = "manual";
+scrollTo(0, document.documentElement.scrollHeight);
+const walk = {line:-1, lit:-1, first:true, f:0, tilt:0, ground:0, vel:0};
+const ease = (k,dt) => 1-Math.exp(-k*dt);          // the same easing whatever the frame rate
+const PACE_TIME = .35;                              // seconds your feet take to catch up with the scrollbar
+const LEAD = 10;                                    // how far ahead the two friends keep, in trail samples (about 400 m)
+const MAX_PACE = 40;                                // the fastest the walk will go however hard you scroll, in trail samples a second (about 1.6 km)
 function scrollStep(dt){
   // where the scrollbar says we are: which line, and how far along its leg
   const r = track.getBoundingClientRect();
-  const p = Math.max(0, Math.min(1, -r.top/Math.max(1, r.height-innerHeight)));
+  const p = 1 - Math.max(0, Math.min(1, -r.top/Math.max(1, r.height-innerHeight)));
   let u = p*total, i = 0;
   while(i<weight.length-1 && u>weight[i]){ u -= weight[i]; i++; }
-  const t = Math.min(1, u/weight[i]);
+  hintEl.classList.toggle("gone", p>.003);
+
+  // the scrollbar only says how far along the footpath you want to be; your feet get there at their own pace,
+  // so flinging the page does not fling you across the city
+  const target = Math.min(trail.n-1-LEAD, trail.seg0[i] + Math.min(1, u/weight[i])*trail.segN[i]);
+  if(walk.first){ walk.f = target; }
+  // a critically damped spring: the pace builds up and dies away instead of jumping with every notch of the wheel
+  { const om = 2/PACE_TIME, x = om*dt, ex = 1/(1 + x + .48*x*x + .235*x*x*x), lim = MAX_PACE*PACE_TIME;
+    const gap = Math.max(-lim, Math.min(lim, walk.f-target)), to = walk.f-gap, tmp = (walk.vel + om*gap)*dt;
+    walk.vel = (walk.vel - om*tmp)*ex;
+    let f = to + (gap + tmp)*ex;
+    if((target-walk.f > 0) === (f > target)){ f = target; walk.vel = 0; }      // never past where the scrollbar is
+    walk.f = f; }
+
+  // the story is read off where your feet are, not where the scrollbar is, so the line never runs ahead of the walk
+  i = 0; while(i<weight.length-1 && walk.f >= trail.seg0[i+1]) i++;
+  const t = Math.max(0, Math.min(1, (walk.f-trail.seg0[i])/trail.segN[i]));
   if(i!==walk.line){
     walk.line = i; walk.lit = -1;
     lineEl.innerHTML = story[i].split(" ").map(w=>`<span>${w}</span>`).join(" ");
     countEl.textContent = String(i+1).padStart(2,"0") + " / " + story.length;
   }
-  // the line is read out by the walking: the whole of it is lit a little before the leg ends
-  const spans = lineEl.children, lit = Math.round(Math.min(1, t/.8)*spans.length);
+  // the line is written out by the walking: word by word, the whole of it there a little before the leg ends
+  const spans = lineEl.children, lit = Math.max(1, Math.round(Math.min(1, t/.8)*spans.length));
   if(lit!==walk.lit){ for(let k=0;k<spans.length;k++) spans[k].classList.toggle("hit", k<lit); walk.lit = lit; }
-  hintEl.classList.toggle("gone", p>.003);
-
-  const a=route[i], b=route[i+1], E=a[0]+(b[0]-a[0])*t, N=a[1]+(b[1]-a[1])*t;
-  const heading = Math.atan2(-(b[0]-a[0]), (b[1]-a[1]));       // yaw such that forward = -sin(yaw), -cos(yaw) in x,z
-  if(walk.first){ walk.first=false; me.x=E; me.z=-N; me.yaw=heading; me.y=terrain(E,N).h*EXAG+EYE; return; }
-  const px=me.x, pz=me.z;
-  me.x += (E-me.x)*Math.min(1,dt*4); me.z += (-N-me.z)*Math.min(1,dt*4);
-  const moved = Math.hypot(me.x-px, me.z-pz);
-  me.bob += Math.min(moved*14, dt*13);
-  // the path turns your head only while you move, so you can stop and look around
-  if(moved > dt*.02){ let dy = heading - me.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); me.yaw += dy*Math.min(1,dt*1.2); }
+  const here = trail.at(walk.f), ahead = trail.at(Math.min(trail.n-1, walk.f+4)), back = trail.at(Math.max(0, walk.f-4));
+  const up = trail.at(Math.min(trail.n-1, walk.f+12)), dn = trail.at(Math.max(0, walk.f-12));   // the slope is read over a longer stretch than the heading, so the eyes do not nod at every bump
+  const hx=ahead.E-back.E, hn=ahead.N-back.N, run=Math.hypot(hx,hn)||1;
+  const heading = Math.atan2(-hx, hn);                          // yaw such that forward = -sin(yaw), -cos(yaw) in x,z
+  const grade = Math.atan2(up.y-dn.y, Math.hypot(up.E-dn.E, up.N-dn.N)||1)*.6;            // lean the eyes with the slope, so a climb is not a wall
+  me.x = here.E; me.z = -here.N; walk.ground = here.y + EYE;
+  if(walk.first){ walk.first=false; me.yaw=heading; me.y=walk.ground; walk.tilt=grade; return; }
+  walk.tilt += (grade-walk.tilt)*ease(1.5,dt);
+  // the path turns your head only while you move, so you can stop and look around. the pull fades in and out with the pace,
+  // so the turn does not start or stop with a jerk
+  { let dy = heading - me.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); me.yaw += dy*ease(1.6*ss(.1,2.5,Math.abs(walk.vel)), dt); }
 }
+
+/* ---------- company: two friends a few paces ahead on the footpath ---------- */
+const friends = (() => {
+  const SP=r=>new THREE.SphereGeometry(r,8,6), BX=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+  // they are a memory, so they are painted the way the clouds are: the body swells a little like vapour,
+  // the rim is torn away by noise, and the rest is stippled so the hills show through
+  const mat = new THREE.ShaderMaterial({
+    side:THREE.DoubleSide,
+    uniforms:{ uTime:{value:0} },
+    vertexShader:`
+      uniform float uTime; attribute vec3 aCol;
+      varying vec3 vN; varying vec3 vW; varying vec3 vCol; varying float vDist;
+      void main(){
+        vec4 wp = modelMatrix*vec4(position,1.); vN = normalize(mat3(modelMatrix)*normal);
+        float puff = sin(wp.x*310. + uTime*.9)*sin(wp.y*270. - uTime*.7)*sin(wp.z*290. + uTime*.5);
+        wp.xyz += vN*(.0022 + .0042*puff);
+        vW = wp.xyz; vCol = aCol;
+        vec4 mv = viewMatrix*wp; vDist = length(mv.xyz); gl_Position = projectionMatrix*mv;
+      }`,
+    fragmentShader:`
+      precision highp float;
+      uniform float uTime; varying vec3 vN; varying vec3 vW; varying vec3 vCol; varying float vDist;
+      ${GLSL_NOISE}
+      void main(){
+        vec3 n = normalize(vN), V = normalize(cameraPosition - vW);
+        float facing = abs(dot(n,V));
+        float rag = fbm(vW.xy*85. + vW.z*60. + vec2(uTime*.12, -uTime*.08));
+        if(facing < .1 + rag*.66) discard;                                  // torn, drifting edge
+        float thin = fbm(vW.xy*150. - vW.z*110. + vec2(-uTime*.2, uTime*.15) + 7.);
+        float body = .36 + .4*smoothstep(.2,.9,facing) - .65*smoothstep(.4,.76,thin);
+        if(hash(floor(gl_FragCoord.xy) + floor(uTime*8.)*.37) > body) discard;   // stipple: half there, half sky
+        float lit = smoothstep(-.4,.9, dot(n, normalize(vec3(-.55,.75,.35))));
+        vec3 c = vCol*(.8 + .35*lit);
+        c = mix(c, vec3(.74,.79,.87), min(.92, .16 + (1.-facing)*.7 + rag*.32));            // the ink thins to cloud grey toward the rim
+        c = 1.-(1.-c)*(.72 + .5*fbm(vW.xy*40. + vW.z*30.));
+        c = wcolor(c, vW, 14., 0., .4);
+        float nz = fbm(vW.xz*.8);
+        float edge = smoothstep(24.5, 18.5, max(abs(vW.x),abs(vW.z)) + (nz-.5)*4.);
+        float fog = 1.-smoothstep(4.,34.,vDist)*.85;
+        gl_FragColor = vec4(mix(vec3(1.), c, edge*fog), 1.);
+      }`
+  });
+  const mesh = parts => { const m=new THREE.Mesh(merge(parts), mat); m.frustumCulled=false; return m; };
+  const limb = (parent,x,y,parts) => { const g=new THREE.Group(); g.position.set(x,y,0); g.add(mesh(parts)); parent.add(g); return g; };
+  const dark=[.16,.14,.15];
+  // +z is the way a figure faces. hips at .047, shoulders at .08, about .108 tall
+  function build(o){
+    const root=new THREE.Group(), body=new THREE.Group(), torso=new THREE.Group(), head=new THREE.Group();
+    root.add(body); body.add(torso); torso.position.y=.046; torso.add(head); head.position.y=.041;
+    torso.add(mesh([ part(CY(.0125,.0145,.037,7), o.coat, M(0,.02,0)), part(CY(.0042,.0042,.006,6), o.skin, M(0,.04,0)), ...o.torso ]));
+    head.add(mesh([
+      part(SP(.0105), o.skin, M(0,.012,0)),
+      part(SP(.0109), o.hair, M(0,.0146,-.0036)),
+      part(BX(.0022,.0022,.002), dark, M(.0038,.0128,.0098)), part(BX(.0022,.0022,.002), dark, M(-.0038,.0128,.0098)),
+      ...o.head ]));
+    const arm = sx => limb(torso, sx*.0165, .035, [ part(CY(.0043,.0036,.034,5), o.coat, M(0,-.017,0)), part(SP(.0044), o.skin, M(0,-.037,0)) ]);
+    const leg = sx => limb(body, sx*.0066, .047, [ part(CY(.006,.0072,.044,6), o.legs, M(0,-.022,0)), part(BX(.0115,.0075,.0195), o.shoe, M(0,-.0435,.0035)) ]);   // wide trousers, heavy soles
+    root.scale.setScalar(o.scale); scene.add(root);
+    return { root, body, torso, head, arms:[arm(1),arm(-1)], legs:[leg(1),leg(-1)], side:o.side, lag:o.lag,
+             yaw:0, hy:0, hp:0, tw:0, talk:0, first:true };
+  }
+  // both in black from head to foot, the way people dress in Seoul or Berlin: the blacks differ a little so the layers still read
+  const ink=[.07,.07,.085], coal=[.11,.11,.125], soot=[.045,.045,.055], hairK=[.07,.06,.06];
+  const shades = [ part(BX(.0052,.0038,.002), soot, M(.0036,.0128,.0101)), part(BX(.0052,.0038,.002), soot, M(-.0036,.0128,.0101)),
+                   part(BX(.004,.0012,.002), soot, M(0,.0138,.0101)) ];
+  const list = [
+    // him: long wool coat to the knee, a cap with hair down past the ears, sunglasses, a tote on the shoulder
+    build({ side:1, lag:0, scale:1, coat:ink, legs:coal, shoe:soot, skin:[.93,.76,.63], hair:hairK,
+      torso:[ part(CY(.0146,.0185,.031,7), ink, M(0,-.0115,0)), part(CY(.0075,.0125,.008,7), soot, M(0,.037,0)),
+              part(BX(.0045,.019,.016), coal, M(.0205,.004,.001)), part(BX(.0016,.03,.0016), coal, M(.0185,.027,.001)) ],
+      head:[ part(SP(.011), hairK, M(0,.0092,-.0046,1,1.15,.88)),                                              // hair to the nape
+             part(SP(.0113), coal, M(0,.0166,-.0008,1,.78,1)), part(BX(.0155,.0014,.0105), soot, M(0,.0172,.0138)),   // cap and its brim
+             ...shades ] }),
+    // her: cropped puffer over wide slacks, hair to the shoulders, sunglasses, a small bag worn across the chest
+    build({ side:-1, lag:.5, scale:.94, coat:coal, legs:ink, shoe:soot, skin:[.94,.78,.66], hair:hairK,
+      torso:[ part(CY(.0158,.0168,.0125,8), ink, M(0,.031,0)), part(CY(.0165,.0168,.0125,8), coal, M(0,.019,0)),
+              part(CY(.0085,.011,.008,7), ink, M(0,.0385,0)), part(BX(.013,.0085,.005), soot, M(-.003,.02,.017)) ],
+      head:[ part(SP(.0112), hairK, M(0,.0058,-.0046,1.03,1.7,.9)),                                            // long hair, down over the shoulders
+             ...shades ] }),
+  ];
+  // what the two of them are up to: walking and looking ahead, talking to each other, glancing back at you,
+  // or, once you have stood still a moment, turned right round to talk with you
+  const st = { mode:"ahead", t:2.5, who:0, talker:0, talkT:1.5, phase:0, gait:0, still:0, dir:1 };
+  const wrap = a => Math.atan2(Math.sin(a), Math.cos(a)), cl = (x,a,b) => Math.max(a,Math.min(b,x));
+  function update(dt, T){
+    mat.uniforms.uTime.value = T;
+    const speed = Math.abs(walk.vel)*.04;                                   // km a second along the path
+    const moving = speed > .004;
+    st.still = moving ? 0 : st.still + dt;
+    st.gait += ((moving?1:0) - st.gait)*Math.min(1,dt*5);
+    st.phase += Math.min(speed/.05*6.283, 10.5)*dt;
+    if(walk.vel > .6) st.dir = 1; else if(walk.vel < -.6) st.dir = -1;      // scroll back and they come back with you
+    if(st.still > 1.1){ if(st.mode!=="face"){ st.mode="face"; st.talker=Math.random()<.5?0:1; st.talkT=1.6; } }
+    else if(st.mode==="face"){ st.mode="ahead"; st.t=1.5+Math.random()*1.5; }
+    else if((st.t -= dt) < 0){
+      const r = Math.random();
+      if(st.mode==="ahead"){ st.mode = r<.6 ? "chat" : "look"; }
+      else if(st.mode==="chat"){ st.mode = r<.45 ? "look" : "ahead"; }
+      else { st.mode = r<.6 ? "chat" : "ahead"; }
+      st.t = st.mode==="chat" ? 4+Math.random()*5 : st.mode==="look" ? 2.2+Math.random()*1.8 : 1.5+Math.random()*2.5;
+      st.who = Math.random()<.3 ? 2 : Math.random()<.5 ? 0 : 1;             // who glances back: one of them, now and then both
+    }
+    if((st.talkT -= dt) < 0){ st.talker = 1-st.talker; st.talkT = 1.1+Math.random()*1.8; }
+
+    for(let k=0;k<2;k++){
+      const f = list[k], o = list[1-k];
+      const pf = Math.min(trail.n-1, walk.f + LEAD - f.lag);
+      const c = trail.at(pf), a = trail.at(Math.max(0,pf-2)), b = trail.at(Math.min(trail.n-1,pf+2));
+      let dx=b.E-a.E, dn=b.N-a.N; const L=Math.hypot(dx,dn)||1; dx/=L; dn/=L;
+      const E = c.E - dn*f.side*.019, N = c.N + dx*f.side*.019;
+      const x = E, z = -N, y = meshY(E,N) + .007;
+      const toMe = Math.atan2(me.x-x, me.z-z);
+      const lookers = st.mode==="look" && (st.who===2 || st.who===k);
+      // body
+      let yawT = Math.atan2(dx,-dn) + (st.dir<0 ? Math.PI : 0), rel = 0, pitchT = 0;
+      if(st.mode==="face") yawT = toMe;
+      if(st.mode==="face" || lookers){
+        rel = wrap(toMe - yawT);
+        if(Math.abs(rel) > 2.5) rel = -f.side*Math.abs(rel);               // over the shoulder on the friend's side
+        yawT += cl(rel*.22, -.55, .55); rel = wrap(toMe - yawT);
+        pitchT = -Math.atan2(me.y - (y+.095), Math.hypot(me.x-x, me.z-z));
+      } else if(st.mode==="chat"){
+        rel = wrap(Math.atan2(o.root.position.x-x, o.root.position.z-z) - yawT)*.62;
+      } else rel = Math.sin(T*.4 + k*2.1)*.18;
+      if(f.first){ f.first=false; f.yaw=yawT; }
+      f.yaw += wrap(yawT-f.yaw)*Math.min(1,dt*4);
+      const twT = cl(rel*.35, -.55, .55), hyT = cl(rel-twT, -1.25, 1.25);
+      f.tw += (twT-f.tw)*Math.min(1,dt*4); f.hy += (hyT-f.hy)*Math.min(1,dt*5); f.hp += (cl(pitchT,-.4,.4)-f.hp)*Math.min(1,dt*5);
+      // whoever has the word nods and moves a hand
+      const speaking = st.mode!=="ahead" && st.talker===k && (st.mode!=="look" || lookers);
+      f.talk += ((speaking?1:0) - f.talk)*Math.min(1,dt*4);
+      const sw = Math.sin(st.phase + k*.9), g = st.gait;
+      f.root.position.set(x, y + Math.abs(Math.cos(st.phase + k*.9))*.0022*g, z);
+      f.root.rotation.y = f.yaw;
+      f.body.rotation.set(.07*g, 0, Math.sin(T*.8 + k*1.7)*.025*(1-g));     // lean into the walk, shift weight when standing
+      f.torso.rotation.set(Math.sin(T*1.3+k)*.01, f.tw, 0);
+      f.head.rotation.set(f.hp + Math.sin(T*6.5 + k)*.06*f.talk, f.hy, Math.sin(T*2.1 + k)*.05*f.talk, "YXZ");
+      f.legs[0].rotation.x = sw*.62*g; f.legs[1].rotation.x = -sw*.62*g;
+      const hand = (st.mode==="chat" ? (f.side>0 ? 1 : 0) : (k===0 ? 0 : 1));   // the arm nearer whoever is listening
+      for(let i=0;i<2;i++){
+        const swing = (i===0 ? -sw : sw)*.5*g, tk = i===hand ? f.talk : 0;
+        f.arms[i].rotation.set(swing*(1-tk) + (-1.05 + Math.sin(T*4.3 + k)*.28)*tk, 0, (i===0 ? 1 : -1)*(.06 + .25*tk));
+      }
+    }
+  }
+  const show = v => { for(const f of list) f.root.visible = v; };           // a memory casts no shadow
+  return { list, update, show };
+})();
+
+/* ---------- clouds: slow white heaps over the basin, and mist caught on the shoulders of the hills ---------- */
+const clouds = (() => {
+  const mat = new THREE.ShaderMaterial({
+    uniforms:{ uTime:{value:0} },
+    vertexShader:`
+      varying vec3 vN; varying vec3 vW; varying float vDist;
+      void main(){
+        vec4 wp = modelMatrix*vec4(position,1.); vW = wp.xyz; vN = normalize(mat3(modelMatrix)*normal);
+        vec4 mv = viewMatrix*wp; vDist = length(mv.xyz); gl_Position = projectionMatrix*mv;
+      }`,
+    fragmentShader:`
+      precision highp float;
+      uniform float uTime; varying vec3 vN; varying vec3 vW; varying float vDist;
+      ${GLSL_NOISE}
+      void main(){
+        vec3 n = normalize(vN), V = normalize(cameraPosition - vW);
+        // a wet edge: the rim of every heap is torn away by noise, so no hard ball outline is left
+        float rag = fbm(vW.xz*1.3 + vW.y*1.9 + uTime*.015);
+        if(abs(dot(n,V)) < .12 + rag*.62) discard;
+        float lit = smoothstep(-.35,.85, dot(n, normalize(vec3(-.55,.75,.35))));
+        float under = smoothstep(.15,-.7,n.y);
+        vec3 c = mix(vec3(.90,.93,.97), vec3(1.), lit);
+        c = mix(c, vec3(.80,.85,.92), under*.6);
+        c = 1.-(1.-c)*(.6 + .8*fbm(vW.xz*2.2 + vW.y*3.));           // uneven wash, pigment pooling in the folds
+        c = wcolor(c, vW, .9, 0., .6);
+        float fog = 1.-smoothstep(10.,42.,vDist)*.7;
+        gl_FragColor = vec4(mix(vec3(1.), c, fog), 1.);
+      }`
+  });
+  let sd=4711; const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
+  const ball = new THREE.IcosahedronGeometry(1,2), group = new THREE.Group(), arr = [], RANGE = 26;
+  function heap(E, N, y, size, flat, wind){
+    const parts=[], n=5+Math.floor(rnd()*5);
+    for(let i=0;i<n;i++){
+      const t=i/(n-1)-.5, r=(.34+rnd()*.3)*(1-Math.abs(t)*.7);
+      const g=ball.clone(); g.applyMatrix4(new THREE.Matrix4().compose(
+        new THREE.Vector3(t*1.7+(rnd()-.5)*.3, r*flat*.75+(rnd()-.5)*.08, (rnd()-.5)*.55),
+        new THREE.Quaternion(), new THREE.Vector3(r*1.25, r*flat, r)));
+      parts.push(part(g,[1,1,1],new THREE.Matrix4()));
+    }
+    const m=new THREE.Mesh(merge(parts), mat); m.frustumCulled=false;
+    m.scale.setScalar(size); m.rotation.y=rnd()*6.283; m.position.set(E,y,-N); group.add(m);
+    arr.push({m, x0:E, sp:(.012+rnd()*.02)*wind, bob:rnd()*6.283});
+  }
+  // cumulus, well above the peaks
+  for(let i=0;i<34;i++) heap((rnd()*2-1)*RANGE, (rnd()*2-1)*RANGE, 3.3+rnd()*2.6, 1.3+rnd()*2.2, .8, 1);
+  // mist: long low banks lying against the higher ground
+  for(let i=0, tries=0; i<26 && tries<4000; tries++){
+    const E=(rnd()*2-1)*22, N=(rnd()*2-1)*22, h=terrain(E,N).h;
+    if(h<.16 || h>.6 || trail.dist(E,N)<1.2) continue;
+    heap(E, N, h*EXAG + .12 + rnd()*.25, .7+rnd()*.9, .3, .08); i++;      // mist barely moves
+  }
+  scene.add(group);
+  function update(T){
+    mat.uniforms.uTime.value = T;
+    for(const c of arr){
+      const x = c.x0 + T*c.sp;                                              // drift east on the wind, and come round again
+      c.m.position.x = ((x + RANGE) % (2*RANGE) + 2*RANGE) % (2*RANGE) - RANGE;
+      c.m.position.y += Math.sin(T*.11 + c.bob)*.00006;
+    }
+  }
+  return { group, update };
+})();
 
 /* ---------- resize + loop ---------- */
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1217,11 +1615,11 @@ function resize(){
   for(const m of [terrainMat, pineMat, sky.mat]){ m.uniforms.uDpr.value=dpr*RSCALE; m.uniforms.uH.value=H; }
   const rw=Math.floor(W*dpr*RSCALE), rh=Math.floor(H*dpr*RSCALE);
   makeRT(rw, rh);
-  post.uniforms.tColor.value = rt.texture; post.uniforms.uDpr.value = dpr; post.uniforms.uRes.value.set(rw, rh); post.uniforms.uOut.value.set(Math.floor(W*dpr), Math.floor(H*dpr));
+  post.uniforms.tColor.value = rt.texture; post.uniforms.tDepth.value = rt.depthTexture; post.uniforms.uDpr.value = dpr; post.uniforms.uRes.value.set(rw, rh); post.uniforms.uOut.value.set(Math.floor(W*dpr), Math.floor(H*dpr));
 }
 addEventListener("resize", resize); resize();
 
-let last = performance.now(), frameN = 0;
+let last = performance.now();
 const fpsEl = document.getElementById("ssw-fps"); let fpsN=0, fpsT=performance.now(), fastT=0;
 function frame(now){
   const dt = Math.min(.05,(now-last)/1000); last = now;
@@ -1233,12 +1631,11 @@ function frame(now){
   }
 
   scrollStep(dt);
-  const ground = terrain(me.x,-me.z).h*EXAG + EYE;
-  me.y += (ground - me.y)*Math.min(1, dt*10);
+  me.y += (walk.ground - me.y)*ease(5,dt);
+  friends.update(dt, now/1000); clouds.update(now/1000);
 
   const T = now/1000;
   pineMat.uniforms.uTime.value = T;
-  rain.uniforms.uTime.value = T; rain.uniforms.uCam.value.copy(camera.position);
   sky.mat.uniforms.uTime.value = T; sky.dome.position.copy(camera.position);
 
   for(const b of birds){
@@ -1248,12 +1645,11 @@ function frame(now){
     b.m.scale.y = b.s*(.35 + .95*Math.abs(Math.sin(T*b.fl + b.ph)));
   }
 
-  const breathe = Math.sin(T*.55)*.0025 + Math.sin(T*.31)*.0015;
-  camera.position.set(me.x, me.y + Math.sin(me.bob)*.0025 + breathe, me.z);
-  camera.rotation.set(me.pitch + Math.sin(T*.23)*.004, me.yaw + Math.sin(T*.17)*.005, Math.sin(me.bob*.5)*.004, "YXZ");
+  camera.position.set(me.x, me.y, me.z);
+  camera.rotation.set(me.pitch + walk.tilt, me.yaw, 0, "YXZ");
 
   post.uniforms.uTime.value = T; terrainMat.uniforms.uTime.value = T;
-  if(frameN++ % 2 === 0) renderShadows();
+  renderShadows();
   renderer.setRenderTarget(rt); renderer.render(scene,camera);
   renderer.setRenderTarget(null); renderer.render(postScene,postCam);
 

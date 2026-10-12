@@ -61,7 +61,7 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
   </figure>
 
   <p class="mb-4">
-    Eternal Gain, Eternal Pain is an ethical speculation on the morality of procreation and antinatalism, inspired by <a href="#benatar-diagram" class="art-callout">David Benatar's diagram of pain–pleasure asymmetry</a>. I use the OpenWorm's c302 project to simulate Caenorhabditis elegans because it draws from real biological data, creating a near one-to-one mapping between the living organism and its digital counterpart. Both function through electricity — one organic, one computational — blurring the boundary between life and simulation.
+    Eternal Gain, Eternal Pain is an ethical speculation on the morality of procreation and antinatalism, inspired by <a href="#benatar-diagram" class="art-callout">David Benatar's diagram of pain–pleasure asymmetry</a>.<sup>1</sup> I use the OpenWorm's c302 project to simulate Caenorhabditis elegans because it draws from real biological data, creating a near one-to-one mapping between the living organism and its digital counterpart. Both function through electricity — one organic, one computational — blurring the boundary between life and simulation.
   </p>
 
   <p class="mb-4">
@@ -87,8 +87,16 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
     Benatar's table has four cells. If someone exists there is pain, which is bad, and pleasure, which is good. If they never exist, the absence of pain is good even with nobody there to enjoy it, and the absence of pleasure is not bad, because nobody is there to be deprived of it. Never existing gets one good and one not-bad, so on his account coming into existence is always a harm.
   </p>
 
+  <aside class="art-margin-note" id="synthetic-phenomenology-note">
+    <p style="font-family: var(--f-data); font-size: 12px; line-height: 1.6; margin: 0;">
+      <strong>Synthetic phenomenology</strong>: Metzinger's term for conscious experience made on purpose
+      in an artificial system. Not a machine that behaves as if it feels, but one for which there is
+      something it is like to be it.
+    </p>
+  </aside>
+
   <p class="mb-4">
-    Move the table to machines and it becomes digital antinatalism: we should not create artificial beings that are able to suffer. A digital mind can be copied, paused, looped, and run faster than real time, so if it can suffer, we have built suffering at scale. Thomas Metzinger argued in 2021 for a moratorium on synthetic phenomenology on these grounds.
+    Move the table to machines and it becomes digital antinatalism: we should not create artificial beings that are able to suffer. A digital mind can be copied, paused, looped, and run faster than real time, so if it can suffer, we have built suffering at scale. Thomas Metzinger argued in 2021 for a moratorium on <a href="#synthetic-phenomenology-note" class="art-callout">synthetic phenomenology</a> on these grounds.<sup>2</sup>
   </p>
 
   <p class="mb-4">
@@ -97,12 +105,20 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
 
   <h2 class="kicker art-kicker mt-8 mb-4">Why a worm</h2>
 
+  <aside class="art-margin-note" id="connectome-note">
+    <p style="font-family: var(--f-data); font-size: 12px; line-height: 1.6; margin: 0;">
+      <strong>Connectome</strong>: the full map of a nervous system, every neuron and every connection
+      between them. It says what is wired to what. It does not say what the wiring is doing at any
+      moment, or what that is like.
+    </p>
+  </aside>
+
   <p class="mb-4">
-    Caenorhabditis elegans is a transparent nematode about one millimetre long that lives in soil and eats bacteria. The hermaphrodite has exactly 302 neurons, the same ones in the same places in every animal. In 1986 White, Southgate, Thomson and Brenner published its complete wiring diagram, traced by hand from electron microscope slices: the first whole nervous system ever mapped, and for decades the only one.
+    Caenorhabditis elegans is a transparent nematode about one millimetre long that lives in soil and eats bacteria. The hermaphrodite has exactly 302 neurons, the same ones in the same places in every animal. In 1986 White, Southgate, Thomson and Brenner published its <a href="#connectome-note" class="art-callout">complete wiring diagram</a>, traced by hand from electron microscope slices: the first whole nervous system ever mapped, and for decades the only one.<sup>3</sup>
   </p>
 
   <p class="mb-4">
-    OpenWorm is an open-science project that has been trying since 2011 to build the whole worm in software: the body, the water, the muscles, the nervous system. The nervous system part is c302, built directly from that biological data. Each spike in the real animal has a counterpart in code. On one side the electricity moves through ion channels, on the other through transistors. It is not a picture of a worm, and not a language model that can talk about worms. It is the worm's own wiring, running.
+    OpenWorm is an open-science project that has been trying since 2011 to build the whole worm in software: the body, the water, the muscles, the nervous system. The nervous system part is c302, built directly from that biological data. Each spike in the real animal has a counterpart in code. On one side the electricity moves through ion channels, on the other through transistors. It is not a picture of a worm, and not a language model that can talk about worms. It is the worm's own wiring, running.<sup>4</sup>
   </p>
 
   <p class="mb-4">
@@ -113,15 +129,15 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
 
   <ul class="mb-4 space-y-1">
     <li>
-      <strong>Pain: ASH → AIB → RIM → AVA.</strong> ASH senses something harmful (in the lab, octanol), AIB integrates, RIM modulates, and AVA commands the reversal: the worm backs away. Every step is in the wiring diagram.
+      <strong>Pain: ASH → AIB → RIM → AVA.</strong> ASH senses something harmful (in the lab, octanol), AIB integrates, RIM modulates, and AVA commands the reversal: the worm backs away. Every step is in the wiring diagram.<sup>5</sup>
     </li>
     <li>
-      <strong>Pleasure: dopamine and serotonin.</strong> CEP releases dopamine and NSM serotonin when there is food. The wiring says which cells release them. It does not say what is rewarding, or for whom.
+      <strong>Pleasure: dopamine and serotonin.</strong> CEP releases dopamine and NSM serotonin when there is food. The wiring says which cells release them. It does not say what is rewarding, or for whom.<sup>6</sup>
     </li>
   </ul>
 
   <p class="mb-4">
-    Withdrawal needs no memory and no hunger. Reward needs a body that has been without something. So the pain side can be specified first, and that is a bias too: not in the data, but in what is easy to build. The reference is Zalucki, Brown and Key, "What if worms were sentient?" (2023).
+    Withdrawal needs no memory and no hunger. Reward needs a body that has been without something. So the pain side can be specified first, and that is a bias too: not in the data, but in what is easy to build. The reference is Zalucki, Brown and Key, "What if worms were sentient?" (2023).<sup>7</sup>
   </p>
 
   <h2 class="kicker art-kicker mt-8 mb-4">Four screens, four Raspberry Pis</h2>
@@ -173,13 +189,31 @@ const metaCurator = linkInstagramMentions("@alcoholidaysss");
 
   <h2 class="kicker art-kicker mt-8 mb-4">Reflex, or sentience</h2>
 
+  <aside class="art-margin-note" id="nociception-note">
+    <p style="font-family: var(--f-data); font-size: 12px; line-height: 1.6; margin: 0;">
+      <strong>Nociception</strong>: the detection of something harmful and the response to it. It is a
+      function, and it can be measured. Pain is the feeling, if there is one. An animal can have the
+      first without anyone being able to show it has the second.
+    </p>
+  </aside>
+
   <p class="mb-4">
-    What emerges in c302 may be reflex rather than sentience. I do not claim the worm feels. It continues indefinitely, enduring without awareness, existing only because it can. But I also cannot prove that it does not feel. Perception can be known from outside: the worm registers the octanol and turns. Consciousness cannot. The work puts you in the position of deciding under uncertainty, which is what a parent does too.
+    What emerges in c302 may be <a href="#nociception-note" class="art-callout">reflex rather than sentience</a>. I do not claim the worm feels. It continues indefinitely, enduring without awareness, existing only because it can. But I also cannot prove that it does not feel. Perception can be known from outside: the worm registers the octanol and turns. Consciousness cannot. The work puts you in the position of deciding under uncertainty, which is what a parent does too.
   </p>
 
   <p class="mb-4">
     Do we create out of compassion, or compulsion? And still, I pressed run. Four times.
   </p>
+
+  <div class="art-footnotes">
+    <p><sup>1</sup>David Benatar, <a href="https://doi.org/10.1093/acprof:oso/9780199296422.001.0001" target="_blank" rel="noopener noreferrer"><em>Better Never to Have Been: The Harm of Coming into Existence</em></a> (Oxford University Press, 2006). The asymmetry is set out in chapter 2.</p>
+    <p><sup>2</sup>Thomas Metzinger, <a href="https://doi.org/10.1142/S270507852150003X" target="_blank" rel="noopener noreferrer">“Artificial Suffering: An Argument for a Global Moratorium on Synthetic Phenomenology”</a>, <em>Journal of Artificial Intelligence and Consciousness</em> 8, no. 1 (2021): 43–66.</p>
+    <p><sup>3</sup>J. G. White, E. Southgate, J. N. Thomson and S. Brenner, <a href="https://doi.org/10.1098/rstb.1986.0056" target="_blank" rel="noopener noreferrer">“The structure of the nervous system of the nematode <em>Caenorhabditis elegans</em>”</a>, <em>Philosophical Transactions of the Royal Society B</em> 314 (1986): 1–340.</p>
+    <p><sup>4</sup>Balázs Szigeti et al., <a href="https://doi.org/10.3389/fncom.2014.00137" target="_blank" rel="noopener noreferrer">“OpenWorm: an open-science approach to modeling <em>Caenorhabditis elegans</em>”</a>, <em>Frontiers in Computational Neuroscience</em> 8 (2014); Padraig Gleeson et al., <a href="https://doi.org/10.1098/rstb.2017.0379" target="_blank" rel="noopener noreferrer">“c302: a multiscale framework for modelling the nervous system of <em>Caenorhabditis elegans</em>”</a>, <em>Philosophical Transactions of the Royal Society B</em> 373 (2018). The code is at <a href="https://github.com/openworm/c302" target="_blank" rel="noopener noreferrer">github.com/openworm/c302</a>.</p>
+    <p><sup>5</sup>Michael Y. Chao et al., <a href="https://doi.org/10.1073/pnas.0403369101" target="_blank" rel="noopener noreferrer">“Feeding status and serotonin rapidly and reversibly modulate a <em>Caenorhabditis elegans</em> chemosensory circuit”</a>, <em>PNAS</em> 101, no. 43 (2004): 15512–15517. On ASH and the avoidance of octanol.</p>
+    <p><sup>6</sup>Elizabeth R. Sawin, Rajesh Ranganathan and H. Robert Horvitz, <a href="https://doi.org/10.1016/S0896-6273(00)81199-X" target="_blank" rel="noopener noreferrer">“<em>C. elegans</em> locomotory rate is modulated by the environment through a dopaminergic pathway and by experience through a serotonergic pathway”</a>, <em>Neuron</em> 26, no. 3 (2000): 619–631. The worm slows down when it finds food.</p>
+    <p><sup>7</sup>Oressia Zalucki, Deborah J. Brown and Brian Key, <a href="https://doi.org/10.1007/s10539-023-09924-y" target="_blank" rel="noopener noreferrer">“What if worms were sentient? Insights into subjective experience from the <em>Caenorhabditis elegans</em> connectome”</a>, <em>Biology &amp; Philosophy</em> 38 (2023).</p>
+  </div>
 
   <figure class="my-8">
     <a

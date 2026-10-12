@@ -3,6 +3,9 @@ import Layout from "../../layouts/layout.astro"
 ---
 
 <Layout title="서울 산수 / walk" description="a watercolor Seoul you walk through by scrolling, one line of the story per leg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" />
   <div class="ssw-stage">
     <canvas
       id="ssw-canvas"
@@ -29,6 +32,7 @@ import Layout from "../../layouts/layout.astro"
     right: 0;
     bottom: 0;
     top: 2.5rem;
+    --f-ssw: "Gowun Batang", "AppleMyungjo", "Batang", "Noto Serif KR", serif;
     background: #f8f3e7;
     color: #3b302b;
     overflow: hidden;
@@ -61,14 +65,14 @@ import Layout from "../../layouts/layout.astro"
   #ssw-hint {
     position: absolute;
     left: 50%;
-    top: 18px;
+    top: 10px;
     transform: translateX(-50%);
-    font: 12px/1 var(--f-pixel);
-    letter-spacing: 0.08em;
+    font: 13px/1 var(--f-ssw);
+    letter-spacing: 0.22em;
     white-space: nowrap;
-    background: rgba(248, 243, 231, 0.75);
-    border: 1px solid rgba(59, 48, 43, 0.3);
-    padding: 8px 12px;
+    /* a wash of paper that feathers out, no box */
+    background: radial-gradient(ellipse closest-side, rgba(248, 243, 231, 0.8), rgba(248, 243, 231, 0));
+    padding: 18px 48px;
     pointer-events: none;
     transition: opacity 0.6s;
   }
@@ -80,40 +84,78 @@ import Layout from "../../layouts/layout.astro"
   #ssw-cap {
     position: absolute;
     left: 50%;
-    bottom: calc(34px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(22px + env(safe-area-inset-bottom, 0px));
     transform: translateX(-50%);
-    width: min(680px, calc(100% - 40px));
+    width: min(760px, calc(100% - 16px));
     text-align: center;
     pointer-events: none;
-    padding: 14px 18px 12px;
-    background: rgba(248, 243, 231, 0.78);
-    border: 1px solid rgba(59, 48, 43, 0.3);
+    padding: 28px 56px 22px;
+  }
+
+  /* hanji: translucent paper that blurs the scene behind it and dissolves at the edges */
+  #ssw-cap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgba(248, 243, 231, 0.66);
+    -webkit-backdrop-filter: blur(6px) saturate(0.8);
+    backdrop-filter: blur(6px) saturate(0.8);
+    /* feather all four edges, keep the middle where the words sit */
+    -webkit-mask-image:
+      linear-gradient(to right, transparent, #000 13%, #000 87%, transparent),
+      linear-gradient(to bottom, transparent, #000 32%, #000 72%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent, #000 13%, #000 87%, transparent),
+      linear-gradient(to bottom, transparent, #000 32%, #000 72%, transparent);
+    mask-composite: intersect;
   }
 
   #ssw-line {
-    font: 500 clamp(18px, 2.6vw, 26px) / 1.35 Georgia, "Times New Roman", serif;
+    font: 400 clamp(15px, 1.9vw, 20px) / 1.35 var(--f-ssw);
+    letter-spacing: 0.015em;
+    text-wrap: balance;
     color: #3b302b;
     text-shadow:
-      0 0 12px rgba(248, 243, 231, 0.9),
-      0 0 3px rgba(248, 243, 231, 1);
+      0 0 14px rgba(248, 243, 231, 0.95),
+      0 0 4px rgba(248, 243, 231, 1);
   }
 
+  /* words not walked to yet keep their place but stay unwritten */
   #ssw-line :global(span) {
-    opacity: 0.4;
+    opacity: 0;
+    filter: blur(4px);
     transition:
-      opacity 0.25s,
-      color 0.25s;
+      opacity 0.9s ease-out,
+      filter 0.9s ease-out;
   }
 
   #ssw-line :global(span.hit) {
     opacity: 1;
-    color: #2f5d3a;
+    filter: none;
   }
 
   #ssw-count {
-    margin-top: 10px;
-    font: 11px/1 var(--f-pixel);
-    letter-spacing: 0.08em;
-    opacity: 0.5;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    font: 11px/1 var(--f-ssw);
+    letter-spacing: 0.3em;
+    opacity: 0.55;
+  }
+
+  /* brush-thin rules either side of the count */
+  #ssw-count::before,
+  #ssw-count::after {
+    content: "";
+    width: 34px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, currentColor);
+  }
+
+  #ssw-count::after {
+    transform: scaleX(-1);
   }
 </style>
