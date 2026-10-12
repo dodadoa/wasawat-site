@@ -1,0 +1,119 @@
+---
+import Layout from "../../layouts/layout.astro"
+---
+
+<Layout title="서울 산수 / walk" description="a watercolor Seoul you walk through by scrolling, one line of the story per leg">
+  <div class="ssw-stage">
+    <canvas
+      id="ssw-canvas"
+      aria-label="First person walk through a watercolor Seoul. Scroll to walk the story's path, drag to look around."
+    ></canvas>
+    <div id="ssw-fps"></div>
+    <div id="ssw-hint">scroll to walk · drag to look</div>
+    <div id="ssw-cap">
+      <div id="ssw-line"></div>
+      <div id="ssw-count"></div>
+    </div>
+  </div>
+  <!-- the scrollbar is the path: the script sizes this to the length of the walk -->
+  <div id="ssw-track" aria-hidden="true"></div>
+
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script is:inline src="/scripts/seoul-sansu-walk.js"></script>
+</Layout>
+
+<style>
+  .ssw-stage {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 2.5rem;
+    background: #f8f3e7;
+    color: #3b302b;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  #ssw-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: pan-y;
+  }
+
+  #ssw-track {
+    width: 1px;
+    height: 2200vh;
+    pointer-events: none;
+  }
+
+  #ssw-fps {
+    position: absolute;
+    left: 10px;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    font: 11px/1 var(--f-pixel);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  #ssw-hint {
+    position: absolute;
+    left: 50%;
+    top: 18px;
+    transform: translateX(-50%);
+    font: 12px/1 var(--f-pixel);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    background: rgba(248, 243, 231, 0.75);
+    border: 1px solid rgba(59, 48, 43, 0.3);
+    padding: 8px 12px;
+    pointer-events: none;
+    transition: opacity 0.6s;
+  }
+
+  #ssw-hint:global(.gone) {
+    opacity: 0;
+  }
+
+  #ssw-cap {
+    position: absolute;
+    left: 50%;
+    bottom: calc(34px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    width: min(680px, calc(100% - 40px));
+    text-align: center;
+    pointer-events: none;
+    padding: 14px 18px 12px;
+    background: rgba(248, 243, 231, 0.78);
+    border: 1px solid rgba(59, 48, 43, 0.3);
+  }
+
+  #ssw-line {
+    font: 500 clamp(18px, 2.6vw, 26px) / 1.35 Georgia, "Times New Roman", serif;
+    color: #3b302b;
+    text-shadow:
+      0 0 12px rgba(248, 243, 231, 0.9),
+      0 0 3px rgba(248, 243, 231, 1);
+  }
+
+  #ssw-line :global(span) {
+    opacity: 0.4;
+    transition:
+      opacity 0.25s,
+      color 0.25s;
+  }
+
+  #ssw-line :global(span.hit) {
+    opacity: 1;
+    color: #2f5d3a;
+  }
+
+  #ssw-count {
+    margin-top: 10px;
+    font: 11px/1 var(--f-pixel);
+    letter-spacing: 0.08em;
+    opacity: 0.5;
+  }
+</style>

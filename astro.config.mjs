@@ -41,7 +41,6 @@ export default defineConfig({
         "@react-three/fiber",
         "@react-three/drei",
         "three",
-        "phaser",
       ],
       exclude: [],
       esbuildOptions: {

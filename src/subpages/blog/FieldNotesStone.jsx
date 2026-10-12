@@ -862,6 +862,72 @@ const DISSOLVE_MAP = `
 #endif
 `
 
+// ---------------------------------------------------------------- bloom shader
+// bloom, both ways, as in the home game world: the frame is shrunk to a haze
+// and to a wider one. the wide haze goes back wherever it is the darker, so
+// ink throws a soft glow onto the paper round it; then the tight one wherever
+// it is the lighter, so paper glows into the ink's edge
+const BLOOM = 0.2 // paper into ink
+const GLOW_INK = 0.2 // ink onto paper
+const INK_GAIN = 2.5 // the lines here are hair thin, so their haze is deepened to show
+const POST_VERT = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = vec4( position.xy, 0.0, 1.0 );
+}
+`
+// the scene target is linear. the haze is kept display-encoded, so the blur
+// and the darken/lighten weigh ink and paper the way the eye does
+const POST_ENCODE = `
+vec3 encode( vec3 c ) {
+  c = clamp( c, 0.0, 1.0 );
+  return mix( c * 12.92, 1.055 * pow( c, vec3( 1.0 / 2.4 ) ) - 0.055, step( 0.0031308, c ) );
+}
+`
+const SHRINK_FRAG = `
+uniform sampler2D uMap;
+uniform vec2 uTexel;
+uniform bool uEncode;
+varying vec2 vUv;
+${POST_ENCODE}
+vec3 tap( vec2 o ) {
+  vec3 c = texture2D( uMap, vUv + o * uTexel ).rgb;
+  return uEncode ? encode( c ) : c;
+}
+void main() {
+  gl_FragColor = vec4( ( tap( vec2( -1.0, -1.0 ) ) + tap( vec2( 1.0, -1.0 ) ) + tap( vec2( -1.0, 1.0 ) ) + tap( vec2( 1.0, 1.0 ) ) ) * 0.25, 1.0 );
+}
+`
+const BLOOM_FRAG = `
+uniform sampler2D uMap;
+uniform sampler2D uHaze;
+uniform sampler2D uWide;
+uniform vec2 uHazeTexel;
+uniform vec2 uWideTexel;
+uniform float uBloom;
+uniform float uGlowInk;
+uniform float uInkGain;
+varying vec2 vUv;
+${POST_ENCODE}
+// a tent over the neighbours, so the small haze scales back up without blocks
+vec3 tent( sampler2D t, vec2 px ) {
+  vec3 c = texture2D( t, vUv ).rgb * 4.0;
+  c += ( texture2D( t, vUv + vec2( px.x, 0.0 ) ).rgb + texture2D( t, vUv - vec2( px.x, 0.0 ) ).rgb
+       + texture2D( t, vUv + vec2( 0.0, px.y ) ).rgb + texture2D( t, vUv - vec2( 0.0, px.y ) ).rgb ) * 2.0;
+  c += texture2D( t, vUv + px ).rgb + texture2D( t, vUv - px ).rgb
+     + texture2D( t, vUv + vec2( px.x, -px.y ) ).rgb + texture2D( t, vUv + vec2( -px.x, px.y ) ).rgb;
+  return c / 16.0;
+}
+void main() {
+  vec3 c = encode( texture2D( uMap, vUv ).rgb );
+  vec3 ink = 1.0 - min( ( 1.0 - tent( uWide, uWideTexel ) ) * uInkGain, 1.0 );
+  c = mix( c, min( c, ink ), uGlowInk );
+  c = mix( c, max( c, tent( uHaze, uHazeTexel ) ), uBloom );
+  gl_FragColor = vec4( c, 1.0 );
+}
+`
+
 // ---------------------------------------------------------------- geometry helpers
 const YUP = new THREE.Vector3(0, 1, 0)
 
@@ -1633,6 +1699,58 @@ function buildWorld(host, ui) {
       .catch(() => {})
   }
 
+  // ---------------------------------------------------------------- bloom
+  // the frame goes to a target, is halved four times over, and is put back
+  // with the quarter and the sixteenth laid over it
+  const frame = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 })
+  const steps = [0, 1, 2, 3].map(() => new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false }))
+  const [, haze, , wide] = steps
+  const postMat = (fragmentShader, uniforms) =>
+    new THREE.ShaderMaterial({ vertexShader: POST_VERT, fragmentShader, uniforms, depthTest: false, depthWrite: false })
+  const shrinkMat = postMat(SHRINK_FRAG, { uMap: { value: null }, uTexel: { value: new THREE.Vector2() }, uEncode: { value: false } })
+  const bloomMat = postMat(BLOOM_FRAG, {
+    uMap: { value: frame.texture },
+    uHaze: { value: haze.texture },
+    uWide: { value: wide.texture },
+    uHazeTexel: { value: new THREE.Vector2() },
+    uWideTexel: { value: new THREE.Vector2() },
+    uBloom: { value: BLOOM },
+    uGlowInk: { value: GLOW_INK },
+    uInkGain: { value: INK_GAIN },
+  })
+  const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
+  const postQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shrinkMat)
+  postQuad.frustumCulled = false
+
+  function sizeBloom() {
+    const { x: w, y: h } = renderer.getDrawingBufferSize(new THREE.Vector2())
+    frame.setSize(w, h)
+    steps.forEach((t, i) => t.setSize(Math.max(1, w >> (i + 1)), Math.max(1, h >> (i + 1))))
+    bloomMat.uniforms.uHazeTexel.value.set(1 / haze.width, 1 / haze.height)
+    bloomMat.uniforms.uWideTexel.value.set(1 / wide.width, 1 / wide.height)
+  }
+  sizeBloom()
+
+  function pass(mat, target) {
+    postQuad.material = mat
+    renderer.setRenderTarget(target)
+    renderer.render(postQuad, postCam)
+  }
+
+  function renderBloomed() {
+    renderer.setRenderTarget(frame)
+    renderer.render(scene, camera)
+    let from = frame
+    for (const to of steps) {
+      shrinkMat.uniforms.uMap.value = from.texture
+      shrinkMat.uniforms.uTexel.value.set(0.5 / from.width, 0.5 / from.height)
+      shrinkMat.uniforms.uEncode.value = from === frame
+      pass(shrinkMat, to)
+      from = to
+    }
+    pass(bloomMat, null)
+  }
+
   // ---------------------------------------------------------------- loop
   const clock = new THREE.Clock()
   renderer.setAnimationLoop(() => {
@@ -1650,7 +1768,9 @@ function buildWorld(host, ui) {
     sky.position.set(dolly.position.x, 0, dolly.position.z)
     sun.target.position.set(dolly.position.x, 0, dolly.position.z)
     sun.position.set(dolly.position.x + 58, 96, dolly.position.z + 38)
-    renderer.render(scene, camera)
+    // a headset draws straight to its own eyes, so no bloom in there
+    if (renderer.xr.isPresenting) renderer.render(scene, camera)
+    else renderBloomed()
   })
 
   const status = setInterval(() => {
@@ -1671,6 +1791,7 @@ function buildWorld(host, ui) {
     camera.aspect = vw / vh
     camera.updateProjectionMatrix()
     renderer.setSize(vw, vh)
+    sizeBloom()
   })
   ro.observe(host)
 
@@ -1694,6 +1815,8 @@ function buildWorld(host, ui) {
         if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => m.dispose())
       })
       dropMap.dispose()
+      ;[frame, ...steps].forEach((t) => t.dispose())
+      ;[shrinkMat, bloomMat, postQuad.geometry].forEach((o) => o.dispose())
       renderer.dispose()
       view.remove()
     },
@@ -1713,9 +1836,12 @@ export default function FieldNotesStone() {
   useEffect(() => {
     const host = hostRef.current
     if (!host) return
-    // stop the page scrolling under the scene while it's mounted
-    const prevOverflow = document.documentElement.style.overflow
-    document.documentElement.style.overflow = "hidden"
+    // stop the page scrolling under the scene while it's mounted. the body is
+    // clipped to the viewport rather than the root being set to hidden, which
+    // would drop the root's scrollbar gutter and nudge the nav to the right
+    const { overflow: prevOverflow, height: prevHeight } = document.body.style
+    document.body.style.overflow = "hidden"
+    document.body.style.height = "100dvh"
 
     try {
       worldRef.current = buildWorld(host, {
@@ -1732,7 +1858,8 @@ export default function FieldNotesStone() {
     return () => {
       worldRef.current?.dispose()
       worldRef.current = null
-      document.documentElement.style.overflow = prevOverflow
+      document.body.style.overflow = prevOverflow
+      document.body.style.height = prevHeight
     }
   }, [])
 

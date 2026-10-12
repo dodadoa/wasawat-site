@@ -7,8 +7,11 @@ try {
   console.error(error);
 }
 
-// interactive posts live as React pages under src/pages/blog/
-const pagePosts = [{ url: "/blog/field-notes-stone", frontmatter: { title: "field notes / stone" } }];
+// interactive posts live as their own pages under src/pages/blog/
+const pagePosts = [
+  { url: "/blog/seoul-sansu-walk", frontmatter: { title: "서울 산수 / walk" } },
+  { url: "/blog/field-notes-stone", frontmatter: { title: "field notes / stone" } },
+];
 const allPosts = [...pagePosts, ...mdPosts];
 ---
 

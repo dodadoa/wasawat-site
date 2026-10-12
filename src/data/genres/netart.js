@@ -5,7 +5,7 @@ const netart = {
   z: 0,
   works: [
     {
-      label: "Self-censored Step Sequencer (2026)",
+      label: "Self-censored Step Sequencer (2026–ongoing)",
       planeLabel: "Self-censored Step Sequencer",
       slug: "self-censored-step-sequencer",
       date: "2026-01-01",

@@ -57,9 +57,6 @@ importers:
       katex:
         specifier: ^0.16.11
         version: 0.16.27
-      phaser:
-        specifier: ^4.1.0
-        version: 4.1.0
       postprocessing:
         specifier: 6.38.2
         version: 6.38.2(three@0.169.0)
@@ -1442,9 +1439,6 @@ packages:
   eventemitter3@5.0.1:
     resolution: {integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==}
 
-  eventemitter3@5.0.4:
-    resolution: {integrity: sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==}
-
   extend@3.0.2:
     resolution: {integrity: sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==}
 
@@ -2045,9 +2039,6 @@ packages:
 
   path-to-regexp@6.3.0:
     resolution: {integrity: sha512-Yhpw4T9C6hPpgPeA28us07OJeqZ5EzQTkbfwuhsUg0c237RomFoETJgmp2sa3F/41gfLE6G5cqcYwznmeEeOlQ==}
-
-  phaser@4.1.0:
-    resolution: {integrity: sha512-ZXv5Bhyg2BqJGAAxNI2xvmzGXW9q+TwUG1RLri5ZDBYGGtcma6aWUO/eJ7EbozeqRd5fKdpo4ycNMQt+Bi5iYg==}
 
   piccolore@0.1.3:
     resolution: {integrity: sha512-o8bTeDWjE086iwKrROaDf31K0qC/BENdm15/uH9usSC/uZjJOKb2YGiVHfLY4GhwsERiPI1jmwI2XrA7ACOxVw==}
@@ -4388,8 +4379,6 @@ snapshots:
 
   eventemitter3@5.0.1: {}
 
-  eventemitter3@5.0.4: {}
-
   extend@3.0.2: {}
 
   fast-deep-equal@3.1.3: {}
@@ -5180,10 +5169,6 @@ snapshots:
   path-to-regexp@6.1.0: {}
 
   path-to-regexp@6.3.0: {}
-
-  phaser@4.1.0:
-    dependencies:
-      eventemitter3: 5.0.4
 
   piccolore@0.1.3: {}
 

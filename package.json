@@ -28,7 +28,6 @@
     "astro": "^5.16.0",
     "astro-seo": "^0.8.0",
     "katex": "^0.16.11",
-    "phaser": "^4.1.0",
     "postprocessing": "6.38.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -40,7 +39,10 @@
     "prettier-plugin-astro": "^0.14.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "sharp"],
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ],
     "overrides": {
       "react": "$react",
       "react-dom": "$react-dom"
