@@ -100,31 +100,63 @@ function labelSpot(circles, i) {
 
 const ALIGN_SHIFT = { start: "0", middle: "-50%", end: "-100%" }
 
-function Chip({ active, onClick, label, count }) {
+// the filter is ruled like a sheet: every cell draws its right and bottom line,
+// and the frame around them draws the top and left
+const RULE = `1px solid ${INK}`
+const CELL = { borderRight: RULE, borderBottom: RULE, padding: "0.4rem 0.6rem", lineHeight: 1.2 }
+// the narrowest a set's cell gets, in ems so it follows --ui-scale
+const CELL_MIN = "12.5em"
+// with less room than this the filter folds: one facet open at a time, picked by tab
+const FOLD_BELOW = { w: 560, h: 700 }
+
+/** A cell of the filter you can press: a set, or (`tab`) the name of a folded facet. */
+function Chip({ active, onClick, label, count, tab }) {
+  const [hot, setHot] = useState(false)
   return (
     <button
       type="button"
       aria-pressed={active}
+      title={label}
       onClick={onClick}
+      onMouseEnter={() => setHot(true)}
+      onMouseLeave={() => setHot(false)}
+      onFocus={(e) => setHot(e.currentTarget.matches(":focus-visible"))}
+      onBlur={() => setHot(false)}
       style={{
-        fontFamily: mono,
-        fontSize: "calc(11px * var(--ui-scale, 1))",
+        font: "inherit",
+        ...CELL,
+        display: "flex",
+        alignItems: "baseline",
+        justifyContent: "space-between",
+        gap: "0.6em",
+        minWidth: 0,
         letterSpacing: "0.08em",
         textTransform: "uppercase",
-        lineHeight: 1.2,
-        whiteSpace: "nowrap",
-        flexShrink: 0,
-        // cells sharing borders, like the view switcher; the pressed one is inverted
-        color: active ? PAPER : INK,
-        background: active ? INK : "transparent",
-        border: `1px solid ${INK}`,
-        margin: "0 -1px -1px 0",
-        padding: "0.4rem 0.6rem",
+        textAlign: "left",
+        borderTop: "none",
+        borderLeft: "none",
+        // a pressed set is inverted, like the view switcher; the open tab loses
+        // its bottom rule and runs into the sets under it
+        ...(tab
+          ? {
+              color: active ? INK : SOFT,
+              background: "transparent",
+              borderBottomColor: active ? "transparent" : INK,
+              // five names share one row: each as wide as its name, plus a share of what's left
+              flex: "1 1 auto",
+              padding: "0.4rem 0.4rem",
+              gap: "0.4em",
+              letterSpacing: "0.04em",
+            }
+          : { color: active ? PAPER : INK, background: active ? INK : "transparent" }),
+        // the cell under the pointer is ringed, as a selected cell is on /work
+        boxShadow: !hot ? "none" : active && !tab ? `inset 0 0 0 2px ${INK}, inset 0 0 0 3px ${PAPER}` : `inset 0 0 0 2px ${INK}`,
         cursor: "pointer",
         outline: "none",
       }}
     >
-      {label} <span style={{ fontFamily: dataMono, opacity: 0.6 }}>{count}</span>
+      <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
+      {count != null && <span style={{ fontFamily: dataMono, opacity: 0.6 }}>{count}</span>}
     </button>
   )
 }
@@ -145,19 +177,44 @@ export default function VennView({ works, keyOf, genreFilter, activeKey, onHover
   const toggle = (id) =>
     setPicked((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id].slice(-MAX_SETS)))
 
+  // one margin for the filter, the circles and the strip, so their edges line up
+  const pad = compact ? 10 : 24
+
+  const rootRef = useRef(null)
   const areaRef = useRef(null)
+  const gridRef = useRef(null)
+  // the room the whole view has, and what the filter leaves of it for the diagram
+  const [room, setRoom] = useState(null)
   const [area, setArea] = useState(null)
+  // how many set cells fit across a row of the filter
+  const [cols, setCols] = useState(0)
+  const folded = compact || (!!room && (room.w - pad * 2 < FOLD_BELOW.w || room.h < FOLD_BELOW.h))
+  const [openId, setOpenId] = useState(null)
+  const openFacet = facets.find((f) => f.id === openId) ?? facets[0]
   useLayoutEffect(() => {
+    const root = rootRef.current
     const el = areaRef.current
-    if (!el) return
-    const measure = () => setArea({ w: el.clientWidth, h: el.clientHeight })
+    if (!root || !el) return
+    const measure = () => {
+      const cs = getComputedStyle(root)
+      setRoom({
+        w: root.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight),
+        h: root.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom),
+      })
+      setArea({ w: el.clientWidth, h: el.clientHeight })
+      if (gridRef.current) setCols(getComputedStyle(gridRef.current).gridTemplateColumns.split(" ").length)
+    }
     measure()
     const ro = new ResizeObserver(measure)
+    ro.observe(root)
     ro.observe(el)
+    if (gridRef.current) ro.observe(gridRef.current)
     return () => ro.disconnect()
-  }, [])
+    // folding swaps the grid that is measured
+  }, [folded])
 
-  const size = compact ? 34 : 44
+  // smaller marks when the circles are
+  const size = compact || (!!area && (area.w < 520 || area.h < 440)) ? 34 : 44
   const stripH = size + 30
   const visible = useMemo(
     () => works.filter((w) => !genreFilter || w.genreId === genreFilter),
@@ -167,13 +224,13 @@ export default function VennView({ works, keyOf, genreFilter, activeKey, onHover
 
   const { circles, spots, outside } = useMemo(() => {
     if (!area) return { circles: [], spots: new Map(), outside: [] }
-    const pad = compact ? 10 : 24
+    // whole pixels, so the hairlines stay sharp
     const circles = layoutCircles(
       sets.length,
       area.w - pad * 2,
       area.h - LABEL_H * 2 - stripH,
       LABEL_H,
-    ).map((c) => ({ ...c, cx: c.cx + pad }))
+    ).map((c) => ({ cx: Math.round(c.cx + pad), cy: Math.round(c.cy), r: Math.round(c.r) }))
 
     const groups = new Map()
     const outside = []
@@ -191,52 +248,88 @@ export default function VennView({ works, keyOf, genreFilter, activeKey, onHover
     })
     return { circles, spots, outside }
     // `picked` stands in for `sets`, which is rebuilt every render
-  }, [area, picked, visible, compact, size, stripH, setById, keyOf])
+  }, [area, picked, visible, pad, size, stripH, setById, keyOf])
 
   const countIn = (set) => visible.reduce((n, w) => n + (set.keys.has(keyOf(w)) ? 1 : 0), 0)
 
+  const setGrid = (facet, measured) => (
+    <div
+      ref={measured ? gridRef : undefined}
+      style={{
+        flex: 1,
+        minWidth: 0,
+        display: "grid",
+        gridTemplateColumns: `repeat(auto-fill, minmax(min(${CELL_MIN}, 100%), 1fr))`,
+      }}
+    >
+      {facet.sets.map((set) => (
+        <Chip
+          key={set.id}
+          label={set.label}
+          count={countIn(set)}
+          active={picked.includes(set.id)}
+          onClick={() => toggle(set.id)}
+        />
+      ))}
+      {/* empty cells, so the rules run to the end of the row */}
+      {Array.from({ length: cols ? (cols - (facet.sets.length % cols)) % cols : 0 }, (_, i) => (
+        <span key={i} aria-hidden="true" style={CELL} />
+      ))}
+    </div>
+  )
+
   return (
-    <div className="absolute inset-0" style={{ zIndex: 1, display: "flex", flexDirection: "column", padding }}>
-      {/* the sets, a row per facet */}
-      <div style={{ flexShrink: 0, padding: compact ? "0.6rem 0 0.4rem" : "1rem 1.25rem 0.5rem" }}>
-        {facets.map((facet) => (
-          <div key={facet.id} style={{ display: "flex", alignItems: "flex-start" }}>
-            <span
-              style={{
-                flexShrink: 0,
-                width: compact ? "4.6rem" : "5.6rem",
-                padding: compact ? "0.45rem 0 0 0.75rem" : "0.45rem 0 0",
-                fontFamily: mono,
-                fontSize: "calc(11px * var(--ui-scale, 1))",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: SOFT,
-              }}
-            >
-              {facet.title}
-            </span>
-            <div
-              style={{
-                display: "flex",
-                flexWrap: compact ? "nowrap" : "wrap",
-                overflowX: compact ? "auto" : undefined,
-                minWidth: 0,
-                paddingBottom: "0.4rem",
-                paddingRight: "1px",
-              }}
-            >
-              {facet.sets.map((set) => (
+    <div ref={rootRef} className="absolute inset-0" style={{ zIndex: 1, display: "flex", flexDirection: "column", padding }}>
+      {/* the sets: a ruled grid, a row per facet, the same columns in every row */}
+      <div
+        style={{
+          flexShrink: 0,
+          // on a short window the filter scrolls rather than squeezing the circles out
+          maxHeight: "45%",
+          overflowY: "auto",
+          margin: `${compact ? "0.6rem" : "1rem"} ${pad}px 0.6rem`,
+          borderTop: RULE,
+          borderLeft: RULE,
+          fontFamily: mono,
+          fontSize: "calc(11px * var(--ui-scale, 1))",
+        }}
+      >
+        {folded ? (
+          <>
+            <div style={{ display: "flex" }}>
+              {facets.map((facet) => (
                 <Chip
-                  key={set.id}
-                  label={set.label}
-                  count={countIn(set)}
-                  active={picked.includes(set.id)}
-                  onClick={() => toggle(set.id)}
+                  key={facet.id}
+                  tab
+                  label={facet.title}
+                  // how many of its sets are drawn
+                  count={facet.sets.filter((set) => picked.includes(set.id)).length || null}
+                  active={facet === openFacet}
+                  onClick={() => setOpenId(facet.id)}
                 />
               ))}
             </div>
-          </div>
-        ))}
+            {setGrid(openFacet, true)}
+          </>
+        ) : (
+          facets.map((facet, fi) => (
+            <div key={facet.id} style={{ display: "flex" }}>
+              <span
+                style={{
+                  ...CELL,
+                  flexShrink: 0,
+                  width: "8.6em",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: SOFT,
+                }}
+              >
+                {facet.title}
+              </span>
+              {setGrid(facet, fi === 0)}
+            </div>
+          ))
+        )}
       </div>
 
       <div ref={areaRef} style={{ position: "relative", flex: 1, minHeight: 0 }}>
@@ -259,7 +352,15 @@ export default function VennView({ works, keyOf, genreFilter, activeKey, onHover
                 <circle key={i} cx={c.cx} cy={c.cy} r={c.r} fill="none" stroke={INK} strokeWidth="1" strokeDasharray={STROKES[i]} />
               ))}
               {/* the strip of works outside every set */}
-              <line x1="0" x2={area.w} y1={area.h - stripH + 6} y2={area.h - stripH + 6} stroke={LINE} strokeWidth="1" />
+              <line
+                x1={pad}
+                x2={area.w - pad}
+                y1={area.h - stripH + 6.5}
+                y2={area.h - stripH + 6.5}
+                stroke={LINE}
+                strokeWidth="1"
+                shapeRendering="crispEdges"
+              />
             </svg>
 
             {circles.map((c, i) => {
@@ -318,8 +419,8 @@ export default function VennView({ works, keyOf, genreFilter, activeKey, onHover
             <span
               style={{
                 position: "absolute",
-                left: compact ? "0.75rem" : "1.25rem",
-                top: area.h - stripH + 6,
+                left: pad + 10,
+                top: area.h - stripH + 6.5,
                 transform: "translateY(-50%)",
                 padding: "0 0.5em",
                 background: PAPER,

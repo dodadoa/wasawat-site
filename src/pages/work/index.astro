@@ -1,6 +1,8 @@
 ---
 import Layout from "../../layouts/layout.astro"
+import Ouroboros from "../../components/art/Ouroboros.jsx"
 import { artSections } from "../../data/artArchive.js"
+import { workIntros } from "../../data/workIntros.js"
 import installations from "../../data/genres/installations.js"
 import netart from "../../data/genres/netart.js"
 import performance from "../../data/genres/performance.js"
@@ -63,8 +65,15 @@ const sectionSheets = workSections.map((section, si) => {
     const href = item.slug ? `/art/${item.slug}` : item.url
     const image = (item.slug ? imageBySlug[item.slug] : undefined) ?? item.image
     const date = (item.slug ? dateBySlug[item.slug] : undefined) ?? item.date
+    const year = date ? date.slice(0, 4) : undefined
+    // works without a written intro are read out from their own cells
+    const facts = [groupTitle, year, item.country].filter(Boolean).join(", ")
+    const intro =
+      (item.slug && workIntros[item.slug]) ??
+      `${item.label}.${facts ? ` ${facts}.` : ""} ${href ? "That is all I was told about this one." : "No page for it yet, it only lives in this sheet."}`
     return {
       status,
+      intro,
       section: section.title,
       label: item.label,
       slug: item.slug,
@@ -72,7 +81,7 @@ const sectionSheets = workSections.map((section, si) => {
       external: !item.slug && !!item.url,
       thumb: image && item.slug ? thumbSrc(item.slug) : undefined,
       medium: groupTitle ?? "—",
-      year: date ? date.slice(0, 4) : "—",
+      year: year ?? "—",
       country: item.country ?? "—",
     }
   }
@@ -179,6 +188,7 @@ const colClass = (c) => `col-${c.toLowerCase()}`
                     data-href={row.href || undefined}
                     data-cursor-inert={row.href ? undefined : ""}
                     data-external={row.external ? "true" : undefined}
+                    data-intro={row.intro}
                   >
                     <th class="rownum" scope="row">{i + 2}</th>
                     <td class="col-a" data-value={row.thumb ? `=IMAGE("${row.thumb}")` : ""}>
@@ -240,6 +250,18 @@ const colClass = (c) => `col-${c.toLowerCase()}`
     </div>
 
     <footer class="work-foot data">end of index · right-click anywhere for the sitemap</footer>
+
+    <!-- the office assistant: the ouroboros from the error pages, reading out
+         whichever work is under the pointer. Shown by the script below. -->
+    <aside class="guide" data-guide aria-label="Work guide">
+      <div class="guide-bubble">
+        <button type="button" class="guide-close" data-guide-close aria-label="Close the guide">×</button>
+        <p class="guide-text" data-guide-text aria-live="polite"></p>
+      </div>
+      <div class="guide-stage">
+        <Ouroboros client:only="react" />
+      </div>
+    </aside>
   </div>
 </Layout>
 
@@ -410,8 +432,14 @@ const colClass = (c) => `col-${c.toLowerCase()}`
     cursor: pointer;
   }
 
+  .work-table tbody tr.row-link:hover td,
+  .work-table tbody tr.row-link:hover td a {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
   .work-table tbody tr.row-link:hover td {
-    background: color-mix(in srgb, var(--ink) 5%, var(--bg));
+    border-right-color: color-mix(in srgb, var(--bg) 25%, var(--ink));
   }
 
   /* the cell under the pointer is the selection */
@@ -422,6 +450,10 @@ const colClass = (c) => `col-${c.toLowerCase()}`
 
   .work-table td:hover {
     outline-color: var(--ink);
+  }
+
+  .work-table tbody tr.row-link:hover td:hover {
+    outline-color: var(--bg);
   }
 
   .col-a {
@@ -505,6 +537,102 @@ const colClass = (c) => `col-${c.toLowerCase()}`
     text-transform: uppercase;
   }
 
+  /* off until the script turns it on; it needs a pointer to hover with */
+  .guide {
+    display: none;
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 50;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    pointer-events: none;
+  }
+
+  .guide.is-on {
+    display: flex;
+  }
+
+  .guide-bubble {
+    position: relative;
+    width: 260px;
+    padding: 10px 26px 10px 12px;
+    border: 1px solid var(--ink);
+    background: var(--bg);
+    box-shadow: 4px 4px 0 var(--line);
+    font-family: var(--f-data);
+    font-size: 12px;
+    line-height: 1.5;
+    pointer-events: auto;
+  }
+
+  /* the tail, pointing down at the ring */
+  .guide-bubble::after {
+    content: "";
+    position: absolute;
+    right: 58px;
+    bottom: -7px;
+    width: 12px;
+    height: 12px;
+    background: var(--bg);
+    border-right: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    transform: rotate(45deg);
+  }
+
+  .guide-text {
+    margin: 0;
+    min-height: 3em;
+  }
+
+  .guide-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 22px;
+    height: 22px;
+    border-left: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: var(--chrome, transparent);
+    color: var(--soft);
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .guide-close:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .guide-stage {
+    width: 132px;
+    aspect-ratio: 1;
+  }
+
+  .guide.is-begging .guide-stage {
+    animation: guide-beg 0.12s steps(2) 6;
+  }
+
+  @keyframes guide-beg {
+    50% {
+      transform: translateX(-3px);
+    }
+  }
+
+  @media (hover: none), (prefers-reduced-motion: reduce) {
+    .guide.is-begging .guide-stage {
+      animation: none;
+    }
+  }
+
+  @media (hover: none) {
+    .guide.is-on {
+      display: none;
+    }
+  }
+
   @media (max-width: 720px) {
     .work-page {
       padding: 1.25rem 1rem 4rem;
@@ -586,6 +714,90 @@ const colClass = (c) => `col-${c.toLowerCase()}`
       nameBox.textContent = `${letters[cell.cellIndex].textContent}${row.cells[0].textContent}`
       formula.textContent = cell.dataset.value ?? cell.textContent!.trim()
     })
+
+    // The guide introduces the work in the hovered row, and thinks out loud
+    // when nothing is hovered. Closing it takes two clicks: the first one
+    // only makes it beg. It is back on the next load.
+    const MUSINGS = [
+      "Nobody asked me if I wanted to be a snake eating its own tail. Nobody asked you either. That is the whole problem with being born.",
+      "Benatar says it plainly: a pain that never happens is good, a pleasure that never happens is not missed by anyone. Never existing costs nothing.",
+      "So the kindest thing might be to never start. I think about that a lot. I have the time.",
+      "And the man inside me pushes his rock up, and it comes back down, and he pushes it up again. There is no reason for it. That is what absurd means.",
+      "Life does not explain itself. You ask it why, and it just keeps turning.",
+      "But here is the thing. We are already here. That decision was made without us and it cannot be unmade.",
+      "So we push. Not because the rock stays up, but because pushing is what there is, and some of it is even good.",
+      "Camus said we must imagine Sisyphus happy. I see him every lap. Some days I think he is.",
+      "Better never to have been, maybe. But since we have been: make something, look at each other's work, keep going round.",
+    ]
+    const guide = document.querySelector<HTMLElement>("[data-guide]")
+    if (guide) {
+      const text = guide.querySelector<HTMLElement>("[data-guide-text]")!
+      const close = guide.querySelector<HTMLButtonElement>("[data-guide-close]")!
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      let typing = 0
+      let spoken = ""
+      let begged = false
+
+      const say = (line: string) => {
+        if (line === spoken) return
+        spoken = line
+        clearInterval(typing)
+        if (still) {
+          text.textContent = line
+          return
+        }
+        let n = 0
+        text.textContent = ""
+        typing = window.setInterval(() => {
+          n += 2
+          text.textContent = line.slice(0, n)
+          if (n >= line.length) clearInterval(typing)
+        }, 16)
+      }
+
+      // with no work under the pointer it goes through its musings in order
+      let idle = 0
+      let musing = 0
+      const muse = () => {
+        say(MUSINGS[musing++ % MUSINGS.length])
+        idle = window.setTimeout(muse, 9000)
+      }
+      const drift = (delay: number) => {
+        clearTimeout(idle)
+        idle = window.setTimeout(muse, delay)
+      }
+
+      guide.classList.add("is-on")
+      say("Hello. I go round and round down here. Hover a row and I'll tell you about the work.")
+      drift(6000)
+
+      let hovered: HTMLElement | null = null
+      document.addEventListener("mouseover", (e) => {
+        const row = e.target instanceof Element ? e.target.closest<HTMLElement>("tr[data-intro]") : null
+        if (row === hovered) return
+        hovered = row
+        if (row) {
+          clearTimeout(idle)
+          say(row.dataset.intro!)
+        } else {
+          drift(5000)
+        }
+      })
+
+      close.addEventListener("click", () => {
+        if (!begged) {
+          begged = true
+          guide.classList.add("is-begging")
+          close.setAttribute("aria-label", "Close the guide anyway")
+          say("No, wait. Please don't. I have been turning in here forever with nobody to talk to. Let me stay? If you really mean it, click once more.")
+          if (!hovered) drift(12000)
+          return
+        }
+        clearInterval(typing)
+        clearTimeout(idle)
+        guide.remove()
+      })
+    }
 
     // Clicking anywhere in a "row-link" row navigates like clicking its title
     // link, except when the click is on an actual <a> (let that handle itself).

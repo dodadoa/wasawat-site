@@ -334,6 +334,9 @@ export default function Ouroboros() {
       if (!still) update(dt)
 
       const zoom = Math.min(canvas.clientWidth, canvas.clientHeight) / STAGE
+      // hidden or detached: there is no box to draw into, and shrinking the
+      // art down to nothing would never finish
+      if (!zoom) return
       const { w, h } = lowRes(canvas, ctx, zoom)
       ctx.translate(w / 2, h / 2)
 
