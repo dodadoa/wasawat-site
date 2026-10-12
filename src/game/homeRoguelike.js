@@ -222,11 +222,13 @@ const BLOOM = 0.32
 /** how far the ink glows out onto the paper round it, 0 to 1 */
 const GLOW_INK = 0.32
 const HUD_TOP = 120
-const HUD_BOTTOM = 130
+const HUD_BOTTOM = 190
 const SWITCHER_BOTTOM = 56
 const FRAME_MS = 450
 const PEOPLE_MS = 300
 const STEP_MS = 70
+/** a held thumb stick: slower than a walk you asked for, so one step is easy to take */
+const STICK_MS = 150
 /** how near you have to come to a work, with nothing in the way, for it to count as seen */
 const SIGHT = 7
 /** how long a phone's torch stays on at each beat of its strobe */
@@ -1165,26 +1167,36 @@ export function startHomeRoguelike(root) {
     if (key === "Enter" || key === "e" || key === "z" || key === "x") {
       // a focused link or button handles its own Enter
       if (key === "Enter" && e.target instanceof HTMLElement && e.target.closest("a, button")) return
-      const sign = signInReach()
-      if (active) {
-        e.preventDefault()
-        open()
-      } else if (sign !== undefined) {
-        e.preventDefault()
-        readSign(sign)
-      }
+      if (act()) e.preventDefault()
       return
     }
     const dir = KEYS[key]
     if (!dir) return
     e.preventDefault()
+    step(dir)
+  }
+
+  /** Open the work in reach, or read the sign in reach. True if there was either. */
+  function act() {
+    const sign = signInReach()
+    if (active) open()
+    else if (sign !== undefined) readSign(sign)
+    else return false
+    return true
+  }
+
+  /** One step by hand, from a key or the stick. True if it took you anywhere. */
+  function step(dir) {
     stopWalk()
     const nx = player.x + dir[0]
     const ny = player.y + dir[1]
     // walking into someone gets you a remark instead of a step
     const who = personAt(nx, ny)
     if (who) return log(pick(BUMP[who.kind]))
-    if (walkable(nx, ny)) return moveTo(nx, ny)
+    if (walkable(nx, ny)) {
+      moveTo(nx, ny)
+      return true
+    }
     // so does walking into a sign: that is how you read it
     if (inMap(nx, ny) && signs.has(at(nx, ny))) return readSign(at(nx, ny))
     // bumping a work turns to face it
@@ -1208,6 +1220,58 @@ export function startHomeRoguelike(root) {
     if (signs.has(at(x, y))) return walkTo(nextTo({ x, y }), () => readSign(at(x, y)))
     if (walkable(x, y)) walkTo((cx, cy) => cx === x && cy === y)
   }
+
+  // ── thumb stick: lean it a way to step that way, hold it to keep going ──
+  const stick = root.querySelector("[data-rogue-stick]")
+  const knob = root.querySelector("[data-rogue-knob]")
+  if (stick && knob) {
+    /** @type {number[] | null} */
+    let lean = null
+    let stickTimer = 0
+    const setLean = (dir) => {
+      if (dir?.[0] === lean?.[0] && dir?.[1] === lean?.[1]) return
+      lean = dir
+      window.clearInterval(stickTimer)
+      if (!dir) return
+      // held against something, it says so once rather than over and over
+      if (!step(dir)) return
+      stickTimer = window.setInterval(() => {
+        if (!step(dir)) window.clearInterval(stickTimer)
+      }, STICK_MS)
+    }
+    const onStick = (e) => {
+      const rect = stick.getBoundingClientRect()
+      const reach = rect.width / 2 - knob.offsetWidth / 2
+      const dx = e.clientX - (rect.left + rect.width / 2)
+      const dy = e.clientY - (rect.top + rect.height / 2)
+      const far = Math.hypot(dx, dy)
+      const pull = Math.min(1, reach / (far || 1))
+      knob.style.transform = `translate(${Math.round(dx * pull)}px, ${Math.round(dy * pull)}px)`
+      // a dead middle, then whichever axis it leans along more
+      if (far < reach * 0.4) return setLean(null)
+      setLean(Math.abs(dx) > Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)])
+    }
+    const release = () => {
+      knob.style.transform = ""
+      setLean(null)
+    }
+    stick.addEventListener("pointerdown", (e) => {
+      e.preventDefault()
+      stick.setPointerCapture(e.pointerId)
+      onStick(e)
+    })
+    stick.addEventListener("pointermove", (e) => {
+      if (stick.hasPointerCapture(e.pointerId)) onStick(e)
+    })
+    stick.addEventListener("pointerup", release)
+    stick.addEventListener("pointercancel", release)
+    stick.addEventListener("lostpointercapture", release)
+    stick.addEventListener("contextmenu", (e) => e.preventDefault())
+  }
+
+  // A does what Enter does; B calls off a walk you tapped for
+  root.querySelector("[data-rogue-a]")?.addEventListener("click", act)
+  root.querySelector("[data-rogue-b]")?.addEventListener("click", stopWalk)
 
   indexItems.forEach((el) => {
     el.addEventListener("click", (e) => {

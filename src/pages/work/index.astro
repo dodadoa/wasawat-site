@@ -168,7 +168,10 @@ const colClass = (c) => `col-${c.toLowerCase()}`
                 {lines.map(({ title, row }, i) => title ? (
                   <tr class="row-group" data-cursor-inert>
                     <th class="rownum" scope="row">{i + 2}</th>
-                    <td colspan={sheetCols(sheet).length}>{title}</td>
+                    <td colspan="2">{title}</td>
+                    {sheetCols(sheet).slice(2).map((c) => (
+                      <td class={colClass(c)} />
+                    ))}
                   </tr>
                 ) : (
                   <tr
@@ -391,6 +394,16 @@ const colClass = (c) => `col-${c.toLowerCase()}`
     text-transform: uppercase;
     background: var(--chrome);
     border-bottom-color: var(--ink);
+  }
+
+  /* the merge is drawn, not spanned: a colspan over the columns hidden on
+     mobile would add phantom columns and squeeze the grid */
+  .row-group td:not(:last-child) {
+    border-right-color: transparent;
+  }
+
+  .row-group td:not([colspan]) {
+    pointer-events: none;
   }
 
   .work-table tbody tr.row-link {

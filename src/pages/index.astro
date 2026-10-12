@@ -10,7 +10,8 @@ const works = collectSelectedWorks()
   <!-- the 1-bit roguelike: one of the views HomeQuadrantView switches between -->
   <div id="home-rogue" hidden>
     <!-- left column: everything about the walk that isn't the map. On a
-         phone there is no column, and the status and help sit over the map -->
+         phone there is no column: the status sits over the map, and the
+         controls under it say how to walk -->
     <aside class="rogue-side" aria-label="Museum status and instructions">
       <h2 class="rogue-side-title">museum.walk</h2>
 
@@ -37,7 +38,6 @@ const works = collectSelectedWorks()
           <div><dt>tap a sign</dt><dd>read it</dd></div>
           <div><dt>tap a work twice</dt><dd>open</dd></div>
         </dl>
-        <span class="rogue-help-line">tap to walk · tap a sign to read it · tap a work twice to open</span>
       </div>
 
       <!-- legend: what the pictures on the map are -->
@@ -57,6 +57,16 @@ const works = collectSelectedWorks()
     <div class="rogue-stage" data-rogue-stage>
       <canvas data-rogue-map aria-label="A museum in plan. Walk up to a work to see it, and up to a sign to read it."></canvas>
       <span class="rogue-loading">loading selected work…</span>
+
+      <!-- phone: a thumb stick (hold it over to keep walking) and, across
+           from it, A and B set on the slant like a Game Boy's -->
+      <div class="rogue-stick" data-rogue-stick aria-hidden="true">
+        <span class="rogue-stick-knob" data-rogue-knob></span>
+      </div>
+      <div class="rogue-pad">
+        <button type="button" class="rogue-btn rogue-btn-b" data-rogue-b aria-label="B: stop walking">B</button>
+        <button type="button" class="rogue-btn rogue-btn-a" data-rogue-a aria-label="A: read or open">A</button>
+      </div>
 
       <aside class="rogue-panel" data-rogue-panel hidden>
         <img class="rogue-thumb" data-panel-thumb alt="" hidden />
@@ -296,8 +306,7 @@ const works = collectSelectedWorks()
   }
 
   /* touch instructions only where there is no pointer to hover with */
-  .rogue-help-touch,
-  .rogue-help-line {
+  .rogue-help-touch {
     display: none;
   }
 
@@ -422,6 +431,100 @@ const works = collectSelectedWorks()
     text-transform: uppercase;
   }
 
+  /* ── thumb stick (phone only) ── */
+  #home-rogue {
+    --stick: 104px;
+    /* clear of the bottom nav under the controls */
+    --controls-bottom: 4rem;
+  }
+
+  .rogue-stick,
+  .rogue-pad {
+    display: none;
+    position: absolute;
+    z-index: 2;
+    bottom: var(--controls-bottom);
+    width: var(--stick);
+    height: var(--stick);
+  }
+
+  .rogue-pad {
+    right: 16px;
+  }
+
+  .rogue-btn {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--ink);
+    font: inherit;
+    font-size: 15px;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+  }
+
+  .rogue-btn:active {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .rogue-btn-a {
+    top: 0;
+    right: 0;
+  }
+
+  .rogue-btn-b {
+    bottom: 0;
+    left: 0;
+  }
+
+  .rogue-stick {
+    left: 16px;
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--ink);
+    /* the drag is the stick's, not the page's */
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: grab;
+  }
+
+  /* four ticks for the four ways it goes */
+  .rogue-stick::before {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background:
+      linear-gradient(var(--ink), var(--ink)) top / 1px 8px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) bottom / 1px 8px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) left / 8px 1px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) right / 8px 1px no-repeat;
+  }
+
+  .rogue-stick-knob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
+    border-radius: 50%;
+    background: var(--ink);
+    pointer-events: none;
+  }
+
   /* ── index: the same numbers, as a list ── */
   .rogue-index {
     /* as wide as the nav's link cells, so its rule continues theirs */
@@ -477,6 +580,7 @@ const works = collectSelectedWorks()
 
   @media (max-width: 768px) {
     .rogue-index,
+    .rogue-help,
     .rogue-side-title,
     .rogue-side-head,
     .rogue-legend,
@@ -545,22 +649,21 @@ const works = collectSelectedWorks()
       min-height: 2.3em;
     }
 
-    /* the bottom strip belongs to the view switcher */
-    .rogue-help {
-      bottom: 4.2rem;
-      padding: 6px 12px;
-      width: max-content;
-      max-width: calc(100% - 48px);
-      text-align: center;
+    /* above the bottom nav: the stick and the buttons */
+    .rogue-stick,
+    .rogue-pad {
+      display: block;
     }
 
-    .rogue-help-line {
-      display: inline;
-    }
-
-    /* thumbnail beside the text, so the map stays in view */
+    /* thumbnail beside the text, and up under the status, so you and the
+       map around you stay in view */
     .rogue-panel {
-      bottom: 5.6rem;
+      z-index: 2;
+      top: 152px;
+      left: 16px;
+      right: 16px;
+      bottom: auto;
+      width: auto;
       display: flex;
     }
 

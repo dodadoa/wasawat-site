@@ -6,6 +6,7 @@ import { INK, SOFT, LINE, PAPER, RED, HALO, TEXT, genreColor } from "../data/hom
 import { workQuadrantMeta } from "../utils/quadrantWorkMeta.js"
 import { glassNode } from "./home/panelChrome.jsx"
 import DomStatsPanel from "./home/DomStatsPanel.jsx"
+import VennView from "./home/VennView.jsx"
 
 const S = XY_SCALE
 // four voices: pixel labels, display titles, data mono for numbers
@@ -28,9 +29,12 @@ const FLAT_SHEET_BLOOM = `${FLAT_BLOOM}, ${FLAT_BLOOM_AT("inset ")}`
 // publishes that width), so its left rule continues the nav's first divider.
 const RIGHT_W = "var(--nav-desktop-w, clamp(240px, 20vw, 300px))"
 const MOBILE_MQ = "(max-width: 768px)"
+// height of the phone's bottom nav, the tabs between the page's views
+const MOBILE_NAV_H = "3rem"
 
 function useIsMobile() {
-  const [mobile, setMobile] = useState(false)
+  // client-only island, so the first render already knows
+  const [mobile, setMobile] = useState(() => window.matchMedia(MOBILE_MQ).matches)
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_MQ)
     const update = () => setMobile(mq.matches)
@@ -478,11 +482,11 @@ const COL = {
 }
 
 /** Tiny inline bar for a single axis value: hairline track, ink fill, ink marker */
-function CoordSpark({ value }) {
+function CoordSpark({ value, bare = false }) {
   const pct = ((value + 1) / 2) * 100
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-      <div style={{ width: "32px", height: "4px", background: "var(--dither-12)", position: "relative", flexShrink: 0 }}>
+      <div style={{ display: bare ? "none" : undefined, width: "32px", height: "4px", background: "var(--dither-12)", position: "relative", flexShrink: 0 }}>
         <div style={{
           position: "absolute",
           left: `${Math.min(pct, 50)}%`,
@@ -507,7 +511,9 @@ function CoordSpark({ value }) {
   )
 }
 
-function Quadrant2DView({ genreFilter, inset = false }) {
+// `compact` (phone): genre and year fold under the title and the coordinates
+// drop their bars, so the title column gets most of the width
+function Quadrant2DView({ genreFilter, inset = false, compact = false }) {
   const works = useMemo(() => collectWorks(), [])
   const visible = genreFilter ? works.filter((w) => w.genreId === genreFilter) : works
 
@@ -524,13 +530,16 @@ function Quadrant2DView({ genreFilter, inset = false }) {
     whiteSpace: "nowrap",
     ...extra,
   })
+  const edge = compact ? "1rem" : "1.25rem"
+  const coordCell = compact ? { padding: "14px 0 14px 8px", width: "1%" } : {}
 
   return (
     <div
       className="absolute inset-0 overflow-y-auto"
       style={{
         zIndex: 1,
-        paddingBottom: "3.5rem",
+        // clear the view switcher, and on a phone the genre strip over it
+        paddingBottom: compact ? "6.5rem" : "3.5rem",
         // desktop: sit flush against the document-stats panel (left) and genre tabs (right)
         paddingLeft: inset ? "clamp(280px, 24vw, 380px)" : 0,
         paddingRight: inset ? RIGHT_W : 0,
@@ -540,13 +549,13 @@ function Quadrant2DView({ genreFilter, inset = false }) {
         <thead style={{ position: "sticky", top: 0, background: PAPER, zIndex: 2 }}>
           <tr>
             {/* primary info — left */}
-            <th style={th({ paddingLeft: "1.25rem" })}>Title</th>
-            <th style={th()}>Genre</th>
-            <th style={th()}>Year</th>
+            <th style={th({ paddingLeft: edge, textAlign: "left" })}>Title</th>
+            {!compact && <th style={th()}>Genre</th>}
+            {!compact && <th style={th()}>Year</th>}
             {/* 3d coords — right, dimmer */}
-            <th style={th({ textAlign: "right" })}>x</th>
-            <th style={th({ textAlign: "right" })}>y</th>
-            <th style={th({ textAlign: "right", paddingRight: "1.25rem" })}>z</th>
+            <th style={th({ textAlign: "right", ...coordCell })}>x</th>
+            <th style={th({ textAlign: "right", ...coordCell })}>y</th>
+            <th style={th({ textAlign: "right", ...coordCell, paddingRight: edge })}>z</th>
           </tr>
         </thead>
         <tbody>
@@ -565,7 +574,7 @@ function Quadrant2DView({ genreFilter, inset = false }) {
                 onMouseLeave={work.slug ? (e) => e.currentTarget.style.boxShadow = "none" : undefined}
               >
                 {/* title */}
-                <td style={{ ...COL, paddingLeft: "1.25rem" }}>
+                <td style={{ ...COL, paddingLeft: edge }}>
                   {work.slug ? (
                     <a
                       href={`/art/${work.slug}`}
@@ -593,9 +602,14 @@ function Quadrant2DView({ genreFilter, inset = false }) {
                       {label}
                     </span>
                   )}
+                  {compact && (
+                    <div style={{ marginTop: "6px", letterSpacing: "0.08em", textTransform: "uppercase", color: SOFT }}>
+                      {work.genreId} · <span style={{ fontFamily: dataMono }}>{work.date ? work.date.slice(0, 4) : "—"}</span>
+                    </div>
+                  )}
                 </td>
                 {/* genre */}
-                <td style={{ ...COL, whiteSpace: "nowrap" }}>
+                <td style={{ ...COL, whiteSpace: "nowrap", display: compact ? "none" : undefined }}>
                   <span style={{
                     fontFamily: mono,
                     fontSize: "calc(11px * var(--ui-scale, 1))",
@@ -607,18 +621,18 @@ function Quadrant2DView({ genreFilter, inset = false }) {
                   </span>
                 </td>
                 {/* year */}
-                <td style={{ ...COL, fontFamily: dataMono, color: SOFT, whiteSpace: "nowrap" }}>
+                <td style={{ ...COL, fontFamily: dataMono, color: SOFT, whiteSpace: "nowrap", display: compact ? "none" : undefined }}>
                   {work.date ? work.date.slice(0, 4) : "—"}
                 </td>
                 {/* coords — subtle, pushed right */}
-                <td style={{ ...COL, textAlign: "right" }}>
-                  <CoordSpark value={work.x} />
+                <td style={{ ...COL, textAlign: "right", ...coordCell }}>
+                  <CoordSpark value={work.x} bare={compact} />
                 </td>
-                <td style={{ ...COL, textAlign: "right" }}>
-                  <CoordSpark value={work.y} />
+                <td style={{ ...COL, textAlign: "right", ...coordCell }}>
+                  <CoordSpark value={work.y} bare={compact} />
                 </td>
-                <td style={{ ...COL, textAlign: "right", paddingRight: "1.25rem" }}>
-                  <CoordSpark value={work.z ?? 0} />
+                <td style={{ ...COL, textAlign: "right", ...coordCell, paddingRight: edge }}>
+                  <CoordSpark value={work.z ?? 0} bare={compact} />
                 </td>
               </tr>
             )
@@ -864,6 +878,17 @@ function FlatPlanesView({ genreFilter, hoverKey, setHoverKey }) {
   )
 }
 
+// a work's mark in the venn diagram: its picture, or its number if it has none
+const vennMark = (work, active, size) => {
+  const thumb = thumbOf(work)
+  const no = WORK_NO.get(workKey(work))
+  return thumb ? (
+    <Thumb src={thumb} no={no} active={active} linked={!!work.slug} size={size} />
+  ) : (
+    <Badge no={no} active={active} linked={!!work.slug} />
+  )
+}
+
 // ─── 2d chronology: top-down list of all works ────────────────────────────────
 
 const LINE_X = 92 // px from the column's left edge to the timeline
@@ -1069,10 +1094,10 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
     }
   }, [])
   const isMobile = useIsMobile()
-  // mobile: one cycling toggle · desktop: 3d / 2d planes / table switcher
-  // both open on the 3d diagram
-  const [mobileView, setMobileView] = useState("3d") // "3d" | "table" | "rogue"
-  const [desktopView, setDesktopView] = useState("3d") // "3d" | "2d" | "table" | "rogue"
+  // one switcher, fewer views on a phone: it opens on the table, which reads
+  // best on a narrow screen; the desktop opens on the 3d diagram
+  const [mobileView, setMobileView] = useState("table") // "table" | "3d" | "rogue"
+  const [desktopView, setDesktopView] = useState("3d") // "3d" | "2d" | "venn" | "table" | "rogue"
   const viewMode = isMobile ? mobileView : desktopView
 
   // the 1-bit roguelike is plain DOM the page renders next to this island
@@ -1096,12 +1121,15 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
 
   const genreButtons = genreLayers.filter((l) => l.id !== "all")
   const showDiagram = !isSingleChronology
-  const showToggle = showDiagram && isMobile
   const showDomStats = showDiagram && !isMobile
 
-  const mobileViews = hasRogue ? ["3d", "table", "rogue"] : ["3d", "table"]
-  const nextMobileView = mobileViews[(mobileViews.indexOf(viewMode) + 1) % mobileViews.length]
-  const toggleView = () => setMobileView(nextMobileView)
+  const views = [
+    ...(isMobile
+      ? [{ id: "table", label: "table" }, { id: "3d", label: "3d" }]
+      : [{ id: "3d", label: "3d" }, { id: "2d", label: "2d planes" }, { id: "venn", label: "venn" }, { id: "table", label: "table" }]),
+    ...(hasRogue ? [{ id: "rogue", label: "1bit rogue" }] : []),
+  ]
+  const setView = isMobile ? setMobileView : setDesktopView
 
   return (
     <div
@@ -1114,9 +1142,22 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
       {isRogue ? null : isSingleChronology ? (
         <ChronologyView layer={layers[0]} />
       ) : viewMode === "table" ? (
-        <Quadrant2DView genreFilter={genreFilter} inset={!isMobile} />
+        <Quadrant2DView genreFilter={genreFilter} inset={!isMobile} compact={isMobile} />
       ) : viewMode === "2d" ? (
         <FlatPlanesView genreFilter={genreFilter} hoverKey={activeKey} setHoverKey={setActiveKey} />
+      ) : viewMode === "venn" ? (
+        <VennView
+          works={WORKS}
+          keyOf={workKey}
+          genreFilter={genreFilter}
+          activeKey={activeKey}
+          onHoverChange={handleHoverChange}
+          renderMark={vennMark}
+          compact={isMobile}
+          // clear the document-stats panel (left), genre tabs (right) and the
+          // view switcher (bottom)
+          padding={isMobile ? "0 0 6rem" : `0 ${RIGHT_W} 3.25rem clamp(310px, 26vw, 410px)`}
+        />
       ) : (
         <>
           {!(canvasReady && imagesReady) && (
@@ -1166,31 +1207,31 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
       {/* the roguelike brings its own left column, about the museum */}
       {showDomStats && !isRogue && <DomStatsPanel />}
 
-      {/* desktop view switcher: 3d / 2d planes / table */}
-      {showDiagram && !isMobile && (
-        <div
+      {/* view switcher: a floating strip on the desktop, the bottom nav on a phone */}
+      {showDiagram && (
+        <nav
           className="absolute"
+          aria-label="Views"
           style={{
-            bottom: "0.75rem",
-            // the same place in every view, so it doesn't jump when you switch
-            left: "50%",
-            transform: "translateX(-50%)",
             zIndex: 5,
             display: "flex",
             background: PAPER,
             pointerEvents: "auto",
+            ...(isMobile
+              ? { left: 0, right: 0, bottom: 0, height: MOBILE_NAV_H, borderTop: `1px solid ${INK}` }
+              : {
+                  bottom: "0.75rem",
+                  // the same place in every view, so it doesn't jump when you switch
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                }),
           }}
         >
-          {[
-            { id: "3d", label: "3d" },
-            { id: "2d", label: "2d planes" },
-            { id: "table", label: "table" },
-            ...(hasRogue ? [{ id: "rogue", label: "1bit rogue" }] : []),
-          ].map((v, i) => (
+          {views.map((v, i) => (
             <button
               key={v.id}
               type="button"
-              onClick={() => setDesktopView(v.id)}
+              onClick={() => setView(v.id)}
               aria-pressed={viewMode === v.id}
               style={{
                 fontFamily: mono,
@@ -1202,9 +1243,11 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
                 background: viewMode === v.id ? INK : "transparent",
                 padding: "0.6rem 1rem",
                 cursor: "pointer",
-                border: `1px solid ${INK}`,
+                whiteSpace: "nowrap",
                 outline: "none",
-                marginLeft: i === 0 ? 0 : "-1px",
+                ...(isMobile
+                  ? { flex: 1, border: "none", borderLeft: i === 0 ? "none" : `1px solid ${INK}` }
+                  : { border: `1px solid ${INK}`, marginLeft: i === 0 ? 0 : "-1px" }),
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = INK; e.currentTarget.style.color = PAPER }}
               onMouseLeave={(e) => {
@@ -1215,48 +1258,21 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
               {v.label}
             </button>
           ))}
-        </div>
+        </nav>
       )}
 
-      {/* 2d / 3d toggle */}
-      {showToggle && (
-        <button
-          type="button"
-          onClick={toggleView}
-          aria-label={`Switch to ${nextMobileView} view`}
-          className="absolute"
-          style={{
-            pointerEvents: "auto",
-            // the genre strip it normally sits above is hidden over the roguelike
-            bottom: isMobile && !isRogue ? "3.25rem" : "0.75rem",
-            right: showGenreNav && !isMobile ? "clamp(140px, 20vw, 240px)" : "1rem",
-            zIndex: 5,
-            fontFamily: mono,
-            fontSize: "calc(12px * var(--ui-scale, 1))",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: INK,
-            padding: "0.6rem 0.9rem",
-            cursor: "pointer",
-            background: PAPER,
-            border: `1px solid ${INK}`,
-          }}
-        >
-          view · {nextMobileView}
-        </button>
-      )}
-
-      {/* genre filter — floats over canvas */}
+      {/* genre filter — floats over canvas; on a phone, a strip over the bottom nav */}
       {showGenreNav && showDiagram && !isRogue && (
         <nav
           className={
             isMobile
-              ? "absolute left-0 right-0 bottom-0 flex flex-row justify-start overflow-x-auto"
+              ? "absolute left-0 right-0 flex flex-row justify-start overflow-x-auto"
               : "absolute top-0 right-0 bottom-0 flex flex-col justify-center overflow-y-auto"
           }
           style={
             isMobile
               ? {
+                  bottom: MOBILE_NAV_H,
                   pointerEvents: "auto",
                   zIndex: 4,
                   borderTop: `1px solid ${LINE}`,
