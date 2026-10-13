@@ -227,8 +227,8 @@ const SWITCHER_BOTTOM = 56
 const FRAME_MS = 450
 const PEOPLE_MS = 300
 const STEP_MS = 70
-/** a held thumb stick: slower than a walk you asked for, so one step is easy to take */
-const STICK_MS = 150
+/** a held cross: slower than a walk you asked for, so one step is easy to take */
+const DPAD_MS = 150
 /** how near you have to come to a work, with nothing in the way, for it to count as seen */
 const SIGHT = 7
 /** how long a phone's torch stays on at each beat of its strobe */
@@ -1185,7 +1185,7 @@ export function startHomeRoguelike(root) {
     return true
   }
 
-  /** One step by hand, from a key or the stick. True if it took you anywhere. */
+  /** One step by hand, from a key or the cross. True if it took you anywhere. */
   function step(dir) {
     stopWalk()
     const nx = player.x + dir[0]
@@ -1221,52 +1221,47 @@ export function startHomeRoguelike(root) {
     if (walkable(x, y)) walkTo((cx, cy) => cx === x && cy === y)
   }
 
-  // ── thumb stick: lean it a way to step that way, hold it to keep going ──
-  const stick = root.querySelector("[data-rogue-stick]")
-  const knob = root.querySelector("[data-rogue-knob]")
-  if (stick && knob) {
-    /** @type {number[] | null} */
+  // ── cross: press an arm to step that way, hold it to keep going, and
+  // slide the thumb round to turn, as on a Game Boy ──
+  const dpad = root.querySelector("[data-rogue-dpad]")
+  if (dpad) {
+    const ARMS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }
+    /** @type {string | null} */
     let lean = null
-    let stickTimer = 0
-    const setLean = (dir) => {
-      if (dir?.[0] === lean?.[0] && dir?.[1] === lean?.[1]) return
-      lean = dir
-      window.clearInterval(stickTimer)
-      if (!dir) return
+    let dpadTimer = 0
+    const setLean = (arm) => {
+      if (arm === lean) return
+      lean = arm
+      window.clearInterval(dpadTimer)
+      if (!arm) return delete dpad.dataset.lean
+      dpad.dataset.lean = arm
       // held against something, it says so once rather than over and over
-      if (!step(dir)) return
-      stickTimer = window.setInterval(() => {
-        if (!step(dir)) window.clearInterval(stickTimer)
-      }, STICK_MS)
+      if (!step(ARMS[arm])) return
+      dpadTimer = window.setInterval(() => {
+        if (!step(ARMS[arm])) window.clearInterval(dpadTimer)
+      }, DPAD_MS)
     }
-    const onStick = (e) => {
-      const rect = stick.getBoundingClientRect()
-      const reach = rect.width / 2 - knob.offsetWidth / 2
+    const onDpad = (e) => {
+      const rect = dpad.getBoundingClientRect()
       const dx = e.clientX - (rect.left + rect.width / 2)
       const dy = e.clientY - (rect.top + rect.height / 2)
-      const far = Math.hypot(dx, dy)
-      const pull = Math.min(1, reach / (far || 1))
-      knob.style.transform = `translate(${Math.round(dx * pull)}px, ${Math.round(dy * pull)}px)`
-      // a dead middle, then whichever axis it leans along more
-      if (far < reach * 0.4) return setLean(null)
-      setLean(Math.abs(dx) > Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)])
+      // the hub is dead, then whichever arm the thumb is further along
+      if (Math.hypot(dx, dy) < rect.width * 0.12) return setLean(null)
+      setLean(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? "left" : "right") : dy < 0 ? "up" : "down")
     }
-    const release = () => {
-      knob.style.transform = ""
-      setLean(null)
-    }
-    stick.addEventListener("pointerdown", (e) => {
+    const release = () => setLean(null)
+    dpad.addEventListener("pointerdown", (e) => {
       e.preventDefault()
-      stick.setPointerCapture(e.pointerId)
-      onStick(e)
+      dpad.setPointerCapture(e.pointerId)
+      onDpad(e)
     })
-    stick.addEventListener("pointermove", (e) => {
-      if (stick.hasPointerCapture(e.pointerId)) onStick(e)
+    dpad.addEventListener("pointermove", (e) => {
+      if (dpad.hasPointerCapture(e.pointerId)) onDpad(e)
     })
-    stick.addEventListener("pointerup", release)
-    stick.addEventListener("pointercancel", release)
-    stick.addEventListener("lostpointercapture", release)
-    stick.addEventListener("contextmenu", (e) => e.preventDefault())
+    dpad.addEventListener("pointerup", release)
+    dpad.addEventListener("pointercancel", release)
+    dpad.addEventListener("lostpointercapture", release)
+    dpad.addEventListener("contextmenu", (e) => e.preventDefault())
   }
 
   // A does what Enter does; B calls off a walk you tapped for
