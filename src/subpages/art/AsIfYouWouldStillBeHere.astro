@@ -3,6 +3,7 @@ import { linkInstagramMentions } from "../../utils/instagramMentions"
 import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
 
 const metaPartOf = linkInstagramMentions("Overflow and Coding tools at Infra Practice")
+const metaAlsoAt = linkInstagramMentions("Overflow at @goetheinstitut.thailand, organised by @corneacochlearclub")
 
 const overflowLineup = [
   { name: "ARBOR", origin: "Canada" },
@@ -10,11 +11,26 @@ const overflowLineup = [
   { name: "WASAMAT", origin: "Thailand", handle: "@giang_ws" },
   { name: "MUZEIAN", origin: "Indonesia", handle: "@muzeian" },
 ]
+
+const goetheLineup = [
+  { name: "HUE", handles: "@h_u_e_______ @dianyst_ @divabhwn" },
+  { name: "LUIS SANZ", handles: "@luissanz___ @unsorted.love" },
+  { name: "WASAWAT", handles: "@giang_ws" },
+  { name: "CRSRCRSRRR x KAN-TA", handles: "@crsrcrsrrr @kanta_kantaphong" },
+  { name: "ARBOR" },
+  { name: "SYNTHDERELLAR x KOLAB", handles: "@synthderellar @kolab.bkk @varut_o @3rd.order.jpg" },
+  { name: "LUIS KÜFNER x GIANG_WS", handles: "@luiskueffner @giang_ws" },
+  { name: "PASUTH", handles: "@pasuthh" },
+]
+
+const goetheSupport = linkInstagramMentions("@goetheinstitut.thailand, @prohelvetia, @araieekcnx")
+const goetheCollab = linkInstagramMentions("@synap.home.lab, @kolab.bkk")
 ---
 
 <div class="mt-4 max-w-3xl">
   <ArtworkMeta fields={[
     { label: "Presented as part of", value: metaPartOf, html: true },
+    { label: "Also performed at", value: metaAlsoAt, html: true },
   ]} />
 
   <p class="mb-6 art-lead">90% fiction. 10% confession.</p>
@@ -105,6 +121,40 @@ const overflowLineup = [
         </li>
       ))}
     </ul>
+  </div>
+
+  <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle);">
+    <p class="kicker mb-2">Also performed at</p>
+    <h2 class="text-xl mb-3">Overflow</h2>
+    <p class="mb-4 opacity-80">LiveCoding and AudioVisual Performance</p>
+
+    <p class="mb-4">
+      An evening of experimental music, visuals and light at Goethe-Institut Thailand, organised by
+      <a href="https://www.instagram.com/p/DYRQroOg1wJ/" target="_blank" rel="noopener noreferrer">Cornea Cochlear Club</a>,
+      with code written live in front of the audience and nothing pre-recorded.
+    </p>
+
+    <p class="text-sm opacity-80 mb-2">Line-up</p>
+    <ul class="text-sm space-y-1">
+      {goetheLineup.map((item) => (
+        <li>
+          <span style="color: var(--text-muted);">{item.name}</span>
+          {item.handles && (
+            <>
+              {" "}
+              <span set:html={linkInstagramMentions(item.handles)} />
+            </>
+          )}
+        </li>
+      ))}
+    </ul>
+
+    <p class="mt-4 text-sm" style="color: var(--text-dim);">
+      Supported by <span set:html={goetheSupport} />
+    </p>
+    <p class="text-sm" style="color: var(--text-dim);">
+      In collaboration with <span set:html={goetheCollab} />
+    </p>
   </div>
 
   <div class="art-media-grid">

@@ -123,8 +123,9 @@ import Layout from "../../layouts/layout.astro"
     }
   }
 
-  /* on a real phone the scene is the whole screen, and the talk floats over the top of it */
-  @media (max-width: 760px) {
+  /* on a real phone the scene is the whole screen, and the talk floats over the top of it
+     (a phone on its side is wide but short, so it counts too) */
+  @media (max-width: 760px), (max-height: 520px) {
     .ssw-stage {
       padding: 0;
     }
