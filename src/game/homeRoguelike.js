@@ -1207,7 +1207,26 @@ export function startHomeRoguelike(root) {
     }
   }
 
+  // On a phone the cross and the buttons sit on top of the map, so a thumb
+  // that lands just beside one would otherwise send you walking off to the
+  // cell underneath it. Taps that close to a control are not for the map.
+  const CONTROL_MARGIN = 32
+  const controls = [...root.querySelectorAll("[data-rogue-dpad], .rogue-pad")]
+  const nearControl = (e) =>
+    controls.some((el) => {
+      const r = el.getBoundingClientRect()
+      // not laid out off the phone
+      if (!r.width) return false
+      return (
+        e.clientX > r.left - CONTROL_MARGIN &&
+        e.clientX < r.right + CONTROL_MARGIN &&
+        e.clientY > r.top - CONTROL_MARGIN &&
+        e.clientY < r.bottom + CONTROL_MARGIN
+      )
+    })
+
   function onPointer(e) {
+    if (nearControl(e)) return
     const rect = canvas.getBoundingClientRect()
     const x = Math.floor((e.clientX - rect.left - camX) / cell)
     const y = Math.floor((e.clientY - rect.top - camY) / cell)
