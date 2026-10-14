@@ -497,28 +497,6 @@ const sitemapTree = [
           (e) => show(e.target === document ? document.documentElement : e.target, 900),
           { capture: true, passive: true }
         )
-        // nudging the pointer to the right edge brings the page's scrollbar back
-        document.addEventListener(
-          "pointermove",
-          (e) => {
-            if (e.clientX >= window.innerWidth - 16) show(document.documentElement, 900)
-          },
-          { passive: true }
-        )
-        // the big pages — work, about, and anything over two screens tall —
-        // keep theirs on show the whole time
-        const root = document.documentElement
-        const measure = () => {
-          const h = root.scrollHeight
-          const vh = window.innerHeight
-          const big = /^\/(work|about)(\/|$)/.test(location.pathname)
-          root.classList.toggle("is-long", h > vh && (big || h > vh * 2))
-        }
-        new ResizeObserver(measure).observe(document.body)
-        window.addEventListener("resize", measure, { passive: true })
-        window.addEventListener("load", measure)
-        document.addEventListener("astro:page-load", measure)
-        measure()
       })()
     </script>
 
@@ -579,17 +557,19 @@ const sitemapTree = [
         --accent-5: var(--soft);
       }
 
+      /* the page itself scrolls with no visible bar and no reserved gutter,
+         so content runs edge to edge and never shifts width */
       html {
-        /* reserve the scrollbar's gutter always — pages that toggle between
-           scrollable/short content no longer shift width and flicker */
-        scrollbar-gutter: stable;
-        overflow-y: scroll;
+        scrollbar-width: none;
+      }
+
+      html::-webkit-scrollbar {
+        display: none;
       }
 
       /* ── scrollbar ──
-         Nothing at rest on short pages. While the element is scrolling
-         (.is-scrolling) or the page is a long one (.is-long) — both set by
-         the script above — a hairline rail appears with a 4px dithered
+         Inner scrollers only. Nothing at rest; while the element is scrolling
+         (.is-scrolling, set by the script above) a hairline rail appears with a 4px dithered
          sliver riding on it for the thumb; under the cursor the thumb goes
          solid so it can be grabbed. */
       ::-webkit-scrollbar {
@@ -602,12 +582,10 @@ const sitemapTree = [
         background: transparent;
       }
 
-      .is-long::-webkit-scrollbar-track,
       .is-scrolling::-webkit-scrollbar-track {
         background: linear-gradient(var(--line), var(--line)) center / 1px 100% no-repeat;
       }
 
-      .is-long::-webkit-scrollbar-track:horizontal,
       .is-scrolling::-webkit-scrollbar-track:horizontal {
         background-size: 100% 1px;
       }
@@ -624,7 +602,6 @@ const sitemapTree = [
         border-width: 2px 0;
       }
 
-      .is-long::-webkit-scrollbar-thumb,
       .is-scrolling::-webkit-scrollbar-thumb {
         background: repeating-conic-gradient(var(--soft) 0 25%, transparent 0 50%) 0 0 / 4px 4px
           padding-box;
@@ -637,7 +614,7 @@ const sitemapTree = [
 
       /* Firefox can't paint scrollbar parts — fall back to a thin flat grey */
       @supports not selector(::-webkit-scrollbar) {
-        html {
+        body * {
           scrollbar-color: var(--line) transparent;
           scrollbar-width: thin;
         }
@@ -1694,11 +1671,17 @@ const sitemapTree = [
         treeRoot.dataset.built = "1"
       }
 
+      // a long-press on touch fires contextmenu too; remember what pressed last
+      let lastPointerType = "mouse"
+      document.addEventListener("pointerdown", (e) => (lastPointerType = e.pointerType), true)
+
       document.addEventListener("contextmenu", (e) => {
         // let the browser's native menu through on real inputs/text selection
         const target = e.target
         if (target && target.closest && target.closest("input, textarea, [contenteditable='true']")) return
         e.preventDefault()
+        // in the 1bit rogue a held thumb is a held step, not a call for the sitemap
+        if (lastPointerType !== "mouse" && target && target.closest && target.closest("#home-rogue")) return
         showMenuAt(e.clientX, e.clientY)
       })
 
