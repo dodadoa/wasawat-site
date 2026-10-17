@@ -1,0 +1,206 @@
+---
+// /perma: the site as near-plain html. Browser defaults for type, links and
+// spacing; only the paper grey ground and the ink (bloom + bleed) are kept.
+// Standalone on purpose: no Layout, so no loader, nav, scripts or tailwind.
+import { collectSelectedWorks } from "../data/selectedWorks.js"
+import { splitNews, formatRange } from "../data/news.js"
+
+const works = collectSelectedWorks()
+const genres = [...new Set(works.map((w) => w.genre))].map((genre) => ({
+  genre,
+  works: works.filter((w) => w.genre === genre),
+}))
+
+const { upcoming, archive } = splitNews()
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Wasawat Somno</title>
+    <meta name="description" content="Developer/Artist" />
+    <style>
+      :root {
+        color-scheme: light;
+        /* the same over-inked bloom as the main site (layout.astro) */
+        --bloom:
+          0 0 0.05em color-mix(in srgb, currentColor 50%, transparent),
+          0 0 0.4em color-mix(in srgb, currentColor 30%, transparent);
+      }
+
+      /* tailwind's preflight is injected into every page: undo it back to the
+         browser's own styles (zero specificity, so the rules below still win;
+         the filter svg keeps its own sizing) */
+      :where(html, html :not(svg, svg *)) {
+        all: revert;
+      }
+
+      html,
+      body {
+        background: #e4e4e4;
+        color: #141414;
+      }
+
+      * {
+        text-shadow: var(--bloom);
+      }
+
+      /* bleed per text block (never on a block inside another, or it doubles) */
+      h1 {
+        filter: url(#ink-body);
+      }
+
+      h2,
+      h3,
+      p,
+      li,
+      dt,
+      dd,
+      summary {
+        filter: url(#ink-small);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ink-bleed filters, copied from layout.astro: blur → warp by coarse
+         noise → threshold back to a hard edge → fine grain → over a bloom -->
+    <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+      <defs>
+        <filter id="ink-body" x="-6%" y="-40%" width="112%" height="180%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="1.15" result="blur" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="warp" />
+          <feDisplacementMap in="blur" in2="warp" scale="3" xChannelSelector="R" yChannelSelector="G" result="warped" />
+          <feComponentTransfer in="warped" result="hard">
+            <feFuncA type="linear" slope="6" intercept="-2.02" />
+          </feComponentTransfer>
+          <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="1" seed="13" result="grain" />
+          <feDisplacementMap in="hard" in2="grain" scale="1.5" xChannelSelector="R" yChannelSelector="G" result="ink" />
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4.5" result="wide" />
+          <feComponentTransfer in="wide" result="bloom">
+            <feFuncA type="linear" slope="0.42" />
+          </feComponentTransfer>
+          <feMerge><feMergeNode in="bloom" /><feMergeNode in="ink" /></feMerge>
+        </filter>
+        <filter id="ink-small" x="-6%" y="-45%" width="112%" height="190%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="0.6" result="blur" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="9" result="warp" />
+          <feDisplacementMap in="blur" in2="warp" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="warped" />
+          <feComponentTransfer in="warped" result="hard">
+            <feFuncA type="linear" slope="6" intercept="-2.02" />
+          </feComponentTransfer>
+          <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="1" seed="17" result="grain" />
+          <feDisplacementMap in="hard" in2="grain" scale="0.8" xChannelSelector="R" yChannelSelector="G" result="ink" />
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="wide" />
+          <feComponentTransfer in="wide" result="bloom">
+            <feFuncA type="linear" slope="0.4" />
+          </feComponentTransfer>
+          <feMerge><feMergeNode in="bloom" /><feMergeNode in="ink" /></feMerge>
+        </filter>
+      </defs>
+    </svg>
+
+    <h1>Wasawat Somno</h1>
+    <p>
+      <a href="/">home</a> · <a href="/news">news</a> · <a href="/work">work</a> ·
+      <a href="/about">about</a> · <a href="/cv">cv</a>
+    </p>
+
+    <hr />
+
+    <h2>About</h2>
+    <p>
+      Wasawat Somno (1994, Thailand) is an artist working with code, audiovisual/sound performance, and
+      installation. His practice is organized around the act of mapping — holding two planes of context in
+      tension and tracing what passes between them. A computational system and the ethical questions it
+      quietly carries. A simulation and the physical world it stands in for. An interface and the body that
+      encounters it.
+    </p>
+    <p>
+      His work constructs situations where these double registers become navigable: spaces where narrative
+      bleeds across layers, where expectation bends, and where the logic of a system begins to press against
+      something more speculative. Working across installation, audiovisual/sound performance, and net art, he
+      is drawn to the threshold where the technical and the ethical fold into each other — where a worm's
+      connectome becomes a question about consciousness, where a screen holds more than what it displays.
+    </p>
+    <p>
+      The work holds a deliberately semi-serious structure — rigorous in its systems, amateur in its posture,
+      sustained by the spirit of DIY.
+    </p>
+
+    <hr />
+
+    <h2>Selected work</h2>
+    {
+      genres.map(({ genre, works }) => (
+        <>
+          <h3>{genre}</h3>
+          <ol start={works[0].no}>
+            {works.map((w) => (
+              <li>
+                <a href={`/art/${w.slug}`}>{w.label}</a>
+              </li>
+            ))}
+          </ol>
+        </>
+      ))
+    }
+    <p><a href="/work">full index</a></p>
+
+    <hr />
+
+    <h2>News</h2>
+    {upcoming.length === 0 && <p>Nothing scheduled at the moment.</p>}
+    {
+      upcoming.map((entry) => (
+        <>
+          <h3>{entry.title}</h3>
+          <p>
+            {formatRange(entry.start, entry.end)}
+            {entry.venue?.map((v) => (
+              <>
+                {" · "}
+                {v.href ? <a href={v.href}>{v.label}</a> : v.label}
+              </>
+            ))}
+            {entry.venueSuffix}
+          </p>
+          {entry.subtitle && <p><em>{entry.subtitle}</em></p>}
+          {entry.body?.map((para) => <p set:html={para} />)}
+          {entry.meta?.map((line) => <p set:html={line} />)}
+          {entry.links?.length > 0 && (
+            <ul>
+              {entry.links.map((l) => (
+                <li>
+                  <a href={l.href}>{l.label}</a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      ))
+    }
+
+    {
+      archive.length > 0 && (
+        <details>
+          <summary>Archive ({archive.length})</summary>
+          <ul>
+            {archive.map((entry) => (
+              <li>
+                {formatRange(entry.start, entry.end)} — {entry.title}
+                {entry.venue?.length > 0 && <>, {entry.venue.map((v) => v.label).join(", ")}</>}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )
+    }
+
+    <hr />
+
+    <p><small>plain version · <a href="/">full site</a></small></p>
+  </body>
+</html>
