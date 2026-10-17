@@ -7,6 +7,8 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
     { label: "Year", value: "2020" },
     { label: "Medium", value: "Generated Images, Digital Print" },
     { label: "Collaboration", value: "Nanut Thanapornrapee" },
+    { label: "Exhibition", value: "อี๊ดอ๊าด อี๊ดอ๊าด!" },
+    { label: "Press", value: '<a href="https://www.matichon.co.th/weekly/column/article_346614" target="_blank" rel="noopener noreferrer">Matichon Weekly</a>', html: true },
   ]} />
 
   <p class="mb-4">
@@ -17,9 +19,22 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
     The rebirth of Tokyohot restaurant at Charoenkrung43 was simulated by an AI created to be a newborn conscious virgin from every memory and knowledge, and let it study the presence of Kanom Tokyo.
   </p>
 
+  <aside class="art-margin-note" id="gan-note">
+    <p style="font-family: var(--f-data); font-size: 12px; line-height: 1.6; margin: 0;">
+      <strong>GAN</strong> (Generative Adversarial Network): two neural networks trained against each
+      other. A generator makes images from noise; a discriminator tries to tell them from real ones.
+      Each improves by fooling, or catching, the other, until the fakes pass. The best-known GANs
+      learned to make faces of people who do not exist.
+    </p>
+  </aside>
+
   <p class="mb-4">
-    We use GAN (Generative Adversarial Network) that was used for face recognition — but in this project, it was taught to remember and create Kanom Tokyo. This project also explored how newborn consciousness perceives death and birth, as well as the struggle of the restaurant itself as the business of artists who struggle to make a living.
+    We use <a href="#gan-note" class="art-callout">GAN (Generative Adversarial Network)</a><sup>1</sup> that was used for face recognition — but in this project, it was taught to remember and create Kanom Tokyo. This project also explored how newborn consciousness perceives death and birth, as well as the struggle of the restaurant itself as the business of artists who struggle to make a living.
   </p>
+
+  <div class="art-footnotes">
+    <p><sup>1</sup>Ian Goodfellow et al., <a href="https://arxiv.org/abs/1406.2661" target="_blank" rel="noopener noreferrer">&ldquo;Generative Adversarial Networks&rdquo;</a> (2014). For faces, see Tero Karras, Samuli Laine and Timo Aila, <a href="https://arxiv.org/abs/1812.04948" target="_blank" rel="noopener noreferrer">&ldquo;A Style-Based Generator Architecture for Generative Adversarial Networks&rdquo;</a> (StyleGAN, 2019).</p>
+  </div>
 
   <p class="text-sm opacity-80 mt-4">
     <a href="https://nanuttpp.net/Neonatus-Neotokyo" target="_blank" rel="noopener noreferrer" class="hover:underline">
@@ -28,6 +43,11 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
   </p>
 
   <div class="art-media-grid" style="max-width: 560px;">
+    <figure class="art-media-full">
+      <img src="/images/neonatus/neonatus-exhibition.webp" alt="Neonatus/Neotokyo — installation view at อี๊ดอ๊าด อี๊ดอ๊าด!, prints hung on yellow pipe frames" />
+      <figcaption class="mt-2 text-sm opacity-70">Installation view, อี๊ดอ๊าด อี๊ดอ๊าด! — courtesy of <a href="https://www.matichon.co.th/weekly/column/article_346614" target="_blank" rel="noopener noreferrer" class="hover:underline">Matichon Weekly</a></figcaption>
+    </figure>
+    <img src="/images/neonatus/neonatus-gan-grid.webp" alt="Neonatus/Neotokyo — six grids of GAN-generated Kanom Tokyo shapes in yellow, white, blue, red, green and grey" class="art-media-full" />
     <img src="/images/neonatus/Sequence-03.gif" alt="Neonatus/Neotokyo — animated sequence" class="art-media-full" />
     <img src="/images/neonatus/neonatus-02.png" alt="Neonatus/Neotokyo — generated image" style="height: 180px; object-fit: cover;" />
     <img src="/images/neonatus/neonatus-03.png" alt="Neonatus/Neotokyo — generated image" style="height: 180px; object-fit: cover;" />
