@@ -1,9 +1,16 @@
 ---
-// /perma: the site as near-plain html. Browser defaults for type, links and
-// spacing; only a white ground and the ink (bloom + bleed) are kept.
-// Standalone on purpose: no Layout, so no loader, nav, scripts or tailwind.
+// /perma: the whole site on one near-plain html page. Home, about, every
+// work, news and the CV run down in order, and every link inside jumps to its
+// section instead of leaving. Browser defaults for type, links and spacing;
+// only a white ground and the ink (bloom + bleed) are kept. Standalone on
+// purpose: no Layout, so no loader, nav or site chrome.
+import { experimental_AstroContainer as AstroContainer } from "astro/container"
+import CvPage from "./cv.astro"
 import { collectSelectedWorks } from "../data/selectedWorks.js"
 import { splitNews, formatRange } from "../data/news.js"
+import { artSections, artworkPages } from "../data/artArchive.js"
+import { bio, fullBio, bioSections } from "../data/about.js"
+import { artComponents } from "../subpages/art/index.js"
 
 // a trailing "(2025)" / "(2026–ongoing)" in a label moves into the year column
 const works = collectSelectedWorks().map((w) => {
@@ -15,7 +22,41 @@ const genres = [...new Set(works.map((w) => w.genre))].map((genre) => ({
   works: works.filter((w) => w.genre === genre),
 }))
 
+// every work with a page, in archive order, then any the archive doesn't list
+const archived = artSections.flatMap((s) =>
+  s.groups.flatMap((g) => g.items.filter((i) => i.slug && !i.hidden).map((i) => i.slug)),
+)
+const pages = [...new Set([...archived, ...Object.keys(artworkPages)])]
+  .filter((slug) => artComponents[slug] && artworkPages[slug])
+  .map((slug) => ({ slug, title: artworkPages[slug].title, Content: artComponents[slug] }))
+
 const { upcoming, archive } = splitNews()
+const newsId = (e) =>
+  `news-${e.start}-${e.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`
+
+/** A site path as the section of this page that holds it (else unchanged). */
+function local(href) {
+  if (!href?.startsWith("/")) return href
+  const [path, hash] = href.split("#")
+  const art = path.match(/^\/art\/([^/]+)\/?$/)
+  if (art && artComponents[art[1]]) return `#${hash ?? `art-${art[1]}`}`
+  const section = {
+    "": "#top",
+    "/about": "#about",
+    "/work": "#work",
+    "/index": "#work",
+    "/art": "#work",
+    "/news": "#news",
+    "/cv": "#cv",
+  }[path.replace(/\/$/, "")]
+  return section ?? href
+}
+
+// the CV is its own standalone page: render it and keep only its body,
+// without its header (the name is already at the top here)
+const container = await AstroContainer.create()
+const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\S]*)<\/main>/)?.[1] ?? "")
+  .replace(/<header[\s\S]*?<\/header>/, "")
 ---
 
 <!doctype html>
@@ -36,103 +77,129 @@ const { upcoming, archive } = splitNews()
           0 0 0.3em color-mix(in srgb, currentColor 14%, transparent);
       }
 
-      /* tailwind's preflight is injected into every page: undo it back to the
-         browser's own styles. Just heavier than preflight's bare element
-         selectors; everything below is prefixed with :root to sit above it.
-         The filter svg keeps its own sizing. */
+      /* back to the browser's own styles: tailwind's preflight, the work pages'
+         own styles and utility classes all lose to an id (inline style= on an
+         image still wins, which keeps the pictures sized). Everything below is
+         #perma-prefixed and later, so it sits above this. Inline svg keeps its
+         own styling. */
       :root,
-      html :not(svg, svg *) {
+      #perma,
+      #perma :where(:not(svg, svg *)) {
         all: revert;
       }
 
       :root,
-      :root body {
+      #perma {
         background: #fff;
         color: #141414;
       }
 
-      :root body {
+      #perma {
         font-size: 20px;
         max-width: 1180px;
         margin: 0 auto;
         padding: 1em 1.25em 2em;
       }
 
-      /* two columns: about | work and news; one on a phone */
-      :root main {
+      /* the top of the page: about | selected work and news; one column on a phone */
+      #perma main {
         display: grid;
         grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
         gap: 0 3em;
       }
 
       @media (max-width: 860px) {
-        :root main {
+        #perma main {
           grid-template-columns: minmax(0, 1fr);
         }
       }
 
-      /* phone: the kind column goes and the years may wrap, so the tables fit */
-      @media (max-width: 560px) {
-        :root .k {
-          display: none;
-        }
-
-        :root td.n {
-          white-space: normal;
-          overflow-wrap: anywhere;
-        }
-
-        :root body {
-          padding-inline: 16px;
-        }
+      /* long reading runs at a readable measure */
+      #perma .read {
+        max-width: 40em;
       }
 
-      :root header p {
+      #perma header p {
         margin-top: -0.4em;
       }
 
+      #perma aside p {
+        font-size: 0.9em;
+      }
+
       /* data tables: ruled, as table border="1" would draw them */
-      :root table {
+      #perma table {
         width: 100%;
         border-collapse: collapse;
       }
 
-      :root :is(td, th) {
+      #perma :is(td, th) {
         border: 1px solid #141414;
         padding: 0.2em 0.45em;
         text-align: left;
         vertical-align: top;
       }
 
-      :root td.n {
+      #perma td.n {
         text-align: right;
         white-space: nowrap;
       }
 
-      :root aside p {
-        font-size: 0.9em;
+      /* pictures and players never wider than the column */
+      #perma :is(img, video, iframe) {
+        max-width: 100%;
+        height: auto;
       }
 
-      :root * {
+      /* the work pages' interactive pieces are left out here */
+      #perma astro-island {
+        display: none;
+      }
+
+      /* phone: the kind column goes and the years may wrap, so the tables fit */
+      @media (max-width: 560px) {
+        #perma .k {
+          display: none;
+        }
+
+        #perma td.n {
+          white-space: normal;
+          overflow-wrap: anywhere;
+        }
+
+        #perma {
+          padding-inline: 16px;
+        }
+      }
+
+      #perma * {
         text-shadow: var(--bloom);
       }
 
-      /* links stay the default blue: no visited purple, no active red */
-      :root a:is(:link, :visited, :hover, :active) {
-        color: #0000ee;
+      /* links stay the default blue: no visited purple, no active red, and
+         not the inline colour the work pages give @mentions */
+      #perma a:is(:link, :visited, :hover, :active) {
+        color: #0000ee !important;
       }
 
-      /* bleed per text block (never on a block inside another, or it doubles) */
-      :root h1 {
+      /* bleed per text block, and a div holding only inline text counts as one */
+      #perma :is(h2, h3, h4, h5, h6, p, li, dt, dd, summary, td, th, figcaption, blockquote),
+      #perma div:not(:has(:not(a, b, i, em, strong, small, span, br, sup, sub, code))) {
+        filter: url(#ink-small);
+      }
+
+      #perma h1 {
         filter: url(#ink-body);
       }
 
-      :root :is(h2, h3, p, li, dt, dd, summary, td, th) {
-        filter: url(#ink-small);
+      /* once only: not again inside an inked block, and never over a picture */
+      #perma :is(h1, h2, h3, h4, h5, h6, p, li, dt, dd, summary, td, th, figcaption, blockquote) :is(*, div),
+      #perma :is(h1, h2, h3, h4, h5, h6, p, li, dt, dd, summary, td, th, figcaption, blockquote, div):has(img, video, iframe, canvas, svg) {
+        filter: none;
       }
     </style>
   </head>
-  <body>
+  <body id="perma">
     <!-- ink-bleed filters after layout.astro's (blur → warp by coarse noise →
          threshold back to a hard edge → fine grain → over a bloom), turned
          down: less blur and warp, a fainter bloom -->
@@ -171,39 +238,22 @@ const { upcoming, archive } = splitNews()
       </defs>
     </svg>
 
-    <header>
+    <header id="top">
       <h1>Wasawat Somno</h1>
       <p>
         artist — code, audiovisual/sound performance, installation. Bangkok.<br />
-        <a href="/">home</a> · <a href="/news">news</a> · <a href="/work">work</a> ·
-        <a href="/about">about</a> · <a href="/cv">cv</a>
+        <a href="#about">about</a> · <a href="#work">work</a> · <a href="#news">news</a> ·
+        <a href="#cv">cv</a>
       </p>
     </header>
 
     <hr />
 
     <main>
-      <aside>
+      <aside id="about">
         <h2>About</h2>
-        <p>
-          Wasawat Somno (1994, Thailand) is an artist working with code, audiovisual/sound performance, and
-          installation. His practice is organized around the act of mapping — holding two planes of context in
-          tension and tracing what passes between them. A computational system and the ethical questions it
-          quietly carries. A simulation and the physical world it stands in for. An interface and the body that
-          encounters it.
-        </p>
-        <p>
-          His work constructs situations where these double registers become navigable: spaces where narrative
-          bleeds across layers, where expectation bends, and where the logic of a system begins to press against
-          something more speculative. Working across installation, audiovisual/sound performance, and net art, he
-          is drawn to the threshold where the technical and the ethical fold into each other — where a worm's
-          connectome becomes a question about consciousness, where a screen holds more than what it displays.
-        </p>
-        <p>
-          The work holds a deliberately semi-serious structure — rigorous in its systems, amateur in its posture,
-          sustained by the spirit of DIY.
-        </p>
-        <p><a href="/about">more →</a></p>
+        {bio.map((text) => <p>{text}</p>)}
+        <p><a href="#about-more">more →</a></p>
       </aside>
 
       <div>
@@ -218,7 +268,7 @@ const { upcoming, archive } = splitNews()
                 works.map((w, i) => (
                   <tr>
                     <td class="n">{w.no}</td>
-                    <td><a href={`/art/${w.slug}`}>{w.title}</a></td>
+                    <td><a href={local(`/art/${w.slug}`)}>{w.title}</a></td>
                     <td class="n">{w.year}</td>
                     {i === 0 && <td class="k" rowspan={works.length}>{genre}</td>}
                   </tr>
@@ -227,7 +277,7 @@ const { upcoming, archive } = splitNews()
             }
           </tbody>
         </table>
-        <p><a href="/work">full index →</a></p>
+        <p><a href="#work">full index ↓</a></p>
 
         <h2>News</h2>
         {upcoming.length === 0 && <p>Nothing scheduled at the moment.</p>}
@@ -239,7 +289,7 @@ const { upcoming, archive } = splitNews()
                   <tr>
                     <td class="n">{formatRange(entry.start, entry.end)}</td>
                     <td>
-                      {entry.links?.[0] ? <a href={entry.links[0].href}>{entry.title}</a> : entry.title}
+                      <a href={`#${newsId(entry)}`}>{entry.title}</a>
                       {entry.subtitle && <> — <em>{entry.subtitle}</em></>}
                     </td>
                     <td>{entry.venue?.map((v) => v.label).join(", ")}{entry.venueSuffix}</td>
@@ -249,33 +299,143 @@ const { upcoming, archive } = splitNews()
             </table>
           )
         }
-        {
-          archive.length > 0 && (
-            <details>
-              <summary>archive ({archive.length})</summary>
-              <table>
-                <tbody>
-                  {archive.map((entry) => (
-                  <tr>
-                    <td class="n">{formatRange(entry.start, entry.end)}</td>
-                    <td>
-                      {entry.links?.[0] ? <a href={entry.links[0].href}>{entry.title}</a> : entry.title}
-                      {entry.subtitle && <> — <em>{entry.subtitle}</em></>}
-                    </td>
-                    <td>{entry.venue?.map((v) => v.label).join(", ")}{entry.venueSuffix}</td>
-                  </tr>
-                ))}
-                </tbody>
-              </table>
-            </details>
-          )
-        }
-        <p><a href="/news">all news →</a></p>
+        <p><a href="#news">all news ↓</a></p>
       </div>
     </main>
 
     <hr />
 
-    <p><small>plain version · <a href="/">full site</a></small></p>
+    <section id="about-more" class="read">
+      <h2>About, extended</h2>
+      {fullBio.map((html) => <p set:html={html} />)}
+      {
+        bioSections.map((section) => (
+          <>
+            <h3>{section.title}</h3>
+            <ul>
+              {section.items.map((item) => (
+                <li>
+                  {item.url ? <a href={local(item.url)}>{item.label}</a> : item.label}
+                  {item.meta && <> — {item.meta}</>}
+                </li>
+              ))}
+            </ul>
+            {section.footnote && <p><small>{section.footnote}</small></p>}
+          </>
+        ))
+      }
+    </section>
+
+    <hr />
+
+    <section id="work">
+      <h2>Work</h2>
+      {
+        artSections.map((section) => (
+          <>
+            <h3>{section.title}</h3>
+            {section.groups.map((group) => {
+              const items = group.items.filter((item) => !item.hidden)
+              return (
+                items.length > 0 && (
+                  <>
+                    {group.title && <h4>{group.title}</h4>}
+                    <ul>
+                      {items.map((item) => (
+                        <li>
+                          {item.slug && artComponents[item.slug] ? (
+                            <a href={local(`/art/${item.slug}`)}>{item.label}</a>
+                          ) : (
+                            item.label
+                          )}
+                          {[item.country, item.date?.slice(0, 4)].filter(Boolean).length > 0 && (
+                            <> — {[item.country, item.date?.slice(0, 4)].filter(Boolean).join(", ")}</>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )
+              )
+            })}
+          </>
+        ))
+      }
+    </section>
+
+    {
+      pages.map(({ slug, title, Content }) => (
+        <>
+          <hr />
+          <section id={`art-${slug}`} class="read">
+            <h2>{title}</h2>
+            <p><small><a href="#work">↑ work</a></small></p>
+            <Content />
+          </section>
+        </>
+      ))
+    }
+
+    <hr />
+
+    <section id="news" class="read">
+      <h2>News</h2>
+      {
+        [...upcoming, ...archive].map((entry, i) => (
+          <article id={newsId(entry)}>
+            {i === upcoming.length && archive.length > 0 && <h3>Archive</h3>}
+            <h4>{entry.title}</h4>
+            <p>
+              {formatRange(entry.start, entry.end)}
+              {entry.venue?.map((v) => (
+                <>
+                  {" · "}
+                  {v.href ? <a href={v.href}>{v.label}</a> : v.label}
+                </>
+              ))}
+              {entry.venueSuffix}
+            </p>
+            {entry.subtitle && <p><em>{entry.subtitle}</em></p>}
+            {entry.body?.map((para) => <p set:html={para} />)}
+            {entry.meta?.map((line) => <p set:html={line} />)}
+            {entry.links?.length > 0 && (
+              <ul>
+                {entry.links.map((l) => (
+                  <li>
+                    <a href={local(l.href)}>{l.label}</a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </article>
+        ))
+      }
+    </section>
+
+    <hr />
+
+    <section id="cv" class="read">
+      <h2>CV</h2>
+      <Fragment set:html={cvHtml} />
+    </section>
+
+    <hr />
+
+    <p><small><a href="#top">↑ top</a> · plain version · <a href="/">full site</a></small></p>
+
+    <!-- the work pages and the CV are written with the site's own paths:
+         point any that have a section here at it, so a click only scrolls -->
+    <script is:inline>
+      const sections = { "": "top", "/about": "about", "/work": "work", "/index": "work", "/art": "work", "/news": "news", "/cv": "cv" }
+      for (const a of document.querySelectorAll('a[href^="/"]')) {
+        const url = new URL(a.href)
+        if (url.origin !== location.origin) continue
+        const path = url.pathname.replace(/\/$/, "")
+        const art = path.match(/^\/art\/([^/]+)$/)
+        const ids = art ? [url.hash.slice(1), `art-${art[1]}`] : [sections[path]]
+        const id = ids.find((i) => i && document.getElementById(i))
+        if (id) a.setAttribute("href", `#${id}`)
+      }
+    </script>
   </body>
 </html>

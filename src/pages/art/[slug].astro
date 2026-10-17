@@ -1,51 +1,7 @@
 ---
 import Layout from "../../layouts/layout.astro"
 import { artworkPages } from "../../data/artArchive.js"
-import FromScratchLiveCoding from "../../subpages/art/FromScratchLiveCoding.astro"
-import GimmeTheLight from "../../subpages/art/GimmeTheLight.astro"
-import Unfest2025 from "../../subpages/art/Unfest2025.astro"
-import BYOB from "../../subpages/art/BYOB.astro"
-import EternalGainEternalPain from "../../subpages/art/EternalGainEternalPain.astro"
-import HereNowAbsoluteElsewhere from "../../subpages/art/HereNowAbsoluteElsewhere.astro"
-import SelfCensoredStepSequencer from "../../subpages/art/SelfCensoredStepSequencer.astro"
-import AsIfYouWouldStillBeHere from "../../subpages/art/AsIfYouWouldStillBeHere.astro"
-import OperationSeance from "../../subpages/art/OperationSeance.astro"
-import DoTheNPCsHearTheSimulatedWind from "../../subpages/art/DoTheNPCsHearTheSimulatedWind.astro"
-import NeonatusNeotokyo from "../../subpages/art/NeonatusNeotokyo.astro"
-import TentacularTerritoria from "../../subpages/art/TentacularTerritoria.astro"
-import IWillAlwaysThinkOfYouFondly from "../../subpages/art/IWillAlwaysThinkOfYouFondly.astro"
-import TheImmortalsAreQuiteBusyTheseDays from "../../subpages/art/TheImmortalsAreQuiteBusyTheseDays.astro"
-import TendernessKit from "../../subpages/art/TendernessKit.astro"
-import WebsiteForStack from "../../subpages/art/WebsiteForStack.astro"
-import WebsiteForTDBKK from "../../subpages/art/WebsiteForTDBKK.astro"
-import PoeticGarden from "../../subpages/art/PoeticGarden.astro"
-import TheAbstractionOfViolence from "../../subpages/art/TheAbstractionOfViolence.astro"
-import Query from "../../subpages/art/Query.astro"
-import GetInUser from "../../subpages/art/GetInUser.astro"
-
-const components = {
-  "do-the-npcs-hear-the-simulated-wind": DoTheNPCsHearTheSimulatedWind,
-  "neonatus-neotokyo": NeonatusNeotokyo,
-  "from-scratch-live-coding": FromScratchLiveCoding,
-  "gimme-the-light": GimmeTheLight,
-  unfest2025: Unfest2025,
-  byob: BYOB,
-  "eternal-gain-eternal-pain": EternalGainEternalPain,
-  "here-now-absolute-elsewhere": HereNowAbsoluteElsewhere,
-  "self-censored-step-sequencer": SelfCensoredStepSequencer,
-  "as-if-you-would-still-be-here": AsIfYouWouldStillBeHere,
-  "operation-seance": OperationSeance,
-  "tentacular-territoria": TentacularTerritoria,
-  "i-will-always-think-of-you-fondly": IWillAlwaysThinkOfYouFondly,
-  "the-immortals-are-quite-busy-these-days": TheImmortalsAreQuiteBusyTheseDays,
-  "tenderness-kit": TendernessKit,
-  "website-for-stack": WebsiteForStack,
-  "website-for-tdbkk": WebsiteForTDBKK,
-  "poetic-garden": PoeticGarden,
-  "the-abstraction-of-violence": TheAbstractionOfViolence,
-  query: Query,
-  "get-in-user": GetInUser,
-}
+import { artComponents as components } from "../../subpages/art/index.js"
 
 export function getStaticPaths() {
   return Object.keys(artworkPages).map((slug) => ({ params: { slug } }))
