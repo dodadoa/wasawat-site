@@ -31,6 +31,7 @@ const works = collectSelectedWorks()
         <dl class="rogue-keys rogue-help-keys">
           <div><dt>arrows / wasd</dt><dd>walk</dd></div>
           <div><dt>enter / z / x</dt><dd>read / open</dd></div>
+          <div><dt>b / esc</dt><dd>close</dd></div>
           <div><dt>click</dt><dd>walk there</dd></div>
         </dl>
         <dl class="rogue-keys rogue-help-touch">
@@ -68,11 +69,12 @@ const works = collectSelectedWorks()
         <span class="rogue-dpad-arm" data-arm="down"></span>
       </div>
       <div class="rogue-pad">
-        <button type="button" class="rogue-btn rogue-btn-b" data-rogue-b aria-label="B: stop walking">B</button>
+        <button type="button" class="rogue-btn rogue-btn-b" data-rogue-b aria-label="B: stop walking, close">B</button>
         <button type="button" class="rogue-btn rogue-btn-a" data-rogue-a aria-label="A: read or open">A</button>
       </div>
 
       <aside class="rogue-panel" data-rogue-panel hidden>
+        <button type="button" class="rogue-panel-close" data-panel-close aria-label="Close (B)">✕</button>
         <img class="rogue-thumb" data-panel-thumb alt="" hidden />
         <div class="rogue-panel-body">
           <p class="rogue-panel-head">
@@ -387,6 +389,33 @@ const works = collectSelectedWorks()
     background: var(--bg);
     border: 1px solid var(--ink);
     box-shadow: var(--stack-hi);
+  }
+
+  .rogue-panel-close {
+    position: absolute;
+    z-index: 1;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--ink);
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .rogue-panel-close:hover,
+  .rogue-panel-close:focus-visible {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  /* clear of the close box */
+  .rogue-panel-head {
+    padding-right: 28px;
   }
 
   /* the work's own picture, as it is */

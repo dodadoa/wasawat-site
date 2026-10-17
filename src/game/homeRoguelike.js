@@ -346,6 +346,7 @@ export function startHomeRoguelike(root) {
   const panelMeta = panel.querySelector("[data-panel-meta]")
   const panelLink = panel.querySelector("[data-panel-link]")
   const panelThumb = panel.querySelector("[data-panel-thumb]")
+  const panelClose = panel.querySelector("[data-panel-close]")
   const indexItems = [...root.querySelectorAll("[data-work-index]")]
   const ctx = canvas.getContext("2d")
 
@@ -375,6 +376,8 @@ export function startHomeRoguelike(root) {
   let turns = 0
   /** @type {{ href: string, i?: number } | null} */
   let active = null
+  /** the box for `active` was put away with B; it comes back with the next thing in reach */
+  let dismissed = false
   /** @type {{ x: number, y: number }[]} */
   let path = []
   let walkTimer = 0
@@ -654,6 +657,7 @@ export function startHomeRoguelike(root) {
       })
     }
     if (active?.href === before) return
+    dismissed = false
     updatePanel()
     if (active?.i !== undefined) log(`You stand before ${works[active.i].no} — ${title(works[active.i]).replace(/\.$/, "")}.`)
     else log(active ? "Stairs lead down to the full index." : "")
@@ -662,8 +666,8 @@ export function startHomeRoguelike(root) {
   const title = (w) => w.planeLabel ?? w.label
 
   function updatePanel() {
-    panel.hidden = !active
-    if (!active) return
+    panel.hidden = !active || dismissed
+    if (panel.hidden) return
     panelLink.href = active.href
     if (active.i === undefined) {
       panelNo.textContent = ">"
@@ -680,6 +684,14 @@ export function startHomeRoguelike(root) {
     panelMeta.textContent = [w.genre, w.date?.slice(0, 4), w.meta.cornerLabel].filter(Boolean).join(" · ")
     // the full picture where there is one: the pre-made thumbs are only 176px wide
     showThumb(panelThumb, w.image ?? `/images/thumbs/${w.slug}.jpg`)
+  }
+
+  /** Put the box away. True if there was one to put away. */
+  function closePanel() {
+    if (panel.hidden) return false
+    dismissed = true
+    panel.hidden = true
+    return true
   }
 
   function log(text) {
@@ -1170,6 +1182,11 @@ export function startHomeRoguelike(root) {
       if (act()) e.preventDefault()
       return
     }
+    if (key === "b" || key === "Escape") {
+      stopWalk()
+      if (closePanel()) e.preventDefault()
+      return
+    }
     const dir = KEYS[key]
     if (!dir) return
     e.preventDefault()
@@ -1179,7 +1196,11 @@ export function startHomeRoguelike(root) {
   /** Open the work in reach, or read the sign in reach. True if there was either. */
   function act() {
     const sign = signInReach()
-    if (active) open()
+    // a box put away comes back before anything opens
+    if (active && dismissed) {
+      dismissed = false
+      updatePanel()
+    } else if (active) open()
     else if (sign !== undefined) readSign(sign)
     else return false
     return true
@@ -1201,7 +1222,9 @@ export function startHomeRoguelike(root) {
     if (inMap(nx, ny) && signs.has(at(nx, ny))) return readSign(at(nx, ny))
     // bumping a work turns to face it
     if (inMap(nx, ny) && workAt.has(at(nx, ny))) {
+      dismissed = false
       updateActive(workAt.get(at(nx, ny)))
+      updatePanel()
       updateHud()
       render()
     }
@@ -1283,9 +1306,13 @@ export function startHomeRoguelike(root) {
     dpad.addEventListener("contextmenu", (e) => e.preventDefault())
   }
 
-  // A does what Enter does; B calls off a walk you tapped for
+  // A does what Enter does; B calls off a walk you tapped for and puts the box away
   root.querySelector("[data-rogue-a]")?.addEventListener("click", act)
-  root.querySelector("[data-rogue-b]")?.addEventListener("click", stopWalk)
+  root.querySelector("[data-rogue-b]")?.addEventListener("click", () => {
+    stopWalk()
+    closePanel()
+  })
+  panelClose?.addEventListener("click", closePanel)
 
   indexItems.forEach((el) => {
     el.addEventListener("click", (e) => {
