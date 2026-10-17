@@ -148,6 +148,11 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
         height: auto;
       }
 
+      /* "↩ back" only once there is somewhere to go back to */
+      #perma [data-back][hidden] {
+        display: none;
+      }
+
       /* the work pages' interactive pieces are left out here */
       #perma astro-island {
         display: none;
@@ -247,6 +252,7 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
 
     <section id="about-more">
       <h2>About, extended</h2>
+      <p><small><a href="#top">↑ top</a><span data-back hidden> · <a href="#" data-back-link>↩ back</a></span></small></p>
       {fullBio.map((html) => <p set:html={html} />)}
       {
         bioSections.map((section) => (
@@ -270,6 +276,7 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
 
     <section id="work">
       <h2>Work</h2>
+      <p><small><a href="#top">↑ top</a><span data-back hidden> · <a href="#" data-back-link>↩ back</a></span></small></p>
       {
         artSections.map((section) => (
           <>
@@ -309,7 +316,7 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
           <hr />
           <section id={`art-${slug}`}>
             <h2>{title}</h2>
-            <p><small><a href="#work">↑ work</a></small></p>
+            <p><small><a href="#top">↑ top</a> · <a href="#work">↑ work</a><span data-back hidden> · <a href="#" data-back-link>↩ back</a></span></small></p>
             <Content />
           </section>
         </>
@@ -320,6 +327,7 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
 
     <section id="news">
       <h2>News</h2>
+      <p><small><a href="#top">↑ top</a><span data-back hidden> · <a href="#" data-back-link>↩ back</a></span></small></p>
       {
         [...upcoming, ...archive].map((entry, i) => (
           <article id={newsId(entry)}>
@@ -356,12 +364,13 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
 
     <section id="cv">
       <h2>CV</h2>
+      <p><small><a href="#top">↑ top</a><span data-back hidden> · <a href="#" data-back-link>↩ back</a></span></small></p>
       <Fragment set:html={cvHtml} />
     </section>
 
     <hr />
 
-    <p><small><a href="#top">↑ top</a> · plain version · <a href="/">full site</a></small></p>
+    <p><small><a href="#top">↑ top</a><span data-back hidden> · <a href="#" data-back-link>↩ back</a></span> · plain version · <a href="/">full site</a></small></p>
 
     <!-- the work pages and the CV are written with the site's own paths:
          point any that have a section here at it, so a click only scrolls -->
@@ -376,6 +385,24 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
         const id = ids.find((i) => i && document.getElementById(i))
         if (id) a.setAttribute("href", `#${id}`)
       }
+
+      // ↩ back: after a jump within the page, return to where you were (and
+      // again to bounce between the two)
+      let last = null
+      document.addEventListener("click", (e) => {
+        const a = e.target.closest('a[href^="#"]')
+        if (!a) return
+        if (a.hasAttribute("data-back-link")) {
+          e.preventDefault()
+          if (last === null) return
+          const here = scrollY
+          scrollTo(0, last)
+          last = here
+          return
+        }
+        last = scrollY
+        for (const el of document.querySelectorAll("[data-back]")) el.hidden = false
+      })
     </script>
   </body>
 </html>
