@@ -1,0 +1,81 @@
+---
+import Layout from "../../layouts/layout.astro"
+---
+
+<Layout title="Latent Table" description="200 roads between two opposite words, three stones on each road from four machines; cell width is how much they disagree">
+  <div class="lt-page">
+    <h1>Latent Table</h1>
+    <p>200 roads between two opposite words. four machines placed three stones on each road, blind to each other. (Fable went first, in this chat.)</p>
+    <p>width = disagreement. where the machines argue, the cell spreads out. where they agree, it shrinks to almost nothing. every row is measured on its own.</p>
+    <p id="legend"><font color="#000000">Fable 5.1</font> · <font color="#0000ff">Opus 5.5</font> · <font color="#ff69b4">Sonnet 5.5</font> · <font color="#ff8c00">Haiku 5.5</font> · <font color="#008000"><b>green = shared word</b></font></p>
+    <p><button type="button" id="colorBtn">color on (click for off)</button></p>
+    <p>all four agree: 24 / 800</p>
+    <hr />
+    <div class="lt-wrap"><div id="tb" style="min-width:640px"></div></div>
+    <hr />
+    <address>200 rows / 5 columns / 4 machines</address>
+  </div>
+
+  <script is:inline src="/scripts/latent-table.js"></script>
+</Layout>
+
+<style>
+  /* kept as near-plain HTML: white page, Times, 1px black rules */
+  .lt-page {
+    background: #fff;
+    color: #000;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 16px;
+    padding: 8px max(16px, env(safe-area-inset-left, 0px)) 32px;
+  }
+
+  .lt-page h1 {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 2em;
+    font-weight: bold;
+    letter-spacing: normal;
+    margin: 0.67em 0;
+    /* no ink bleed / bloom on this title: it stays plain HTML */
+    filter: none;
+  }
+
+  .lt-page p {
+    margin: 1em 0;
+  }
+
+  .lt-page hr {
+    border: 0;
+    border-top: 1px solid #000;
+  }
+
+  .lt-page button {
+    font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #000;
+    background: #efefef;
+    border: 1px solid #767676;
+    border-radius: 3px;
+    padding: 1px 6px;
+    cursor: pointer;
+  }
+
+  .lt-wrap {
+    overflow-x: auto;
+  }
+
+  .lt-page :global(.r) {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    margin-top: -1px;
+    word-wrap: break-word;
+  }
+
+  .lt-page :global(.r td) {
+    border: 1px solid #000;
+    padding: 4px;
+  }
+
+  .lt-page :global(.r:first-child) {
+    margin-top: 0;
+  }
+</style>
