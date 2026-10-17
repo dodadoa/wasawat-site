@@ -2,21 +2,18 @@
 import Layout from "../../layouts/layout.astro"
 ---
 
-<Layout title="Latent Table" description="200 roads between two opposite words, three stones on each road from four machines; cell width is how much they disagree">
+<Layout title="Stones Between" description="200 roads between two opposite words, three stones on each road from four machines; cell width is how much they disagree">
   <div class="lt-page">
-    <h1>Latent Table</h1>
+    <h1>Stones Between</h1>
     <p>200 roads between two opposite words. four machines placed three stones on each road, blind to each other. (Fable went first, in this chat.)</p>
     <p>width = disagreement. where the machines argue, the cell spreads out. where they agree, it shrinks to almost nothing. every row is measured on its own.</p>
     <p id="legend"><font color="#000000">Fable 5.1</font> · <font color="#0000ff">Opus 5.5</font> · <font color="#ff69b4">Sonnet 5.5</font> · <font color="#ff8c00">Haiku 5.5</font> · <font color="#008000"><b>green = shared word</b></font></p>
     <p><button type="button" id="colorBtn">color on (click for off)</button></p>
     <p>all four agree: 24 / 800</p>
-    <hr />
     <div class="lt-wrap"><div id="tb" style="min-width:640px"></div></div>
-    <hr />
-    <address>200 rows / 5 columns / 4 machines</address>
   </div>
 
-  <script is:inline src="/scripts/latent-table.js"></script>
+  <script is:inline src="/scripts/stones-between.js"></script>
 </Layout>
 
 <style>
@@ -41,11 +38,6 @@ import Layout from "../../layouts/layout.astro"
 
   .lt-page p {
     margin: 1em 0;
-  }
-
-  .lt-page hr {
-    border: 0;
-    border-top: 1px solid #000;
   }
 
   .lt-page button {
