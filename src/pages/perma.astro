@@ -1,9 +1,9 @@
 ---
 // /perma: the whole site on one near-plain html page. Home, about, every
 // work, news and the CV run down in order, and every link inside jumps to its
-// section instead of leaving. Browser defaults for type, links and spacing;
-// only a white ground and the ink (bloom + bleed) are kept. Standalone on
-// purpose: no Layout, so no loader, nav or site chrome.
+// section instead of leaving. Styled after /blog/stones-between: plain html in
+// Times on white, 1px black rules, blue links, and the site's bloom.
+// Standalone on purpose: no Layout, so no loader, nav or site chrome.
 import { experimental_AstroContainer as AstroContainer } from "astro/container"
 import CvPage from "./cv.astro"
 import { collectSelectedWorks } from "../data/selectedWorks.js"
@@ -71,10 +71,10 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
     <style is:global>
       :root {
         color-scheme: light;
-        /* the same over-inked bloom as the main site (layout.astro) */
+        /* the main site's bloom (layout.astro), as on /blog/stones-between */
         --bloom:
-          0 0 0.04em color-mix(in srgb, currentColor 30%, transparent),
-          0 0 0.3em color-mix(in srgb, currentColor 14%, transparent);
+          0 0 0.05em color-mix(in srgb, currentColor 50%, transparent),
+          0 0 0.4em color-mix(in srgb, currentColor 30%, transparent);
       }
 
       /* back to the browser's own styles: tailwind's preflight, the work pages'
@@ -88,6 +88,8 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
         all: revert;
       }
 
+      /* styled after /blog/stones-between: white page, Times, 1px black rules,
+         blue links, the browser's own grey button; no design on top */
       :root,
       #perma {
         background: #fff;
@@ -95,17 +97,21 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
       }
 
       #perma {
-        font-size: 20px;
-        max-width: 1180px;
-        margin: 0 auto;
-        padding: 1em 1.25em 2em;
+        font-family: "Times New Roman", Times, serif;
+        font-size: 16px;
+        margin: 0;
+        padding: 8px max(16px, env(safe-area-inset-left, 0px)) 32px;
+      }
+
+      #perma :is(p, li, dd) {
+        line-height: 1.45;
       }
 
       /* the top of the page: about | selected work and news; one column on a phone */
       #perma main {
         display: grid;
         grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-        gap: 0 3em;
+        gap: 0 2em;
       }
 
       @media (max-width: 860px) {
@@ -114,28 +120,19 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
         }
       }
 
-      /* long reading runs at a readable measure */
-      #perma .read {
-        max-width: 40em;
-      }
-
       #perma header p {
         margin-top: -0.4em;
       }
 
-      #perma aside p {
-        font-size: 0.9em;
-      }
-
-      /* data tables: ruled, as table border="1" would draw them */
+      /* data tables: 1px black rules */
       #perma table {
         width: 100%;
         border-collapse: collapse;
       }
 
       #perma :is(td, th) {
-        border: 1px solid #141414;
-        padding: 0.2em 0.45em;
+        border: 1px solid #000;
+        padding: 4px;
         text-align: left;
         vertical-align: top;
       }
@@ -166,10 +163,6 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
           white-space: normal;
           overflow-wrap: anywhere;
         }
-
-        #perma {
-          padding-inline: 16px;
-        }
       }
 
       #perma * {
@@ -181,62 +174,9 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
       #perma a:is(:link, :visited, :hover, :active) {
         color: #0000ee !important;
       }
-
-      /* bleed per text block, and a div holding only inline text counts as one */
-      #perma :is(h2, h3, h4, h5, h6, p, li, dt, dd, summary, td, th, figcaption, blockquote),
-      #perma div:not(:has(:not(a, b, i, em, strong, small, span, br, sup, sub, code))) {
-        filter: url(#ink-small);
-      }
-
-      #perma h1 {
-        filter: url(#ink-body);
-      }
-
-      /* once only: not again inside an inked block, and never over a picture */
-      #perma :is(h1, h2, h3, h4, h5, h6, p, li, dt, dd, summary, td, th, figcaption, blockquote) :is(*, div),
-      #perma :is(h1, h2, h3, h4, h5, h6, p, li, dt, dd, summary, td, th, figcaption, blockquote, div):has(img, video, iframe, canvas, svg) {
-        filter: none;
-      }
     </style>
   </head>
   <body id="perma">
-    <!-- ink-bleed filters after layout.astro's (blur → warp by coarse noise →
-         threshold back to a hard edge → fine grain → over a bloom), turned
-         down: less blur and warp, a fainter bloom -->
-    <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
-      <defs>
-        <filter id="ink-body" x="-6%" y="-40%" width="112%" height="180%" color-interpolation-filters="sRGB">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="0.8" result="blur" />
-          <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="warp" />
-          <feDisplacementMap in="blur" in2="warp" scale="1.8" xChannelSelector="R" yChannelSelector="G" result="warped" />
-          <feComponentTransfer in="warped" result="hard">
-            <feFuncA type="linear" slope="6" intercept="-2.02" />
-          </feComponentTransfer>
-          <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="1" seed="13" result="grain" />
-          <feDisplacementMap in="hard" in2="grain" scale="0.9" xChannelSelector="R" yChannelSelector="G" result="ink" />
-          <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="wide" />
-          <feComponentTransfer in="wide" result="bloom">
-            <feFuncA type="linear" slope="0.22" />
-          </feComponentTransfer>
-          <feMerge><feMergeNode in="bloom" /><feMergeNode in="ink" /></feMerge>
-        </filter>
-        <filter id="ink-small" x="-6%" y="-45%" width="112%" height="190%" color-interpolation-filters="sRGB">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="0.45" result="blur" />
-          <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="9" result="warp" />
-          <feDisplacementMap in="blur" in2="warp" scale="1" xChannelSelector="R" yChannelSelector="G" result="warped" />
-          <feComponentTransfer in="warped" result="hard">
-            <feFuncA type="linear" slope="6" intercept="-2.02" />
-          </feComponentTransfer>
-          <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="1" seed="17" result="grain" />
-          <feDisplacementMap in="hard" in2="grain" scale="0.5" xChannelSelector="R" yChannelSelector="G" result="ink" />
-          <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="wide" />
-          <feComponentTransfer in="wide" result="bloom">
-            <feFuncA type="linear" slope="0.2" />
-          </feComponentTransfer>
-          <feMerge><feMergeNode in="bloom" /><feMergeNode in="ink" /></feMerge>
-        </filter>
-      </defs>
-    </svg>
 
     <header id="top">
       <h1>Wasawat Somno</h1>
@@ -305,7 +245,7 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
 
     <hr />
 
-    <section id="about-more" class="read">
+    <section id="about-more">
       <h2>About, extended</h2>
       {fullBio.map((html) => <p set:html={html} />)}
       {
@@ -367,7 +307,7 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
       pages.map(({ slug, title, Content }) => (
         <>
           <hr />
-          <section id={`art-${slug}`} class="read">
+          <section id={`art-${slug}`}>
             <h2>{title}</h2>
             <p><small><a href="#work">↑ work</a></small></p>
             <Content />
@@ -378,7 +318,7 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
 
     <hr />
 
-    <section id="news" class="read">
+    <section id="news">
       <h2>News</h2>
       {
         [...upcoming, ...archive].map((entry, i) => (
@@ -414,7 +354,7 @@ const cvHtml = ((await container.renderToString(CvPage)).match(/<main[^>]*>([\s\
 
     <hr />
 
-    <section id="cv" class="read">
+    <section id="cv">
       <h2>CV</h2>
       <Fragment set:html={cvHtml} />
     </section>
