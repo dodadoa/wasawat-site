@@ -9,7 +9,11 @@ import Layout from "../../layouts/layout.astro"
     <p>width = disagreement. where the machines argue, the cell spreads out. where they agree, it shrinks to almost nothing. every row is measured on its own.</p>
     <p id="legend"><font color="#000000">Fable 5.1</font> · <font color="#0000ff">Opus 5.5</font> · <font color="#ff69b4">Sonnet 5.5</font> · <font color="#ff8c00">Haiku 5.5</font> · <font color="#008000"><b>green = shared word</b></font></p>
     <p><button type="button" id="colorBtn">color on (click for off)</button></p>
-    <p>all four agree: 24 / 800</p>
+    <p>all four agree: 24 / 600. at least two share a word: 399 / 600.</p>
+    <p>teachers call this a <a href="https://www.readingrockets.org/sites/default/files/migrated/content/pdfs/26_semantic-gradients.pdf">semantic gradient</a>: frigid, cool, tepid, hot, boiling. language researchers ask whether models can <a href="https://arxiv.org/abs/2010.02686">put words like warm, hot, scalding in order</a>, and find they <a href="https://arxiv.org/abs/2305.16426">lose the thread across a whole scale</a>. here nobody is graded. the machines just walk, and the table shows where their walks split.</p>
+    <p>this is not the latent space. the latent space is the numbers inside each model, and those stay hidden. walking it for real means taking the vectors for two words and stepping along the line between them, and the in-between points often <a href="https://arxiv.org/abs/1710.11381">decode to nothing</a>. <a href="https://thestrangeloop.com/2017/experimental-creative-writing-with-the-vectorized-word.html">Allison Parrish</a> writes poems out of midpoints like these, between how words sound and how they are spelled. what's on this table is a shadow of that space: the words each machine says out loud when asked to walk it.</p>
+    <p>researchers have found that <a href="https://arxiv.org/abs/2501.19361">language models answer more like each other than people do</a>. at the level of a single word, these four mostly don't. and they are four models from one lab, so machines from other families would likely argue more.</p>
+    <p>i really like the aesthetic of plain html tables: 1px black rules, Times New Roman, the browser's own grey button, blue links. no design on top, just the table doing the work. so the piece is built that way.</p>
     <div class="lt-wrap"><div id="tb" style="min-width:640px"></div></div>
   </div>
 
@@ -38,6 +42,15 @@ import Layout from "../../layouts/layout.astro"
 
   .lt-page p {
     margin: 1em 0;
+  }
+
+  .lt-page a {
+    color: #0000ee;
+    text-decoration: underline;
+  }
+
+  .lt-page a:visited {
+    color: #551a8b;
   }
 
   .lt-page button {
