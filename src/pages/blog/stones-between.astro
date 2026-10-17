@@ -15,9 +15,17 @@ import Layout from "../../layouts/layout.astro"
     <p>researchers have found that <a href="https://arxiv.org/abs/2501.19361">language models answer more like each other than people do</a>. at the level of a single word, these four mostly don't. and they are four models from one lab, so machines from other families would likely argue more.</p>
     <p>i really like the aesthetic of plain html tables: 1px black rules, Times New Roman, the browser's own grey button, blue links. no design on top, just the table doing the work. so the piece is built that way.</p>
     <div class="lt-wrap"><div id="tb" style="min-width:640px"></div></div>
+
+    <h2>born → die, recursive</h2>
+    <p>one road, walked again and again. each machine placed three stones between born and die, then three more between every pair of its own stones, then once more. 65 points each, still blind to each other. level 1 is the first three stones, level 3 the last and finest.</p>
+    <p>read across, position by position: all four agree 0 / 63. at least two share a word: 4 / 63. anywhere on the road, only "newborn" turns up in three of the four.</p>
+    <p>the middle of the road: live, prime, work, prime.</p>
+    <p>two dialects show up. Fable and Sonnet walk in verbs: crawl, walk, learn, wither. Opus and Haiku walk in stages: crawling, walking, puberty, career. the same life, told in different grammar, so a lot of the disagreement is only in the grammar.</p>
+    <div class="lt-wrap"><div id="rr"></div></div>
   </div>
 
   <script is:inline src="/scripts/stones-between.js"></script>
+  <script is:inline src="/scripts/stones-between-recursive.js"></script>
 </Layout>
 
 <style>
@@ -40,8 +48,34 @@ import Layout from "../../layouts/layout.astro"
     filter: none;
   }
 
+  .lt-page h2 {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 1.5em;
+    font-weight: bold;
+    letter-spacing: normal;
+    margin: 2em 0 0.83em;
+    filter: none;
+  }
+
   .lt-page p {
     margin: 1em 0;
+  }
+
+  .lt-page :global(.rr) {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 480px;
+  }
+
+  .lt-page :global(.rr th),
+  .lt-page :global(.rr td) {
+    border: 1px solid #000;
+    padding: 4px;
+  }
+
+  .lt-page :global(.rr th) {
+    text-align: left;
+    font-weight: bold;
   }
 
   .lt-page a {
