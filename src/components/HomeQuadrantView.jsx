@@ -1135,7 +1135,9 @@ export default function HomeQuadrantView({ layers = genreLayers, showGenreNav = 
       id="home-quadrant"
       className="fixed left-0 right-0 bottom-0"
       // over the roguelike this is only a frame for the view switcher
-      style={{ top: "2.5rem", height: "calc(100vh - 2.5rem)", width: "100%", pointerEvents: isRogue ? "none" : undefined }}
+      // pinned by top and bottom, not a 100vh height: on a phone 100vh is the
+      // viewport with the toolbars hidden, so the page could scroll past it
+      style={{ top: "2.5rem", width: "100%", pointerEvents: isRogue ? "none" : undefined }}
     >
 
       {isRogue ? null : isSingleChronology ? (

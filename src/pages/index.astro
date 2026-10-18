@@ -111,7 +111,7 @@ const works = collectSelectedWorks()
       slot="fallback"
       id="home-quadrant"
       class="fixed left-0 right-0 bottom-0"
-      style="top: 2.5rem; height: calc(100vh - 2.5rem); width: 100%;"
+      style="top: 2.5rem; width: 100%;"
     >
       <span class="home-quadrant-loading">loading selected work…</span>
     </div>
@@ -119,8 +119,13 @@ const works = collectSelectedWorks()
 </Layout>
 
 <style is:global>
+  /* the home page never scrolls as a whole, and doesn't rubber-band either:
+     only the views inside it scroll */
+  html:has(#home-quadrant),
   body:has(#home-quadrant) {
+    height: 100%;
     overflow: hidden;
+    overscroll-behavior: none;
   }
 
   .home-quadrant-loading {
@@ -154,7 +159,7 @@ const works = collectSelectedWorks()
     margin: 0 !important;
     padding: 0;
     width: 100%;
-    height: calc(100vh - 4rem);
+    height: calc(100dvh - 4rem);
     overflow: hidden;
   }
 
