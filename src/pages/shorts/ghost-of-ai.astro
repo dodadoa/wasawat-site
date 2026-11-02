@@ -20,6 +20,11 @@ import "../../shorts/ghost-of-ai/ghost.css"
     />
   </head>
   <body>
-    <Game client:only="react" />
+    <Game client:only="react">
+      <div slot="fallback" class="loading page">
+        <p>loading</p>
+        <div class="bar"><i></i></div>
+      </div>
+    </Game>
   </body>
 </html>

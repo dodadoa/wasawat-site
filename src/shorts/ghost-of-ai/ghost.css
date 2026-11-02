@@ -225,3 +225,18 @@ button.link {
 .credits { pointer-events: auto; }
 .credits a { color: inherit; text-decoration: underline; text-underline-offset: 0.2em; }
 .credits .close { margin-top: 4cqw; font-size: 1.4cqw; opacity: 0.6; }
+
+/* ---------- loading, before the title ---------- */
+.loading {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4cqw;
+  background: #000; color: #fff; font-size: 1.8cqw;
+}
+.loading p { margin: 0; }
+.loading .bar { width: 24cqw; height: 1px; background: rgba(255,255,255,0.2); overflow: hidden; }
+.loading .bar i { display: block; height: 100%; background: #fff; transition: width 0.3s ease; }
+.loading .pct { opacity: 0.5; font-size: 1.3cqw; }
+/* the page's own copy, before the game's code has arrived: no frame to size by, so viewport units, and a bar that drifts */
+.loading.page { position: fixed; font-size: 15px; gap: 12px; }
+.loading.page .bar { width: 180px; }
+.loading.page .bar i { width: 30%; animation: drift 1.4s ease-in-out infinite alternate; }
+@keyframes drift { from { transform: translateX(-100%); } to { transform: translateX(333%); } }

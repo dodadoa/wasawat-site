@@ -241,6 +241,17 @@ function MemoryPanel() {
   );
 }
 
+/** Before the title: the house loading. The page shows the same screen until the game's code arrives. */
+function Loading({ progress }: { progress: number }) {
+  return (
+    <div className="loading">
+      <p>loading</p>
+      <div className="bar"><i style={{ width: `${Math.round(progress)}%` }} /></div>
+      <p className="pct">{Math.round(progress)}%</p>
+    </div>
+  );
+}
+
 /** C in the game: who made it. Names and handles keep their own spelling. */
 function Credits() {
   return (
@@ -295,6 +306,13 @@ export function UI() {
   const webcamView = useGame((s) => s.webcamView);
   const role = useGame((s) => s.role);
   const { active, progress } = useProgress();
+  // the title waits until the house has loaded; a cached load can report nothing, so give it a moment then go on
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (ready || active) return;
+    const id = setTimeout(() => setReady(true), progress === 100 ? 300 : 1500);
+    return () => clearTimeout(id);
+  }, [active, progress, ready]);
   const [pad, setPad] = useState(false);
   const [help, setHelp] = useState(false);
   useWebcamKeys();
@@ -327,7 +345,7 @@ export function UI() {
     const onKey = (e: KeyboardEvent) => {
       if (e.code !== "Enter" && e.code !== "Space") return;
       const s = useGame.getState();
-      if (s.phase === "title" && !active) {
+      if (s.phase === "title" && ready) {
         startAmbient();
         resetWorld();
         s.start();
@@ -335,7 +353,7 @@ export function UI() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [active]);
+  }, [ready]);
 
   return (
     <div className="overlay">
@@ -365,11 +383,12 @@ export function UI() {
         </>
       )}
       <div className="fade" style={{ opacity: phase === "playing" ? fade : 0, pointerEvents: "none" }} />
-      {phase === "title" && (
+      {phase === "title" && !ready && <Loading progress={progress} />}
+      {phase === "title" && ready && (
         <div
           className="title"
           onClick={() => {
-            if (active) return;
+            if (!ready) return;
             startAmbient();
             resetWorld();
             useGame.getState().start();
@@ -377,7 +396,7 @@ export function UI() {
         >
           <h1>Ghost of AI</h1>
           <p className="place">SALA SANEHA, BANGKOK</p>
-          <div className="press">{active ? `LOADING ${Math.round(progress)}%` : pad ? "PRESS A" : "PRESS ENTER"}</div>
+          <div className="press">{pad ? "PRESS A" : "PRESS ENTER"}</div>
         </div>
       )}
       {phase === "playing" && credits && <Credits />}
