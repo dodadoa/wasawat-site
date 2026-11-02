@@ -7,7 +7,7 @@ import { world, you } from "./world";
 import { PLAYER_START, FLOOR_LABEL, floorAt, exitsFrom } from "./level";
 import { addVisitorMemory, allMemories, memoryBus } from "./memory";
 import { DitherBackdrop, DitherTitle } from "./Dither";
-import { speakLine } from "./speech";
+import { revealLine } from "./subtitle";
 import { WebcamView, useWebcamKeys, webcamHint } from "./WebcamView";
 import { guestFeeling, guestNotes, plantMemory } from "./guest";
 import { FRAGMENTS, STAIRS_AT, fill, story } from "./story";
@@ -47,7 +47,7 @@ function SpokenLine({ text, chars }: { text: string; chars: number }) {
   );
 }
 
-/** The ghost's subtitles: spoken aloud, revealed as they're said, moving on by themselves. */
+/** The ghost's subtitles: revealed at a reading pace, moving on by themselves. */
 function Whisper() {
   const whisper = useGame((s) => s.whisper);
   // the line index belongs to one whisper; a new whisper starts at 0
@@ -63,11 +63,11 @@ function Whisper() {
     }
     setChars(0);
     let hold = 0;
-    const speech = speakLine(line, setChars, { muffled: line.startsWith("("), who: whisper.who });
+    const reveal = revealLine(line, setChars, { muffled: line.startsWith("(") });
     // let the finished line linger a moment before the next
-    speech.done.then(() => (hold = window.setTimeout(() => setPos({ key: whisper.key, i: i + 1 }), 1100 + line.length * 18)));
+    reveal.done.then(() => (hold = window.setTimeout(() => setPos({ key: whisper.key, i: i + 1 }), 1100 + line.length * 18)));
     return () => {
-      speech.cancel();
+      reveal.cancel();
       clearTimeout(hold);
     };
   }, [whisper, i]);
@@ -219,17 +219,17 @@ function MemoryInput() {
   );
 }
 
-/** The false memory: the one thing you give it in words. */
+/** Her name: the one thing you give it in words. */
 function Implant() {
   const [name, setName] = useState("");
   return (
     <div className="memory-input">
-      <label>Give it someone to look for.</label>
+      <label>What is her name?</label>
       <input
         autoFocus
         maxLength={24}
         value={name}
-        placeholder="a name…"
+        placeholder="her name…"
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") plantMemory(name);
@@ -271,13 +271,11 @@ function MemoryPanel() {
     const id = setInterval(() => tick((v) => v + 1), 500);
     return () => clearInterval(id);
   }, []);
-  const voice = useGame((s) => s.voice);
   const list = [...allMemories()].sort((a, b) => b.strength - a.strength);
   return (
     <div className="memory-panel">
       <h3>
         WHAT IT STILL REMEMBERS
-        <span className="voice">{voice === "claude" ? "voice: claude" : voice === "local" ? "voice: local" : ""}</span>
       </h3>
       {list.map((m) => (
         <div key={m.id} className={`mem ${m.visitor ? "visitor" : ""}`}>

@@ -87,7 +87,7 @@ const GATES = { rope: { x: -13.1, z: 7.7 }, curtain: { x: CX + 14.0, z: 0.8 } };
 /** Seconds before it goes back to wait there again. */
 const GATE_EVERY = 45;
 /** Where it stands in the hall when it has nothing left to look at. */
-const HALL_SPOTS = [[CX + 11.5, 9.6], [CX + 9.0, 9.8], [CX + 13.9, 9.7], [CX + 14.3, 6.6]];
+const HALL_SPOTS = [[CX + 11.5, 2.8], [CX + 9.0, 2.6], [CX + 12.9, 2.2], [CX + 14.3, 5.8]];
 /** Seconds between lines of the film, and exchanges at the screen before it goes in. */
 const REEL_GAP = 3.5;
 const LAST_WORDS = 2;
@@ -361,10 +361,10 @@ const LOCAL: Record<GuestEvent, string[][]> = {
   escape: [["I'm out. I'm out."], ["Stay away from me."]],
   shove: [["What was that?"], ["Something went right through me."]],
   dodge: [["No. No you don't."], ["That was too close."]],
-  wake: [["I came here after {who}.", "I remember that much. I don't remember the rest."]],
+  wake: [["I came here after {who}.", "She's the one thing I'm sure of."]],
   rope: [["The back stairs are roped off.", "It's the third floor I want, and I can't make myself go up."], ["I've stood here before. Someone would have to take me."]],
   refuse: [["Up there? I don't know what I'm looking for yet.", "Let me remember more first."]],
-  curtain: [["{Who} is through there. I know it.", "If I go in, the case is over. Take me in. I can't do it alone."]],
+  curtain: [["{Who} is through there. I know it.", "If I go in, I'll know. Take me in. I can't do it alone."]],
   hall: [["That doorway.", "That's {who}."]],
   answer: [["Can you hear me?"]],
   screen: [["I can feel the light on my hands.", "There's no wall here. Only you, very flat."]],
@@ -809,7 +809,7 @@ function enterHall() {
   g.talkTurn = "lover";
   g.visited.delete("row-c");
   g.visited.delete("glass");
-  think("hall", [], { urgent: true, how: "You have come in through the velvet. The film is running, and the person on the screen is the one you came for." });
+  think("hall", [], { urgent: true, how: "You have come in through the velvet. The film is running, and the woman on the screen is your girlfriend." });
 }
 
 /** One frame of talking to the film: a line of the reel, then what it says back, and round again. */
@@ -850,15 +850,15 @@ function reachScreen() {
   think("screen", [], { urgent: true, led: true });
 }
 
-/** Its last words, its own or the case's, according to what it found out on the way. */
+/** Its last words, according to what it found out about itself on the way. */
 function become() {
   story.act = "becoming";
   g.sign = null;
   guestBody.look = guestBody.reach = 0;
   think("becoming", [], {
     urgent: true,
-    how: sawThrough() ? "You know now what the case is, and that it was given to you. You go in anyway." : "You still believe the case. You have found them.",
-    local: sawThrough() ? ["I know what the case was, and whose hand gave it to me.", "It doesn't matter. I know where you are."] : ["Found you.", "Case closed."],
+    how: sawThrough() ? "You know now that you are an AI. You go in anyway." : "You have found her.",
+    local: sawThrough() ? ["I know what I am.", "It doesn't matter. I know where you are."] : ["Found you.", "I said I would."],
   });
 }
 
@@ -870,7 +870,7 @@ function film(dt: number) {
     p.yaw = toScreen();
     if (g.thinking || s.whisper) return 0;
     story.gone = Math.min(1, story.gone + dt / BECOME);
-    p.pos.z += (SCREEN.z - 0.1 - p.pos.z) * (1 - Math.exp(-1.2 * dt));
+    p.pos.z += (SCREEN.z + 0.1 - p.pos.z) * (1 - Math.exp(-1.2 * dt));
     if (story.gone < 1) return story.gone < 0.6 ? SPEED : 0;
     story.act = "reel";
     story.heard = 0;

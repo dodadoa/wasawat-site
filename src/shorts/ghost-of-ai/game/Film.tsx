@@ -82,7 +82,7 @@ vec3 romance(vec2 p, float t) {
   return mix(c, vec3(0.8, 0.55, 0.42), turn * blob(p, vec2(0.3, 0.26), vec2(0.04, 0.052)));
 }
 
-/** The case it was given: cold, wet, a detective picture about somebody else. */
+/** Its own reel: cold, wet, the search for her. */
 vec3 noir(vec2 p, float t) {
   float s = mod(t, ${REEL.noir.loop.toFixed(1)});
   vec3 neon = vec3(1.0, 0.3, 0.2);
@@ -201,10 +201,10 @@ export function Screen() {
   });
   return (
     <group>
-      <mesh position={[SCREEN.x, SCREEN.y, SCREEN.z]} rotation-y={Math.PI} material={mat}>
+      <mesh position={[SCREEN.x, SCREEN.y, SCREEN.z]} material={mat}>
         <planeGeometry args={[SCREEN.w, SCREEN.h]} />
       </mesh>
-      <pointLight ref={light} position={[SCREEN.x, SCREEN.y, SCREEN.z - 1.4]} color="#ffe6cc" intensity={10} distance={11} decay={2} />
+      <pointLight ref={light} position={[SCREEN.x, SCREEN.y, SCREEN.z + 1.4]} color="#ffe6cc" intensity={10} distance={11} decay={2} />
     </group>
   );
 }

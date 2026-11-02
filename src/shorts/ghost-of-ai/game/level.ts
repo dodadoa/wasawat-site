@@ -12,11 +12,11 @@
 //      x=-4                   4                     x=-16  -12.5            -3.4    0          6
 //
 //   3F · THE CINEMA (x offset CX)
-//   z=11 ┌landing┬─[gate]─┬────────────────────[ SCREEN ]─────┐
-//        │ sun   │ toilets│ red wall      seats in five rows   │
-//        │ stair↓│ foyer  │ control door  (two on risers)      │
+//   z=11 ┌landing┬─[gate]─┬──────────── projector ─────────────┐
+//        │ sun   │ toilets│ red wall      (two rows on risers) │
+//        │ stair↓│ foyer  │ control door  seats in five rows   │
 //        │ chairs│  zinc ─┤                                    │
-//   z=1.4└───────┘ pot    └─────────── zinc ──────────[curtain]┘
+//   z=1.4└───────┘ pot    └───────[ SCREEN ]──────────[curtain]┘
 //   z=0           └═══════ windows over Decho Road ════════════┘
 //       x=0     3.6      7.8                                   15
 
@@ -753,52 +753,52 @@ const foyer: Block[] = [
 
 /** Five rows facing the screen, the back two on risers: three chairs, an aisle, a loveseat for two. */
 const ROWS: { z: number; y: number; left: Fabric[] }[] = [
-  { z: 8.9, y: 0, left: ["green", "damask", "blue"] },
-  { z: 7.5, y: 0, left: ["blue", "green", "green"] },
-  { z: 6.1, y: 0, left: ["damask", "green", "blue"] },
-  { z: 4.6, y: 0.22, left: ["green", "red", "damask"] },
-  { z: 3.2, y: 0.44, left: ["blue", "green", "damask"] },
+  { z: 3.5, y: 0, left: ["green", "damask", "blue"] },
+  { z: 4.9, y: 0, left: ["blue", "green", "green"] },
+  { z: 6.3, y: 0, left: ["damask", "green", "blue"] },
+  { z: 7.8, y: 0.22, left: ["green", "red", "damask"] },
+  { z: 9.2, y: 0.44, left: ["blue", "green", "damask"] },
 ];
 const SEAT_X = [8.5, 9.6, 10.7].map(C);
 const LOVESEAT_X = C(12.55);
 
 const hall: Block[] = [
-  { pos: [C(11.4), 1.72, 10.86], size: [4.5, 2.4, 0.01], color: "#050505" },
+  { pos: [C(11.4), 1.72, 1.54], size: [4.5, 2.4, 0.01], color: "#050505" },
   // the projector, hung from the ceiling over the back rows
-  { pos: [C(11.4), 2.8, 2.95], size: [0.38, 0.16, 0.42], color: "#1a1a1a" },
-  { pos: [C(11.4), 2.92, 2.95], size: [0.04, 0.16, 0.04], color: "#1a1a1a" },
-  { pos: [C(11.4), 2.78, 3.17], size: [0.07, 0.07, 0.01], glow: true, color: "#e8ecff" },
+  { pos: [C(11.4), 2.8, 9.45], size: [0.38, 0.16, 0.42], color: "#1a1a1a" },
+  { pos: [C(11.4), 2.92, 9.45], size: [0.04, 0.16, 0.04], color: "#1a1a1a" },
+  { pos: [C(11.4), 2.78, 9.23], size: [0.07, 0.07, 0.01], glow: true, color: "#e8ecff" },
   // swagged velvet along the top of every wall
   ...[3.0, 5.6, 8.2].flatMap((z) => [
     panel([C(7.95), 2.45, z], 2.4, 1.1, "+x", { tex: "swag" }),
     panel([C(14.85), 2.45, z], 2.4, 1.1, "-x", { tex: "swag" }),
   ]),
-  panel([C(9.6), 2.45, 1.55], 2.4, 1.1, "+z", { tex: "swag" }),
-  panel([C(11.9), 2.45, 1.55], 2.2, 1.1, "+z", { tex: "swag" }),
-  panel([C(8.55), 2.45, 10.85], 1.5, 1.1, "-z", { tex: "swag" }),
-  panel([C(14.25), 2.45, 10.85], 1.5, 1.1, "-z", { tex: "swag" }),
+  panel([C(9.6), 2.45, 10.85], 2.4, 1.1, "-z", { tex: "swag" }),
+  panel([C(11.9), 2.45, 10.85], 2.2, 1.1, "-z", { tex: "swag" }),
+  panel([C(14.1), 2.45, 10.85], 1.5, 1.1, "-z", { tex: "swag" }),
+  panel([C(8.55), 2.45, 1.55], 1.5, 1.1, "+z", { tex: "swag" }),
   // cove light washing down the drapes
   { pos: [C(7.93), 2.96, 6.2], size: [0.02, 0.03, 9.4], glow: true, color: "#ffd9a8" },
   { pos: [C(14.87), 2.96, 6.2], size: [0.02, 0.03, 9.4], glow: true, color: "#ffd9a8" },
   { pos: [C(11.4), 2.96, 1.53], size: [7.0, 0.03, 0.02], glow: true, color: "#ffd9a8" },
   // risers for the back rows, a light wooden rail behind the last
-  { pos: [C(10.7), 0.22, 3.2], size: [5.6, 0.44, 1.4], tex: "carpet-dark", world: true, color: "#8a8288" },
-  { pos: [C(10.7), 0.11, 4.6], size: [5.6, 0.22, 1.4], tex: "carpet-dark", world: true, color: "#8a8288" },
-  { pos: [C(10.7), 0.92, 2.47], size: [5.6, 0.05, 0.05], color: "#c8a070" },
-  ...[8.0, 9.4, 10.8, 12.2, 13.4].map((x) => ({ pos: [C(x), 0.67, 2.47], size: [0.05, 0.46, 0.05], color: "#c8a070" }) as Block),
+  { pos: [C(10.7), 0.22, 9.2], size: [5.6, 0.44, 1.4], tex: "carpet-dark", world: true, color: "#8a8288" },
+  { pos: [C(10.7), 0.11, 7.8], size: [5.6, 0.22, 1.4], tex: "carpet-dark", world: true, color: "#8a8288" },
+  { pos: [C(10.7), 0.92, 9.93], size: [5.6, 0.05, 0.05], color: "#c8a070" },
+  ...[8.0, 9.4, 10.8, 12.2, 13.4].map((x) => ({ pos: [C(x), 0.67, 9.93], size: [0.05, 0.46, 0.05], color: "#c8a070" }) as Block),
   ...ROWS.flatMap((r) => [
-    ...r.left.flatMap((f, k) => lounge(SEAT_X[k], r.z, 0, f, r.y)),
-    ...lounge(LOVESEAT_X, r.z, 0, "red", r.y, true),
-    ...sideTable(C(9.05), r.z + 0.35, r.y),
-    ...sideTable(C(10.15), r.z + 0.35, r.y, false),
-    ...sideTable(C(13.48), r.z + 0.2, r.y),
+    ...r.left.flatMap((f, k) => lounge(SEAT_X[k], r.z, 180, f, r.y)),
+    ...lounge(LOVESEAT_X, r.z, 180, "red", r.y, true),
+    ...sideTable(C(9.05), r.z - 0.35, r.y),
+    ...sideTable(C(10.15), r.z - 0.35, r.y, false),
+    ...sideTable(C(13.48), r.z - 0.2, r.y),
   ]),
 ];
 
 const cinemaSolids: Box[] = [
-  { x1: C(7.9), x2: C(13.5), z1: 2.45, z2: 5.3 }, // risers and the rows on them
+  { x1: C(7.9), x2: C(13.5), z1: 7.1, z2: 9.95 }, // risers and the rows on them
   ...ROWS.filter((r) => !r.y).flatMap((r) => [
-    { x1: C(8.08), x2: C(11.12), z1: r.z - 0.42, z2: r.z + 0.56 },
+    { x1: C(8.08), x2: C(11.12), z1: r.z - 0.56, z2: r.z + 0.42 },
     { x1: C(11.86), x2: C(13.72), z1: r.z - 0.42, z2: r.z + 0.42 },
   ]),
   { x1: C(0.95), x2: C(2.25), z1: 7.95, z2: 10.85 }, // stairwell
@@ -906,8 +906,8 @@ export const props: Prop[] = [
   { model: "detail-chalice", pos: [C(11.55), 0, 7.0], scale: 1.1 }, // a glass someone left
 ];
 
-export const SCREEN = { x: C(11.4), y: 1.72, z: 10.83, w: 4.2, h: 2.1 };
-export const PROJECTOR = { x: C(11.4), y: 2.78, z: 3.17 };
+export const SCREEN = { x: C(11.4), y: 1.72, z: 1.57, w: 4.2, h: 2.1 };
+export const PROJECTOR = { x: C(11.4), y: 2.78, z: 9.23 };
 /** Where the lightning's two glasses stand: on the bar, before the fourth stool. */
 export const BAR_GLASSES = { x: -7.3, y: 1.08, z: 9.0 };
 
@@ -950,9 +950,9 @@ export const interactables: Interactable[] = [
   { id: "zinc", pos: [C(8.8), 0.75], radius: 0.8, text: ["A wall of dull metal panels, a strip of light under each.", "Your reflection in them is late, by a little."], memory: "cin-wall" },
   { id: "cin-window", pos: [C(10.9), 0.7], radius: 0.8, text: ["Tall windows over Decho Road. The street below is a smear of wet light.", "Every flash of lightning shows the same empty seat reflected in the glass. Row C."], memory: "cin-storm" },
   { id: "cin-curtain", pos: [C(14.0), 0.75], radius: 0.7, text: ["Heavy velvet, olive in this light, drawn back from the way in.", "It smells of old perfume, the kind someone wore on a first date, years ago."], memory: "cin-curtain" },
-  { id: "row-c", pos: [C(11.5), 6.1], radius: 0.6, text: ["Row C. A red velvet loveseat, room for two.", "The velvet is worn soft where two shoulders touched."], memory: "cin-row" },
-  { id: "glass", pos: [C(11.55), 7.05], radius: 0.5, text: ["A wine glass on the carpet by the aisle.", "Half full. A faint print of lipstick on the rim. The wine is still cold."], memory: "cin-glass" },
-  { id: "screen", pos: [C(11.4), 9.95], radius: 1.3, text: ["The film keeps running, just for whoever is here.", "Someone turns in a doorway and smiles. Again, and again."], memory: "cin-screen" },
+  { id: "row-c", pos: [C(11.5), 6.3], radius: 0.6, text: ["Row C. A red velvet loveseat, room for two.", "The velvet is worn soft where two shoulders touched."], memory: "cin-row" },
+  { id: "glass", pos: [C(11.55), 5.35], radius: 0.5, text: ["A wine glass on the carpet by the aisle.", "Half full. A faint print of lipstick on the rim. The wine is still cold."], memory: "cin-glass" },
+  { id: "screen", pos: [C(11.4), 2.45], radius: 1.3, text: ["The film keeps running, just for whoever is here.", "Someone turns in a doorway and smiles. Again, and again."], memory: "cin-screen" },
 ];
 
 export type CamZone = Box & { id: string; pos: [number, number, number]; look: [number, number, number]; fov?: number };
@@ -973,8 +973,8 @@ export const cameras: CamZone[] = [
   { id: "landing", x1: C(0), x2: C(3.6), z1: 3.6, z2: 11, pos: [C(0.45), 2.75, 3.95], look: [C(2.4), 0.9, 10.2], fov: 62 },
   { id: "foyer", x1: C(3.6), x2: C(7.8), z1: -1, z2: 11, pos: [C(4.0), 2.75, 0.45], look: [C(7.2), 0.9, 7.4], fov: 60 },
   { id: "corridor", x1: C(7.8), x2: C(15), z1: -1, z2: 1.4, pos: [C(3.95), 2.55, 0.72], look: [C(14.6), 0.95, 0.72], fov: 56 },
-  { id: "cinema-back", x1: C(7.8), x2: C(15), z1: 1.4, z2: 6.2, pos: [C(8.3), 2.75, 10.5], look: [C(13.4), 0.7, 2.4], fov: 60 },
-  { id: "cinema-front", x1: C(7.8), x2: C(15), z1: 6.2, z2: 11, pos: [C(13.9), 2.8, 2.0], look: [C(10.6), 1.0, 10.6], fov: 58 },
+  { id: "cinema-front", x1: C(7.8), x2: C(15), z1: 1.4, z2: 6.2, pos: [C(13.9), 2.8, 10.4], look: [C(10.6), 1.0, 1.8], fov: 58 },
+  { id: "cinema-back", x1: C(7.8), x2: C(15), z1: 6.2, z2: 11, pos: [C(8.3), 2.75, 1.9], look: [C(13.4), 0.7, 10.0], fov: 60 },
 ];
 
 /** Where one camera's frame leads into the next: the openings between zones. */
@@ -989,8 +989,8 @@ const links: { a: string; b: string; x: number; z: number }[] = [
   { a: "bistro-bar", b: "back-landing", x: -12.5, z: 7.1 },
   { a: "landing", b: "foyer", x: C(3.6), z: 5.3 },
   { a: "foyer", b: "corridor", x: C(7.8), z: 0.7 },
-  { a: "corridor", b: "cinema-back", x: C(14.0), z: 1.4 },
-  { a: "cinema-back", b: "cinema-front", x: C(14.3), z: 6.2 },
+  { a: "corridor", b: "cinema-front", x: C(14.0), z: 1.4 },
+  { a: "cinema-front", b: "cinema-back", x: C(14.3), z: 6.2 },
 ];
 
 export type LightDef = { pos: [number, number, number]; color: string; intensity: number; distance: number; flicker?: boolean };
@@ -1037,7 +1037,7 @@ export const lights: LightDef[] = [
   { pos: [C(8.3), 2.6, 8.4], color: "#ffb878", intensity: 5, distance: 4 },
   { pos: [C(14.5), 2.6, 4.0], color: "#ffb878", intensity: 5, distance: 4 },
   { pos: [C(14.5), 2.6, 8.4], color: "#ffb878", intensity: 5, distance: 4 },
-  { pos: [C(11.4), 2.6, 1.9], color: "#ffb878", intensity: 4, distance: 3.5 },
+  { pos: [C(11.4), 2.6, 10.5], color: "#ffb878", intensity: 4, distance: 3.5 },
 ];
 
 export const PLAYER_START = { x: L(0), z: 1.5, yaw: 0 };

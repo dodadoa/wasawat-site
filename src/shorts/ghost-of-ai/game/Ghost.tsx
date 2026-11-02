@@ -60,7 +60,7 @@ const WAYPOINTS: Record<FloorId, [number, number][]> = {
   ],
   cinema: [
     [CX + 1.6, 5.4], [CX + 2.9, 9.0], [CX + 5.6, 3.6], [CX + 6.6, 6.6], [CX + 5.0, 9.8], [CX + 10.0, 0.7],
-    [CX + 13.0, 0.7], [CX + 14.3, 3.0], [CX + 14.3, 7.6], [CX + 11.5, 8.0], [CX + 11.4, 10.0], [CX + 9.2, 10.0],
+    [CX + 13.0, 0.7], [CX + 14.3, 3.0], [CX + 14.3, 7.6], [CX + 11.5, 4.4], [CX + 11.4, 2.4], [CX + 9.2, 2.4],
   ],
 };
 const level = (f: FloorId) => FLOOR_ORDER.indexOf(f);

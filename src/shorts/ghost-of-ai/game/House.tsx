@@ -195,7 +195,7 @@ function ProjectorBeam() {
   );
   const { pos, quat, len } = useMemo(() => {
     const a = new THREE.Vector3(PROJECTOR.x, PROJECTOR.y, PROJECTOR.z);
-    const b = new THREE.Vector3(SCREEN.x, SCREEN.y, SCREEN.z - 0.05);
+    const b = new THREE.Vector3(SCREEN.x, SCREEN.y, SCREEN.z + 0.05);
     const dir = b.clone().sub(a);
     const len = dir.length();
     return {

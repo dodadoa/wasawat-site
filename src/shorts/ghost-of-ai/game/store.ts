@@ -30,7 +30,6 @@ export interface GameState {
   /** the memory strength panel (M) */
   showMemories: boolean;
   /** who is speaking for the ghost: Claude, or the local rules (null until it first speaks) */
-  voice: "claude" | "local" | null;
   prompt: string | null;
   fade: number; // 0..1 black overlay
   /** the webcam presence (C): face and hand tracking */
@@ -49,7 +48,6 @@ export interface GameState {
   setWriting: (v: boolean) => void;
   setImplanting: (v: boolean) => void;
   toggleMemories: () => void;
-  setVoice: (v: "claude" | "local") => void;
   setPrompt: (p: string | null) => void;
   setFade: (f: number) => void;
   setWebcam: (w: Webcam) => void;
@@ -68,7 +66,6 @@ export const useGame = create<GameState>((set, get) => ({
   writing: false,
   implanting: false,
   showMemories: false,
-  voice: "local",
   prompt: null,
   fade: 1,
   webcam: "off",
@@ -96,7 +93,6 @@ export const useGame = create<GameState>((set, get) => ({
   setWriting: (v) => set({ writing: v }),
   setImplanting: (v) => set({ implanting: v }),
   toggleMemories: () => set((s) => ({ showMemories: !s.showMemories })),
-  setVoice: (v) => set((s) => (s.voice === v ? s : { voice: v })),
   setPrompt: (p) => set((s) => (s.prompt === p ? s : { prompt: p })),
   setFade: (f) => set({ fade: f }),
   setWebcam: (w) => set({ webcam: w }),
