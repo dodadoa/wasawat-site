@@ -955,7 +955,15 @@ export const interactables: Interactable[] = [
   { id: "screen", pos: [C(11.4), 2.45], radius: 1.3, text: ["The film keeps running, just for whoever is here.", "Someone turns in a doorway and smiles. Again, and again."], memory: "cin-screen" },
 ];
 
-export type CamZone = Box & { id: string; pos: [number, number, number]; look: [number, number, number]; fov?: number };
+/**
+ * Silent Hill's draw-distance fix: linear fog that turns solid at `far`, the
+ * camera drawing nothing past it, and the background the fog's own colour, so
+ * the edge of the world is hidden inside the haze.
+ */
+export type ShotFog = { color: string; near: number; far: number };
+export type CamZone = Box & { id: string; pos: [number, number, number]; look: [number, number, number]; fov?: number; fog?: ShotFog };
+/** Every other room: no fog, only the old draw distance. */
+export const DEFAULT_FOG: ShotFog = { color: "#050407", near: 40, far: 40 };
 /** Fixed cameras, most of them where the photographs were taken from. */
 export const cameras: CamZone[] = [
   // ---- 1F
@@ -973,8 +981,8 @@ export const cameras: CamZone[] = [
   { id: "landing", x1: C(0), x2: C(3.6), z1: 3.6, z2: 11, pos: [C(0.45), 2.75, 3.95], look: [C(2.4), 0.9, 10.2], fov: 62 },
   { id: "foyer", x1: C(3.6), x2: C(7.8), z1: -1, z2: 11, pos: [C(4.0), 2.75, 0.45], look: [C(7.2), 0.9, 7.4], fov: 60 },
   { id: "corridor", x1: C(7.8), x2: C(15), z1: -1, z2: 1.4, pos: [C(3.95), 2.55, 0.72], look: [C(14.6), 0.95, 0.72], fov: 56 },
-  { id: "cinema-front", x1: C(7.8), x2: C(15), z1: 1.4, z2: 6.2, pos: [C(13.9), 2.8, 10.4], look: [C(10.6), 1.0, 1.8], fov: 58 },
-  { id: "cinema-back", x1: C(7.8), x2: C(15), z1: 6.2, z2: 11, pos: [C(8.3), 2.75, 1.9], look: [C(13.4), 0.7, 10.0], fov: 60 },
+  { id: "cinema-front", x1: C(7.8), x2: C(15), z1: 1.4, z2: 6.2, pos: [C(13.9), 2.8, 10.4], look: [C(10.6), 1.0, 1.8], fov: 58, fog: { color: "#0c0a10", near: 2.5, far: 10.5 } },
+  { id: "cinema-back", x1: C(7.8), x2: C(15), z1: 6.2, z2: 11, pos: [C(8.3), 2.75, 1.9], look: [C(13.4), 0.7, 10.0], fov: 60, fog: { color: "#0c0a10", near: 2, far: 8.6 } },
 ];
 
 /** Where one camera's frame leads into the next: the openings between zones. */
@@ -1013,10 +1021,14 @@ export const lights: LightDef[] = [
   { pos: [-1.4, 0.95, 1.2], color: "#ffa050", intensity: 3.5, distance: 2.2, flicker: true },
   { pos: [-1.7, 2.6, 9.2], color: "#e0ecff", intensity: 8, distance: 5 },
   // bistro: the ring of roses, the bar's white shades and cold under-glow, candles
-  { pos: [-9.4, 2.15, 4.6], color: "#ffd6a8", intensity: 16, distance: 7 },
-  { pos: [-7.0, 2.15, 4.6], color: "#ffd6a8", intensity: 16, distance: 7 },
-  { pos: [-9.6, 2.0, 9.2], color: "#f4f0e8", intensity: 9, distance: 4.5 },
-  { pos: [-6.6, 2.0, 9.2], color: "#f4f0e8", intensity: 9, distance: 4.5 },
+  { pos: [-9.4, 2.15, 4.6], color: "#ffd6a8", intensity: 26, distance: 9 },
+  { pos: [-7.0, 2.15, 4.6], color: "#ffd6a8", intensity: 26, distance: 9 },
+  { pos: [-9.6, 2.0, 9.2], color: "#f4f0e8", intensity: 14, distance: 6 },
+  { pos: [-6.6, 2.0, 9.2], color: "#f4f0e8", intensity: 14, distance: 6 },
+  // a warm wash over the window tables and the bar end, so the room reads lit
+  { pos: [-11.0, 2.5, 2.0], color: "#ffcf9e", intensity: 12, distance: 6 },
+  { pos: [-5.0, 2.5, 2.0], color: "#ffcf9e", intensity: 12, distance: 6 },
+  { pos: [-11.0, 2.5, 7.4], color: "#ffcf9e", intensity: 10, distance: 5.5 },
   { pos: [-8.2, 0.15, 8.6], color: "#a0d8ff", intensity: 4, distance: 3 },
   { pos: [-8.2, 2.3, 10.3], color: "#f0f4ff", intensity: 8, distance: 4 },
   { pos: [-8.2, 0.95, 4.6], color: "#ffa860", intensity: 5, distance: 2.6, flicker: true },

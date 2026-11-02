@@ -13,6 +13,7 @@ import { UI } from "./UI";
 import { bindInput, input } from "./input";
 import { PS1Effect } from "./ps1/PS1Effect";
 import { RENDER_W } from "./ps1/PS1Material";
+import { DEFAULT_FOG } from "./level";
 import { world } from "./world";
 import { useGame } from "./store";
 import { strike } from "./weather";
@@ -75,7 +76,7 @@ export default function Game() {
             // debug hook: __game.scene for inspecting the graph from the console
             Object.assign((window as unknown as { __game: object }).__game ?? {}, { scene });
             scene.background = new THREE.Color(BG);
-            scene.fog = new THREE.FogExp2(BG, 0.016);
+            scene.fog = new THREE.Fog(BG, DEFAULT_FOG.near, DEFAULT_FOG.far); // per shot: CameraDirector
             gl.setClearColor(BG);
           }}
         >

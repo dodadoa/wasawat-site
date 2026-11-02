@@ -178,18 +178,50 @@ function Blocks() {
   );
 }
 
-/** The cone of light from the projector on the ceiling to the screen. */
+/**
+ * The cone of light from the projector on the ceiling to the screen. Faded at
+ * its silhouette (where you look along its surface) and toward the wide end,
+ * so it reads as light in the air, not a sheet with an edge.
+ */
+const beamVertex = /* glsl */ `
+varying float vAlong;
+varying float vFacing;
+#include <fog_pars_vertex>
+void main() {
+  vAlong = uv.y; // 0 at the lens, 1 at the screen
+  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+  vec3 n = normalize(normalMatrix * normal);
+  vFacing = abs(dot(n, normalize(-mvPosition.xyz)));
+  gl_Position = projectionMatrix * mvPosition;
+  #include <fog_vertex>
+}
+`;
+const beamFragment = /* glsl */ `
+uniform vec3 uColor;
+uniform float uOpacity;
+varying float vAlong;
+varying float vFacing;
+#include <fog_pars_fragment>
+void main() {
+  float a = uOpacity * vFacing * vFacing * (1.0 - smoothstep(0.15, 1.0, vAlong));
+  gl_FragColor = vec4(uColor * a, 1.0);
+  #include <fog_fragment>
+}
+`;
+
 function ProjectorBeam() {
   const mat = useMemo(
     () =>
-      new THREE.MeshBasicMaterial({
-        color: "#c8d0ff",
+      new THREE.ShaderMaterial({
+        uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uColor: { value: new THREE.Color("#c8d0ff") }, uOpacity: { value: 0.09 } }]),
+        vertexShader: beamVertex,
+        fragmentShader: beamFragment,
         transparent: true,
-        opacity: 0.035,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
         side: THREE.DoubleSide,
-        fog: false,
+        // fogged too: in a short shot the cut at the draw distance would show on it
+        fog: true,
       }),
     []
   );

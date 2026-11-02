@@ -1,6 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { cameras, type CamZone } from "./level";
+import { cameras, DEFAULT_FOG, type CamZone } from "./level";
 import { world, inBox, you } from "./world";
 import { useGame } from "./store";
 import { presence } from "./presence";
@@ -28,6 +28,7 @@ const head = new THREE.Vector3();
  */
 export function CameraDirector() {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
+  const scene = useThree((s) => s.scene);
   useFrame(({ clock }, dt) => {
     const p = you().pos;
     const eyes = useGame.getState().role === "camera";
@@ -37,6 +38,7 @@ export function CameraDirector() {
     if (cut) {
       world.zone = zone.id;
       camera.fov = zone.fov ?? 50;
+      shotFog(scene, camera, zone);
       camera.updateProjectionMatrix();
       useGame.getState().setCamera(zone.id);
     }
@@ -50,6 +52,18 @@ export function CameraDirector() {
     place(camera, zone);
   });
   return null;
+}
+
+/** The shot's fog, and the draw distance cut to just past where it turns solid. */
+function shotFog(scene: THREE.Scene, camera: THREE.PerspectiveCamera, zone: CamZone) {
+  const f = zone.fog ?? DEFAULT_FOG;
+  const fog = scene.fog as THREE.Fog | null;
+  if (!fog) return;
+  fog.color.set(f.color);
+  fog.near = f.near;
+  fog.far = f.far;
+  camera.far = f.far + 0.3;
+  if (scene.background instanceof THREE.Color) scene.background.set(f.color);
 }
 
 function aim(t: number) {
