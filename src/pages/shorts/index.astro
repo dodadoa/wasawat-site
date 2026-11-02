@@ -1,0 +1,93 @@
+---
+import Layout from "../../layouts/layout.astro"
+
+// each short is its own standalone page under src/pages/shorts/
+const shorts = [
+  {
+    url: "/shorts/ghost-of-ai",
+    title: "Ghost of AI",
+    description: "A PS1-style wine bar and cinema haunted by a ghost made of the place's fading memories.",
+  },
+];
+---
+
+<Layout title="Wasawat Somno's shorts" description="shorts">
+  <div class="shorts-page">
+    <h1 class="wipe">Shorts</h1>
+    <ul class="shorts-list wipe">
+      {
+        shorts.map((short, i) => (
+          <li>
+            <a href={short.url}>
+              <span class="shorts-count">{String(i + 1).padStart(2, "0")} →</span>
+              <span class="shorts-text">
+                <span class="shorts-title">{short.title}</span>
+                <span class="shorts-description">{short.description}</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</Layout>
+
+<style>
+  .shorts-page {
+    padding: 2rem 2rem 6rem;
+    max-width: 1080px;
+  }
+
+  .shorts-page h1 {
+    margin: 2.5rem 0 5rem;
+  }
+
+  .shorts-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .shorts-list li {
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .shorts-list a {
+    display: flex;
+    align-items: baseline;
+    gap: 2rem;
+    padding: 1.4rem 0.6rem;
+    margin: 0 -0.6rem;
+  }
+
+  .shorts-list a:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .shorts-count {
+    font-family: var(--f-pixel);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  .shorts-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .shorts-title {
+    font-family: var(--f-display);
+    font-size: 32px;
+    line-height: 1.16;
+    letter-spacing: -0.02em;
+  }
+
+  .shorts-description {
+    font-family: var(--f-data);
+    font-size: 14px;
+  }
+</style>
