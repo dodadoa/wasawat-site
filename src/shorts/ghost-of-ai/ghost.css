@@ -1,0 +1,212 @@
+@font-face {
+  font-family: "403 Mesapholic";
+  src: url("/shorts/ghost-of-ai/fonts/403Mesapholic-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  --font-title: "403 Mesapholic";
+  --font-thai: "Noto Sans Thai";
+  color-scheme: dark;
+  --bg: #000;
+  --fg: #ffffff;
+  --accent: #cc1410;
+  /* faint 2px checker so the text boxes read as dithered, not flat black */
+  --box-dither: repeating-conic-gradient(rgba(255,255,255,0.07) 0 25%, transparent 0 50%) 0 0 / 4px 4px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); height: 100%; overflow: hidden; }
+body { font-family: var(--font-title), monospace; color: #fff; }
+kbd, input, textarea, button { font-family: inherit; }
+
+.game-root {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #000;
+}
+.game-frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  height: min(100vh, 75vw);
+  width: auto;
+  background: #000;
+  box-shadow: 0 0 80px rgba(0,0,0,0.9) inset;
+}
+.game-frame canvas:not(.overlay canvas) {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ---------- overlays ---------- */
+.overlay { position: absolute; inset: 0; pointer-events: none; }
+.title {
+  pointer-events: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1.2rem; height: 100%;
+  /* the darkening is a dithered canvas (.dither-backdrop) so the foyer shows through in pixels */
+  position: relative; isolation: isolate;
+  /* the intro is black and white, with the foyer blurred so the text reads */
+  backdrop-filter: grayscale(1) blur(6px); -webkit-backdrop-filter: grayscale(1) blur(6px);
+  text-align: center; padding: 2rem;
+}
+.dither-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; image-rendering: pixelated; }
+.title h1.dither-title { position: relative; color: transparent; text-shadow: none; }
+.dither-title canvas { position: absolute; image-rendering: pixelated; pointer-events: none; }
+.title h1 {
+  font-size: clamp(2.4rem, 8vw, 5.2rem);
+  letter-spacing: 0.08em; margin: 0; font-weight: 400;
+  color: #fff;
+  text-shadow: 0 0 22px rgba(204,20,16,0.9), 3px 3px 0 #cc1410;
+  animation: flicker 4s infinite;
+}
+.title p { margin: 0; opacity: 0.9; max-width: 40ch; line-height: 1.45; font-size: 1.15rem; color: #fff; }
+.title .press { margin-top: 1rem; animation: blink 1.2s steps(2) infinite; letter-spacing: 0.15em; font-size: 1.5rem; color: #fff; }
+.title kbd {
+  background: #000; border: 1px solid #fff; border-bottom-width: 3px;
+  padding: 0.1em 0.45em; border-radius: 0; font-size: 0.9em; color: #fff;
+}
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes flicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+  20%, 24%, 55% { opacity: 0.55; }
+}
+
+.msgbox {
+  position: absolute; left: 6%; right: 6%; bottom: 6%;
+  background: var(--box-dither), rgba(0,0,0,0.92);
+  border: 2px solid #fff; outline: 2px solid #000;
+  padding: 0.9rem 1.2rem; min-height: 4.2rem;
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem); line-height: 1.4;
+  color: #fff; text-shadow: 1px 1px 0 #000;
+}
+.msgbox .next { position: absolute; right: 0.8rem; bottom: 0.4rem; animation: blink 0.9s steps(2) infinite; font-size: 0.8em; opacity: 0.8; }
+
+.prompt {
+  position: absolute; left: 50%; bottom: 10%; transform: translateX(-50%);
+  background: var(--box-dither), #000; padding: 0.3rem 0.8rem; border: 1px solid #fff;
+  font-size: 1.1rem; letter-spacing: 0.08em; color: #fff;
+}
+
+.hud { position: absolute; top: 3%; left: 3%; display: flex; gap: 0.6rem; align-items: center; font-size: 1.05rem; letter-spacing: 0.08em; color: #fff; }
+.hud .hp { display: flex; gap: 4px; }
+.hud .hp i { width: 14px; height: 10px; background: #000; border: 1px solid #f4f0ea; }
+.hud .hp i.on { background: #cc1410; border-color: #cc1410; }
+.hud .cond { color: #fff; }
+.hud .cond.caution { color: #cc1410; }
+.hud .cond.danger { color: #cc1410; animation: blink 0.6s steps(2) infinite; }
+
+.hint { position: absolute; top: 3%; right: 3%; font-size: 0.95rem; opacity: 0.7; text-align: right; line-height: 1.5; letter-spacing: 0.04em; color: #fff; }
+
+.fade { position: absolute; inset: 0; background: #000; transition: opacity 0.35s ease; }
+.hurt { position: absolute; inset: 0; background: rgba(204,20,16,0.55); pointer-events: none; }
+
+/* ---------- the ghost ---------- */
+.whisper {
+  position: absolute; left: 8%; right: 8%; top: 20%;
+  text-align: center; font-style: italic;
+  font-size: clamp(1.05rem, 2.1vw, 1.45rem); line-height: 1.4;
+  color: #dfe6ff; letter-spacing: 0.02em;
+  text-shadow: 0 0 10px rgba(127,182,255,0.8), 1px 1px 0 #000;
+  animation: whisper-in 1.2s ease-out;
+}
+@keyframes whisper-in { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: blur(0); } }
+/* each word surfaces as it is spoken: a slow fade, a little rise, the blur lifting */
+.whisper .word {
+  display: inline-block; opacity: 0; filter: blur(3px); transform: translateY(0.35em);
+  transition: opacity 1.4s ease-out, filter 1.7s ease-out, transform 1.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.whisper .word.on { opacity: 1; filter: blur(0); transform: none; }
+/* ghost mode: the guest talking to itself. Lower, upright, the warm of its neon */
+.whisper.guest {
+  top: auto; bottom: 12%; font-style: normal;
+  color: #fff1ea; text-shadow: 0 0 8px rgba(255,90,64,0.65), 1px 1px 0 #000;
+}
+.whisper.guest .word { transition-duration: 0.5s, 0.6s, 0.6s; }
+.whisper.guest .thai { color: #f3d8d0; }
+/* the film talking: high up, plain, the same white as the light it's made of */
+.whisper.lover { font-style: normal; color: #fff6e6; text-shadow: 0 0 10px rgba(255,214,160,0.7), 1px 1px 0 #000; }
+.whisper.lover .thai { color: #efe2cc; }
+/* the Thai under each line: a loopless sans, upright (a faked italic mangles the vowels) */
+.whisper .thai {
+  margin-top: 0.35em; font-family: var(--font-thai), sans-serif; font-style: normal; font-weight: 300;
+  font-size: 0.8em; color: #c9d2f0; opacity: 0.75;
+  animation: whisper-in 1.6s ease-out;
+}
+
+.memory-input {
+  pointer-events: auto;
+  position: absolute; left: 10%; right: 10%; bottom: 8%;
+  background: var(--box-dither), rgba(0,0,0,0.94); border: 2px solid #fff; outline: 2px solid #000;
+  padding: 0.9rem 1.1rem; display: flex; flex-direction: column; gap: 0.5rem;
+}
+.memory-input label { font-size: 1.1rem; }
+.memory-input input {
+  font: inherit; font-size: 1.2rem; color: #fff; background: transparent;
+  border: 0; border-bottom: 1px solid #fff; padding: 0.3rem 0; outline: none;
+}
+.memory-input small { opacity: 0.6; font-size: 0.85rem; }
+
+.memory-panel {
+  position: absolute; bottom: 3%; left: 3%; width: 42%; max-height: 42%; overflow: hidden;
+  background: var(--box-dither), rgba(0,0,0,0.82); border: 1px solid #fff; padding: 0.5rem 0.6rem;
+  font-size: 0.72rem; line-height: 1.25;
+}
+.memory-panel h3 { margin: 0 0 0.35rem; font-weight: 400; font-size: 0.85rem; letter-spacing: 0.1em; }
+.memory-panel .mem { display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.15rem; }
+.memory-panel .bar { flex: 0 0 3.2rem; height: 0.4rem; border: 1px solid #555; }
+.memory-panel .bar i { display: block; height: 100%; background: #fff; }
+.memory-panel .visitor .bar i { background: #cc1410; }
+.memory-panel .floor { opacity: 0.6; flex: 0 0 auto; }
+.memory-panel .era { opacity: 0.45; flex: 0 0 4.2rem; font-size: 0.75rem; }
+.memory-panel .text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notebook p { margin: 0 0 0.3rem; font-style: italic; }
+.notebook p:first-of-type { opacity: 1; }
+.notebook p + p { opacity: 0.6; }
+.notebook .empty { opacity: 0.6; }
+.notebook p.memory { font-style: normal; opacity: 0.9; }
+.notebook p.memory::before { font-size: 0.62rem; letter-spacing: 0.08em; opacity: 0.7; margin-right: 0.4em; }
+.notebook p.case::before { content: "PLANTED"; color: #ff7058; }
+.notebook p.own::before { content: "ITS OWN"; color: #a8c4ff; }
+.memory-panel h3 .voice { float: right; opacity: 0.6; font-size: 0.75rem; letter-spacing: 0.05em; }
+
+/* ---------- webcam view (C / V) ---------- */
+.webcam-view {
+  position: absolute; left: 3%; top: 3%; width: 18%;
+  display: flex; flex-direction: column; gap: 0.3rem;
+  opacity: 0.75;
+}
+.webcam-view canvas { width: 100%; height: auto; image-rendering: pixelated; border: 1px solid rgba(255,255,255,0.35); }
+.webcam-view span { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
+
+/* ---------- off-screen player hint ---------- */
+.offscreen-hint {
+  position: absolute; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.2s;
+  display: flex; flex-direction: column; align-items: center; gap: 0.1rem;
+  font-family: var(--font-display), serif; color: #ff5a40; text-shadow: 0 0 8px rgba(255,90,64,0.9);
+  animation: hint-pulse 1s ease-in-out infinite;
+}
+.offscreen-hint .arrow {
+  display: block; width: 0; height: 0; transform: rotate(var(--angle, 0rad));
+  border-left: 18px solid #ff5a40; border-top: 10px solid transparent; border-bottom: 10px solid transparent;
+  filter: drop-shadow(0 0 6px rgba(255,90,64,0.9));
+}
+.offscreen-hint .label { font-size: 0.75rem; letter-spacing: 0.15em; }
+@keyframes hint-pulse { 50% { filter: brightness(1.6); } }
+
+/* ---------- where the frame leads on ---------- */
+.exit-hint {
+  position: absolute; transform: translate(-50%, -50%); pointer-events: none;
+  color: #fff; transition: opacity 0.4s;
+}
+.exit-hint > * {
+  display: block; opacity: 0.7; filter: drop-shadow(0 0 2px #000) drop-shadow(0 0 5px rgba(0,0,0,0.9));
+  animation: exit-breathe 2.4s ease-in-out infinite;
+}
+.exit-hint .chev {
+  width: 10px; height: 10px; transform: rotate(var(--angle, 0rad)) rotate(45deg);
+  border-top: 2px solid currentColor; border-right: 2px solid currentColor;
+}
+.exit-hint.door { color: #ffc890; }
+@keyframes exit-breathe { 50% { opacity: 1; } }

@@ -1,0 +1,25 @@
+---
+// /shorts/ghost-of-ai: Ghost of AI, the PS1 memory ghost at Sala Saneha.
+// Standalone on purpose: no Layout, the game takes the whole window.
+import Game from "../../shorts/ghost-of-ai/game/Game"
+import "@fontsource/noto-sans-thai/thai-300.css"
+import "@fontsource/noto-sans-thai/thai-400.css"
+import "../../shorts/ghost-of-ai/ghost.css"
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Ghost of AI</title>
+    <meta
+      name="description"
+      content="A PS1-style wine bar and cinema haunted by a ghost made of the place's fading memories."
+    />
+  </head>
+  <body>
+    <Game client:only="react" />
+  </body>
+</html>
