@@ -26,7 +26,9 @@ export interface GameState {
   /** the "leave a memory" text box is open */
   writing: boolean;
   /** the box where you give the guest someone to look for is open */
-  implanting: boolean;
+  /** the opening on black, before the scene fades in */
+  intro: boolean;
+  credits: boolean;
   /** the memory strength panel (M) */
   showMemories: boolean;
   /** who is speaking for the ghost: Claude, or the local rules (null until it first speaks) */
@@ -46,7 +48,8 @@ export interface GameState {
   whisperLines: (lines: string[], who?: Speaker) => void;
   clearWhisper: () => void;
   setWriting: (v: boolean) => void;
-  setImplanting: (v: boolean) => void;
+  setIntro: (v: boolean) => void;
+  setCredits: (v: boolean) => void;
   toggleMemories: () => void;
   setPrompt: (p: string | null) => void;
   setFade: (f: number) => void;
@@ -64,7 +67,8 @@ export const useGame = create<GameState>((set, get) => ({
   message: null,
   whisper: null,
   writing: false,
-  implanting: false,
+  intro: true,
+  credits: false,
   showMemories: false,
   prompt: null,
   fade: 1,
@@ -91,7 +95,8 @@ export const useGame = create<GameState>((set, get) => ({
   whisperLines: (lines, who = "ghost") => set({ whisper: { lines, key: Date.now(), who } }),
   clearWhisper: () => set({ whisper: null }),
   setWriting: (v) => set({ writing: v }),
-  setImplanting: (v) => set({ implanting: v }),
+  setIntro: (v) => set({ intro: v }),
+  setCredits: (v) => set({ credits: v }),
   toggleMemories: () => set((s) => ({ showMemories: !s.showMemories })),
   setPrompt: (p) => set((s) => (s.prompt === p ? s : { prompt: p })),
   setFade: (f) => set({ fade: f }),

@@ -5,8 +5,8 @@
 }
 
 :root {
-  --font-title: "403 Mesapholic";
   --font-thai: "Noto Sans Thai";
+  --font: Arial, var(--font-thai), sans-serif;
   color-scheme: dark;
   --bg: #000;
   --fg: #ffffff;
@@ -16,7 +16,8 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); height: 100%; overflow: hidden; }
-body { font-family: var(--font-title), monospace; color: #fff; }
+/* one voice: Arial, all lowercase, set tight */
+body { font-family: var(--font); color: #fff; text-transform: lowercase; letter-spacing: 0; }
 kbd, input, textarea, button { font-family: inherit; }
 
 .game-root {
@@ -31,6 +32,8 @@ kbd, input, textarea, button { font-family: inherit; }
   width: auto;
   background: #000;
   box-shadow: 0 0 80px rgba(0,0,0,0.9) inset;
+  /* every size in the UI follows the frame: cqw */
+  container-type: size;
 }
 .game-frame canvas:not(.overlay canvas) {
   image-rendering: pixelated;
@@ -45,51 +48,46 @@ kbd, input, textarea, button { font-family: inherit; }
   pointer-events: auto;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 1.2rem; height: 100%;
-  /* the darkening is a dithered canvas (.dither-backdrop) so the foyer shows through in pixels */
-  position: relative; isolation: isolate;
+  position: relative;
+  background: rgba(0,0,0,0.82);
   /* the intro is black and white, with the foyer blurred so the text reads */
-  backdrop-filter: grayscale(1) blur(6px); -webkit-backdrop-filter: grayscale(1) blur(6px);
+  backdrop-filter: grayscale(1) blur(10px); -webkit-backdrop-filter: grayscale(1) blur(10px);
   text-align: center; padding: 2rem;
 }
-.dither-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; image-rendering: pixelated; }
-.title h1.dither-title { position: relative; color: transparent; text-shadow: none; }
-.dither-title canvas { position: absolute; image-rendering: pixelated; pointer-events: none; }
 .title h1 {
-  font-size: clamp(2.4rem, 8vw, 5.2rem);
-  letter-spacing: 0.08em; margin: 0; font-weight: 400;
+  font-family: "403 Mesapholic", var(--font); font-size: 10cqw; text-transform: none;
+  letter-spacing: 0.04em; margin: 0; font-weight: 400;
   color: #fff;
-  text-shadow: 0 0 22px rgba(204,20,16,0.9), 3px 3px 0 #cc1410;
-  animation: flicker 4s infinite;
 }
-.title p { margin: 0; opacity: 0.9; max-width: 40ch; line-height: 1.45; font-size: 1.15rem; color: #fff; }
-.title .press { margin-top: 1rem; animation: blink 1.2s steps(2) infinite; letter-spacing: 0.15em; font-size: 1.5rem; color: #fff; }
+.title p.place { margin: 0; opacity: 0.8; font-size: 1.8cqw; color: #fff; }
+.title .press { margin-top: 2cqw; animation: breathe 2.8s ease-in-out infinite; font-size: 1.9cqw; color: #fff; }
 .title kbd {
   background: #000; border: 1px solid #fff; border-bottom-width: 3px;
   padding: 0.1em 0.45em; border-radius: 0; font-size: 0.9em; color: #fff;
 }
 @keyframes blink { 50% { opacity: 0; } }
+@keyframes breathe { 50% { opacity: 0.5; } }
 @keyframes flicker {
   0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
   20%, 24%, 55% { opacity: 0.55; }
 }
 
+/* what's said sits in one place: low and centred, on a strip of dark */
 .msgbox {
-  position: absolute; left: 6%; right: 6%; bottom: 6%;
-  background: var(--box-dither), rgba(0,0,0,0.92);
-  border: 2px solid #fff; outline: 2px solid #000;
-  padding: 0.9rem 1.2rem; min-height: 4.2rem;
-  font-size: clamp(1.1rem, 2.2vw, 1.5rem); line-height: 1.4;
-  color: #fff; text-shadow: 1px 1px 0 #000;
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.88) 38%);
+  padding: 6cqw 12cqw 4.5cqw; text-align: center; font-size: 2.6cqw; line-height: 1.6;
+  color: #fff;
 }
-.msgbox .next { position: absolute; right: 0.8rem; bottom: 0.4rem; animation: blink 0.9s steps(2) infinite; font-size: 0.8em; opacity: 0.8; }
+.msgbox .next { position: absolute; right: 4cqw; bottom: 2.4cqw; animation: blink 0.9s steps(2) infinite; font-size: 1.4cqw; opacity: 0.7; }
 
 .prompt {
-  position: absolute; left: 50%; bottom: 10%; transform: translateX(-50%);
-  background: var(--box-dither), #000; padding: 0.3rem 0.8rem; border: 1px solid #fff;
-  font-size: 1.1rem; letter-spacing: 0.08em; color: #fff;
+  position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); white-space: nowrap;
+  background: rgba(0,0,0,0.75); padding: 0.6cqw 1.4cqw;
+  font-size: 1.6cqw; color: #fff;
 }
 
-.hud { position: absolute; top: 3%; left: 3%; display: flex; gap: 0.6rem; align-items: center; font-size: 1.05rem; letter-spacing: 0.08em; color: #fff; }
+.hud { position: absolute; top: 3%; left: 3%; display: flex; gap: 0.6rem; align-items: center; font-size: 1.05rem; color: #fff; }
 .hud .hp { display: flex; gap: 4px; }
 .hud .hp i { width: 14px; height: 10px; background: #000; border: 1px solid #f4f0ea; }
 .hud .hp i.on { background: #cc1410; border-color: #cc1410; }
@@ -97,79 +95,71 @@ kbd, input, textarea, button { font-family: inherit; }
 .hud .cond.caution { color: #cc1410; }
 .hud .cond.danger { color: #cc1410; animation: blink 0.6s steps(2) infinite; }
 
-.hint { position: absolute; top: 3%; right: 3%; font-size: 0.95rem; opacity: 0.7; text-align: right; line-height: 1.5; letter-spacing: 0.04em; color: #fff; }
+.hint { position: absolute; top: 2.4cqw; right: 2.6cqw; font-size: 1.3cqw; text-align: right; line-height: 1.6; color: #fff; }
+.hint span { opacity: 0.55; }
+.help {
+  position: absolute; top: 6cqw; right: 2.6cqw; width: 40cqw; padding: 1.6cqw 1.8cqw;
+  background: rgba(0,0,0,0.85); font-size: 1.35cqw; line-height: 1.5;
+}
+.help h3 { margin: 0 0 1cqw; font-weight: 400; font-size: 1.3cqw; opacity: 0.6; }
+.help p { margin: 0 0 0.3cqw; display: flex; }
+.help kbd { flex: 0 0 9cqw; font-family: inherit; color: #ffc890; }
+.help .note { display: block; margin-top: 0.8cqw; opacity: 0.6; }
 
 .fade { position: absolute; inset: 0; background: #000; transition: opacity 0.35s ease; }
 .hurt { position: absolute; inset: 0; background: rgba(204,20,16,0.55); pointer-events: none; }
 
-/* ---------- the ghost ---------- */
+/* ---------- subtitles ---------- */
 .whisper {
-  position: absolute; left: 8%; right: 8%; top: 20%;
-  text-align: center; font-style: italic;
-  font-size: clamp(1.05rem, 2.1vw, 1.45rem); line-height: 1.4;
-  color: #dfe6ff; letter-spacing: 0.02em;
-  text-shadow: 0 0 10px rgba(127,182,255,0.8), 1px 1px 0 #000;
-  animation: whisper-in 1.2s ease-out;
+  position: absolute; left: 10%; right: 10%; bottom: 13%;
+  text-align: center;
+  font-size: 2.6cqw; line-height: 1.8;
+  color: #dfe6ff;
+  animation: whisper-in 0.5s ease-out;
 }
-@keyframes whisper-in { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: blur(0); } }
-/* each word surfaces as it is spoken: a slow fade, a little rise, the blur lifting */
-.whisper .word {
-  display: inline-block; opacity: 0; filter: blur(3px); transform: translateY(0.35em);
-  transition: opacity 1.4s ease-out, filter 1.7s ease-out, transform 1.7s cubic-bezier(0.22, 1, 0.36, 1);
+.whisper span {
+  padding: 0.1em 0.45em; background: rgba(0,0,0,0.62);
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
 }
-.whisper .word.on { opacity: 1; filter: blur(0); transform: none; }
-/* ghost mode: the guest talking to itself. Lower, upright, the warm of its neon */
-.whisper.guest {
-  top: auto; bottom: 12%; font-style: normal;
-  color: #fff1ea; text-shadow: 0 0 8px rgba(255,90,64,0.65), 1px 1px 0 #000;
-}
-.whisper.guest .word { transition-duration: 0.5s, 0.6s, 0.6s; }
-.whisper.guest .thai { color: #f3d8d0; }
-/* the film talking: high up, plain, the same white as the light it's made of */
-.whisper.lover { font-style: normal; color: #fff6e6; text-shadow: 0 0 10px rgba(255,214,160,0.7), 1px 1px 0 #000; }
-.whisper.lover .thai { color: #efe2cc; }
-/* the Thai under each line: a loopless sans, upright (a faked italic mangles the vowels) */
-.whisper .thai {
-  margin-top: 0.35em; font-family: var(--font-thai), sans-serif; font-style: normal; font-weight: 300;
-  font-size: 0.8em; color: #c9d2f0; opacity: 0.75;
-  animation: whisper-in 1.6s ease-out;
-}
+/* a box of text below takes the low spot */
+.whisper:has(~ .msgbox) { bottom: 24%; }
+@keyframes whisper-in { from { opacity: 0; } to { opacity: 1; } }
+/* the AI talking to itself is upright and warm, the film is plain white light */
+.whisper.guest { font-style: normal; color: #fff1ea; }
+.whisper.lover { font-style: normal; color: #fff6e6; }
 
 .memory-input {
   pointer-events: auto;
-  position: absolute; left: 10%; right: 10%; bottom: 8%;
-  background: var(--box-dither), rgba(0,0,0,0.94); border: 2px solid #fff; outline: 2px solid #000;
-  padding: 0.9rem 1.1rem; display: flex; flex-direction: column; gap: 0.5rem;
+  position: absolute; left: 12%; right: 12%; bottom: 8%;
+  background: rgba(0,0,0,0.9);
+  padding: 1.6cqw 2cqw; display: flex; flex-direction: column; gap: 1cqw;
 }
-.memory-input label { font-size: 1.1rem; }
-.memory-input input {
-  font: inherit; font-size: 1.2rem; color: #fff; background: transparent;
-  border: 0; border-bottom: 1px solid #fff; padding: 0.3rem 0; outline: none;
+.memory-input label { font-size: 2.2cqw; }
+.memory-input input, .memory-input textarea { font-size: 2.3cqw; color: #fff; background: transparent;
+  border: 0; border-bottom: 1px solid rgba(255,255,255,0.6); padding: 0.4cqw 0; outline: none;
 }
-.memory-input small { opacity: 0.6; font-size: 0.85rem; }
+.memory-input small { opacity: 0.6; font-size: 1.25cqw; }
 
+/* M: down the left, clear of the subtitles' strip */
 .memory-panel {
-  position: absolute; bottom: 3%; left: 3%; width: 42%; max-height: 42%; overflow: hidden;
-  background: var(--box-dither), rgba(0,0,0,0.82); border: 1px solid #fff; padding: 0.5rem 0.6rem;
-  font-size: 0.72rem; line-height: 1.25;
+  position: absolute; top: 2.6cqw; bottom: 22%; left: 2.6cqw; width: 44cqw; overflow: hidden;
+  background: rgba(0,0,0,0.85); padding: 1.6cqw 1.8cqw;
+  font-size: 1.3cqw; line-height: 1.35;
 }
-.memory-panel h3 { margin: 0 0 0.35rem; font-weight: 400; font-size: 0.85rem; letter-spacing: 0.1em; }
-.memory-panel .mem { display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.15rem; }
-.memory-panel .bar { flex: 0 0 3.2rem; height: 0.4rem; border: 1px solid #555; }
+.memory-panel h3 { margin: 0 0 1cqw; font-weight: 400; font-size: 1.3cqw; opacity: 0.7; }
+.memory-panel .mem { display: flex; gap: 0.8cqw; align-items: center; margin-bottom: 0.3cqw; }
+.memory-panel .bar { flex: 0 0 5cqw; height: 0.6cqw; border: 1px solid #555; }
 .memory-panel .bar i { display: block; height: 100%; background: #fff; }
 .memory-panel .visitor .bar i { background: #cc1410; }
 .memory-panel .floor { opacity: 0.6; flex: 0 0 auto; }
-.memory-panel .era { opacity: 0.45; flex: 0 0 4.2rem; font-size: 0.75rem; }
+.memory-panel .era { opacity: 0.45; flex: 0 0 6.5cqw; }
 .memory-panel .text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.notebook p { margin: 0 0 0.3rem; font-style: italic; }
-.notebook p:first-of-type { opacity: 1; }
-.notebook p + p { opacity: 0.6; }
+.memory-panel h3 .voice { float: right; opacity: 0.7; }
+.notebook p { margin: 0 0 0.9cqw; font-size: 1.6cqw; line-height: 1.5; }
 .notebook .empty { opacity: 0.6; }
-.notebook p.memory { font-style: normal; opacity: 0.9; }
-.notebook p.memory::before { font-size: 0.62rem; letter-spacing: 0.08em; opacity: 0.7; margin-right: 0.4em; }
-.notebook p.case::before { content: "PLANTED"; color: #ff7058; }
-.notebook p.own::before { content: "ITS OWN"; color: #a8c4ff; }
-.memory-panel h3 .voice { float: right; opacity: 0.6; font-size: 0.75rem; letter-spacing: 0.05em; }
+.notebook p.memory::before { font-size: 1.1cqw; margin-right: 0.8em; }
+.notebook p.case::before { content: "HER"; color: #ff7058; }
+.notebook p.own::before { content: "ITSELF"; color: #a8c4ff; }
 
 /* ---------- webcam view (C / V) ---------- */
 .webcam-view {
@@ -178,13 +168,13 @@ kbd, input, textarea, button { font-family: inherit; }
   opacity: 0.75;
 }
 .webcam-view canvas { width: 100%; height: auto; image-rendering: pixelated; border: 1px solid rgba(255,255,255,0.35); }
-.webcam-view span { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
+.webcam-view span { font-size: 1.1cqw; text-transform: uppercase; color: #fff; }
 
 /* ---------- off-screen player hint ---------- */
 .offscreen-hint {
   position: absolute; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.2s;
   display: flex; flex-direction: column; align-items: center; gap: 0.1rem;
-  font-family: var(--font-display), serif; color: #ff5a40; text-shadow: 0 0 8px rgba(255,90,64,0.9);
+  color: #ff5a40; text-shadow: 0 0 8px rgba(255,90,64,0.9);
   animation: hint-pulse 1s ease-in-out infinite;
 }
 .offscreen-hint .arrow {
@@ -192,7 +182,7 @@ kbd, input, textarea, button { font-family: inherit; }
   border-left: 18px solid #ff5a40; border-top: 10px solid transparent; border-bottom: 10px solid transparent;
   filter: drop-shadow(0 0 6px rgba(255,90,64,0.9));
 }
-.offscreen-hint .label { font-size: 0.75rem; letter-spacing: 0.15em; }
+.offscreen-hint .label { font-size: 1.1cqw; }
 @keyframes hint-pulse { 50% { filter: brightness(1.6); } }
 
 /* ---------- where the frame leads on ---------- */
@@ -210,3 +200,28 @@ kbd, input, textarea, button { font-family: inherit; }
 }
 .exit-hint.door { color: #ffc890; }
 @keyframes exit-breathe { 50% { opacity: 1; } }
+
+/* ---------- the opening, on black ---------- */
+.intro-black { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 2s ease; }
+.intro-black.on { opacity: 1; transition: none; }
+.msgbox.card {
+  left: 14%; right: 14%; top: 50%; bottom: auto; transform: translateY(-50%);
+  padding: 0; background: none; text-align: center;
+}
+.msgbox.card { font-size: 2.8cqw; line-height: 1.9; }
+.msgbox.card .next { display: block; position: static; margin-top: 2cqw; }
+
+/* ---------- credits (C) ---------- */
+.credits {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: #000; text-align: center; text-transform: none; font-size: 2.3cqw; line-height: 1.7;
+}
+.credits p { margin: 0; }
+.credits h3 { margin: 3cqw 0 0.6cqw; font-weight: 400; font-size: 1.5cqw; opacity: 0.6; text-transform: lowercase; }
+button.link {
+  pointer-events: auto; cursor: pointer; padding: 0; border: 0; background: none;
+  color: inherit; font: inherit; text-transform: inherit; text-decoration: underline; text-underline-offset: 0.2em;
+}
+.credits { pointer-events: auto; }
+.credits a { color: inherit; text-decoration: underline; text-underline-offset: 0.2em; }
+.credits .close { margin-top: 4cqw; font-size: 1.4cqw; opacity: 0.6; }

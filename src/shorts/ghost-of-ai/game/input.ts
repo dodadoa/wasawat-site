@@ -21,13 +21,13 @@ const keymap: Record<string, Action> = {
  */
 const STANDARD_PAD: Record<number, string> = {
   0: "Enter", 1: "ShiftLeft", 2: "KeyQ", 3: "KeyM",
-  4: "KeyC", 5: "ShiftLeft", 6: "KeyV", 7: "ShiftLeft",
+  4: "KeyK", 5: "ShiftLeft", 6: "KeyV", 7: "ShiftLeft",
   8: "Tab", 9: "KeyG",
   12: "ArrowUp", 13: "ArrowDown", 14: "ArrowLeft", 15: "ArrowRight",
 };
 const RAW_PAD: Record<number, string> = {
   0: "Enter", 1: "ShiftLeft", 3: "KeyQ", 4: "KeyM",
-  6: "KeyC", 7: "ShiftLeft", 8: "KeyV", 9: "ShiftLeft",
+  6: "KeyK", 7: "ShiftLeft", 8: "KeyV", 9: "ShiftLeft",
   10: "Tab", 11: "KeyG",
 };
 /** Where an unknown pad puts its right stick and its d-pad. */

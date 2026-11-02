@@ -101,7 +101,7 @@ export function Player() {
     }
 
     let mode: Clip = "idle";
-    const busy = s.phase !== "playing" || world.locked || !!s.message || s.writing || s.implanting;
+    const busy = s.phase !== "playing" || world.locked || !!s.message || s.writing || s.credits;
 
     if (input.justPressed("scheme")) s.toggleControls();
     if (input.justPressed("memories")) s.toggleMemories();

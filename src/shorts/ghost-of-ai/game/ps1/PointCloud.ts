@@ -8,7 +8,9 @@ uniform float uSize;
 uniform float uScale;
 uniform float uTime;
 uniform float uFlow;
+uniform float uHaze;
 varying vec3 vColor;
+varying float vFade;
 #include <fog_pars_vertex>
 #ifdef SKINNED
 // THREE.Points has no skinning of its own: the same sums SkinnedMesh does, on the skeleton's bone texture
@@ -36,6 +38,7 @@ void main() {
   vColor = color;
   vec3 p = position;
   float sizeMul = 1.0;
+  vFade = 1.0;
   if (uFlow > 0.0) {
     // Each point drifts on its own little orbit and breathes in size, so the
     // cloud reads as a living haze rather than a frozen scatter.
@@ -45,6 +48,13 @@ void main() {
     float t = uTime;
     p += uFlow * vec3(sin(t * 1.9 + h0), sin(t * 2.6 + h1) * 0.6 + sin(t * 0.7 + h2) * 0.4, cos(t * 2.2 + h2));
     sizeMul = 0.75 + 0.5 * (0.5 + 0.5 * sin(t * 3.1 + h1));
+  }
+  if (uHaze > 0.0) {
+    // A scattered few points swell into wide dim blobs, the same light spread thinner.
+    float h = hash(position.yxz + 9.1);
+    float big = 1.0 + uHaze * h * h * h;
+    sizeMul *= big;
+    vFade = 1.0 / big;
   }
   #ifdef SKINNED
   mat4 skin = skinWeight.x * bone(skinIndex.x) + skinWeight.y * bone(skinIndex.y) + skinWeight.z * bone(skinIndex.z) + skinWeight.w * bone(skinIndex.w);
@@ -61,14 +71,15 @@ uniform float uOpacity;
 uniform vec3 uTint;
 uniform float uSoft;
 varying vec3 vColor;
+varying float vFade;
 #include <fog_pars_fragment>
 void main() {
   vec2 d = gl_PointCoord - 0.5;
   float r = length(d) * 2.0; // 0 at the centre, 1 at the sprite edge
   // gaussian core with a feathered rim: a blurred dot rather than a disc
   float a = exp(-r * r * uSoft) * (1.0 - smoothstep(0.75, 1.0, r));
-  if (a < 0.03) discard;
-  gl_FragColor = vec4(vColor * uTint, a * uOpacity);
+  if (a < 0.01) discard;
+  gl_FragColor = vec4(vColor * uTint, a * uOpacity * vFade);
   #include <fog_fragment>
   #include <colorspace_fragment>
 }
@@ -88,6 +99,7 @@ export function softPointMaterial(size: number, opacity: number, soft: number, f
         uSoft: { value: soft },
         uTime: { value: 0 },
         uFlow: { value: flow },
+        uHaze: { value: 0 },
       },
     ]),
     vertexShader: pointVertex,
@@ -130,6 +142,10 @@ export type PointCloudOptions = {
   flow?: number;
   /** Additive blending: overlapping points pile up to white like a light source. */
   additive?: boolean;
+  /** How far the largest points swell (a multiple of size), trading brightness for spread. */
+  haze?: number;
+  /** Speed of the drift: 1 shimmers, lower hangs in the air. */
+  pace?: number;
   /** Ignore the model's colours and start every point white, so the cloud is all uTint (dark clothes add no light). */
   flat?: boolean;
 };
@@ -282,6 +298,7 @@ export function toPointCloud(root: THREE.Object3D, o: PointCloudOptions) {
     geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geom.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     const material = softPointMaterial(size, opacity, soft, flow, !!o.additive);
+    material.uniforms.uHaze.value = o.haze ?? 0;
     if (skinned) {
       geom.setAttribute("skinIndex", new THREE.BufferAttribute(skinIndex, 4));
       geom.setAttribute("skinWeight", new THREE.BufferAttribute(skinWeight, 4));
@@ -296,7 +313,7 @@ export function toPointCloud(root: THREE.Object3D, o: PointCloudOptions) {
     points.frustumCulled = false;
     if (flow > 0 || skinned) {
       points.onBeforeRender = () => {
-        material.uniforms.uTime.value = clock.getElapsedTime();
+        material.uniforms.uTime.value = clock.getElapsedTime() * (o.pace ?? 1);
         skinned?.skeleton.update();
       };
     }

@@ -4,7 +4,7 @@ import { useGame } from "./store";
 import { PoseFilter, Rhythm, readPose, type Pose } from "./gesture";
 
 /**
- * The visitor, seen through the webcam (C). MediaPipe finds a face and up to
+ * The visitor, seen through the webcam (K). MediaPipe finds a face and up to
  * one hand; everything is smoothed into a few numbers the camera, the ghost
  * and the hand motes read each frame. Nothing leaves the browser: the frames
  * go straight from the video element to the in-page models.

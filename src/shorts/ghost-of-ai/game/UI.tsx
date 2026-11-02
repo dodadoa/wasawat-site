@@ -1,15 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useProgress } from "@react-three/drei";
 import * as THREE from "three";
-import { useGame } from "./store";
+import { useGame, type Role } from "./store";
 import { startAmbient } from "./audio";
 import { world, you } from "./world";
 import { PLAYER_START, FLOOR_LABEL, floorAt, exitsFrom } from "./level";
 import { addVisitorMemory, allMemories, memoryBus } from "./memory";
-import { DitherBackdrop, DitherTitle } from "./Dither";
-import { revealLine } from "./subtitle";
 import { WebcamView, useWebcamKeys, webcamHint } from "./WebcamView";
-import { guestFeeling, guestNotes, plantMemory } from "./guest";
+import { guestFeeling, guestNotes } from "./guest";
 import { FRAGMENTS, STAIRS_AT, fill, story } from "./story";
 
 function resetWorld() {
@@ -29,30 +27,11 @@ function Typewriter({ text, speed = 28 }: { text: string; speed?: number }) {
   return <span>{text.slice(0, n)}</span>;
 }
 
-/** One subtitle line, its words surfacing softly as the voice reaches them. */
-function SpokenLine({ text, chars }: { text: string; chars: number }) {
-  const words = [...new Intl.Segmenter("en", { granularity: "word" }).segment(text)];
-  return (
-    <span>
-      {words.map(({ segment, index }) =>
-        /^\s+$/.test(segment) ? (
-          segment
-        ) : (
-          <span key={index} className={`word ${chars > index ? "on" : ""}`}>
-            {segment}
-          </span>
-        )
-      )}
-    </span>
-  );
-}
-
-/** The ghost's subtitles: revealed at a reading pace, moving on by themselves. */
+/** The subtitles: one place, the whole line at once, held long enough to read. */
 function Whisper() {
   const whisper = useGame((s) => s.whisper);
   // the line index belongs to one whisper; a new whisper starts at 0
   const [pos, setPos] = useState({ key: 0, i: 0 });
-  const [chars, setChars] = useState(0);
   const i = whisper && pos.key === whisper.key ? pos.i : 0;
   useEffect(() => {
     if (!whisper) return;
@@ -61,21 +40,14 @@ function Whisper() {
       useGame.getState().clearWhisper();
       return;
     }
-    setChars(0);
-    let hold = 0;
-    const reveal = revealLine(line, setChars, { muffled: line.startsWith("(") });
-    // let the finished line linger a moment before the next
-    reveal.done.then(() => (hold = window.setTimeout(() => setPos({ key: whisper.key, i: i + 1 }), 1100 + line.length * 18)));
-    return () => {
-      reveal.cancel();
-      clearTimeout(hold);
-    };
+    const hold = window.setTimeout(() => setPos({ key: whisper.key, i: i + 1 }), 1800 + line.length * 55);
+    return () => clearTimeout(hold);
   }, [whisper, i]);
   const line = whisper?.lines[i];
   if (!line) return null;
   return (
     <div className={`whisper ${whisper.who}`} key={`${whisper.key}-${i}`}>
-      <SpokenLine text={line} chars={chars} />
+      <span>{line}</span>
     </div>
   );
 }
@@ -219,28 +191,6 @@ function MemoryInput() {
   );
 }
 
-/** Her name: the one thing you give it in words. */
-function Implant() {
-  const [name, setName] = useState("");
-  return (
-    <div className="memory-input">
-      <label>What is her name?</label>
-      <input
-        autoFocus
-        maxLength={24}
-        value={name}
-        placeholder="her name…"
-        onChange={(e) => setName(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") plantMemory(name);
-          if (e.key === "Escape") plantMemory("");
-        }}
-      />
-      <small>ENTER give it · ESC leave it without a name</small>
-    </div>
-  );
-}
-
 /** M in ghost mode: what has come back to the guest, which of it is yours, and what it makes of it. */
 function GuestNotebook() {
   const [, tick] = useState(0);
@@ -291,6 +241,46 @@ function MemoryPanel() {
   );
 }
 
+/** C in the game: who made it. Names and handles keep their own spelling. */
+function Credits() {
+  return (
+    <div className="credits">
+      <p>For Sala Saneha (<a href="https://www.instagram.com/sala.saneha/" target="_blank" rel="noreferrer">@sala.saneha</a>)</p>
+      <h3>assistant and project manager</h3>
+      <p>Pon Der (<a href="https://www.instagram.com/poncrastination/" target="_blank" rel="noreferrer">@poncrastination</a> on IG)</p>
+      <h3>special thanks</h3>
+      <p>Sutiphong Sudsang</p>
+      <p>Pakapol Srirongmuang</p>
+      <p>Natchanon Vana</p>
+      <button className="link close" onClick={() => useGame.getState().setCredits(false)}>close</button>
+    </div>
+  );
+}
+
+/** H: every control for the role you're in. */
+function Help({ role, controls, webcam, pad }: { role: Role; controls: string; webcam: boolean; pad: boolean }) {
+  const walk = controls === "modern" ? "move" : "up/down walk, left/right turn";
+  const rows: [string, string][] =
+    role === "camera"
+      ? [["ARROWS", "float and turn"], ["DRAG", "look"], ["SHIFT", "faster"], ["Q", "turn round"], ["ENTER", "stairs, stir the lamps to lead it"], ["M", "its memories"], ["G", "walk again"]]
+      : role === "figure"
+        ? [["ARROWS", walk], ["SHIFT", "run"], ["ENTER", "stairs, stir the lamps to lead it"], ["M", "its memories"], ["TAB", `${controls === "modern" ? "classic" : "modern"} controls`], ["G", "ghost camera"]]
+        : [["ARROWS", walk], ["SHIFT", "run"], ["ENTER", "examine"], ["M", "memories"], ["TAB", `${controls === "modern" ? "classic" : "modern"} controls`], ["G", "ghost figure"]];
+  return (
+    <div className="help">
+      <h3>CONTROLS</h3>
+      {rows.map(([k, v]) => (
+        <p key={k}><kbd>{k}</kbd>{v}</p>
+      ))}
+      <p><kbd>K</kbd>webcam</p>
+      <p><kbd>C</kbd>credits</p>
+      {role !== "keeper" && <p className="note">Linger close and it feels the cold.</p>}
+      {webcam && role !== "keeper" && <p className="note">Hand: point, beckon, wave, touch it, close your fist on it.</p>}
+      {pad && <p className="note">Pad: A enter, B run, X turn round, Y memories, START role, SELECT controls, L1 webcam.</p>}
+    </div>
+  );
+}
+
 export function UI() {
   const phase = useGame((s) => s.phase);
   const controls = useGame((s) => s.controls);
@@ -298,14 +288,29 @@ export function UI() {
   const prompt = useGame((s) => s.prompt);
   const fade = useGame((s) => s.fade);
   const writing = useGame((s) => s.writing);
-  const implanting = useGame((s) => s.implanting);
+  const intro = useGame((s) => s.intro);
+  const credits = useGame((s) => s.credits);
   const showMemories = useGame((s) => s.showMemories);
   const webcam = useGame((s) => s.webcam);
   const webcamView = useGame((s) => s.webcamView);
   const role = useGame((s) => s.role);
   const { active, progress } = useProgress();
   const [pad, setPad] = useState(false);
+  const [help, setHelp] = useState(false);
   useWebcamKeys();
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+      const s = useGame.getState();
+      if (e.code === "Escape" && s.credits) s.setCredits(false);
+      if (typing) return;
+      if (e.code === "KeyH") setHelp((v) => !v);
+      if (e.code === "KeyC" && s.phase === "playing") s.setCredits(!s.credits);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   useEffect(() => {
     const on = () => setPad(true);
@@ -337,54 +342,26 @@ export function UI() {
       {phase === "playing" && (
         <>
           <div className="hint">
-            {role === "figure" ? (
-              <>
-                YOU ARE THE GHOST · {controls === "modern" ? "↑↓←→ walk" : "↑↓ walk · ←→ turn"} · SHIFT run
-                <br />
-                ENTER stairs / stir the lamps to lead it · linger close: cold · M its memories · TAB {controls === "modern" ? "classic" : "modern"} controls · G ghost camera
-              </>
-            ) : role === "camera" ? (
-              <>
-                YOU ARE THE GHOST CAMERA · ↑↓ float · ←→ turn · DRAG look · SHIFT faster · Q turn round
-                <br />
-                ENTER stairs / stir the lamps to lead it · linger close: cold · M its memories · G walk again
-              </>
-            ) : (
-              <>
-                {controls === "modern" ? "↑↓←→ move · SHIFT run" : "↑↓ walk · ←→ turn · SHIFT run"}
-                <br />
-                ENTER examine · M memories · TAB {controls === "modern" ? "classic" : "modern"} controls · G ghost figure
-              </>
-            )}
-            {webcam === "on" && role !== "keeper" && (
-              <>
-                <br />
-                HAND point · beckon · wave · touch it · close your fist on it
-              </>
-            )}
-            {pad && (
-              <>
-                <br />
-                PAD A enter · B run · X turn round · Y memories · START {role === "keeper" ? "ghost" : role === "figure" ? "camera" : "walk"} · SELECT controls · L1 webcam{role === "camera" ? " · RIGHT STICK look" : ""}
-              </>
-            )}
-            <br />
-            {webcamHint(webcam)}
+            {role === "keeper" ? "THE KEEPER" : role === "camera" ? "THE GHOST CAMERA" : "THE GHOST"}
+            <span> · M MEMORIES · H CONTROLS · </span>
+            <button className="link" onClick={(e) => { e.currentTarget.blur(); useGame.getState().setCredits(true); }}>credits</button>
+            {webcam !== "off" && <div>{webcamHint(webcam)}</div>}
           </div>
+          {help && <Help role={role} controls={controls} webcam={webcam === "on"} pad={pad} />}
           {webcam === "on" && webcamView && <WebcamView />}
           {showMemories && (role === "keeper" ? <MemoryPanel /> : <GuestNotebook />)}
           {role !== "camera" && <ExitHints />}
           <OffscreenHint />
           <Whisper />
           {prompt && !message && !writing && <div className="prompt">{prompt}</div>}
+          <div className={`intro-black ${intro ? "on" : ""}`} />
           {message && (
-            <div className="msgbox">
+            <div className={`msgbox ${intro ? "card" : ""}`}>
               <Typewriter text={message.lines[message.index]} />
               <span className="next">▼</span>
             </div>
           )}
           {writing && <MemoryInput />}
-          {implanting && <Implant />}
         </>
       )}
       <div className="fade" style={{ opacity: phase === "playing" ? fade : 0, pointerEvents: "none" }} />
@@ -398,14 +375,12 @@ export function UI() {
             useGame.getState().start();
           }}
         >
-          <DitherBackdrop />
-          <DitherTitle text="SALA SANEHA" />
-          <p style={{ fontSize: "0.75rem", opacity: 0.6 }}>
-            <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> move &nbsp; <kbd>ENTER</kbd> stir the lamps &nbsp; <kbd>M</kbd> its memories
-          </p>
+          <h1>Ghost of AI</h1>
+          <p className="place">SALA SANEHA, BANGKOK</p>
           <div className="press">{active ? `LOADING ${Math.round(progress)}%` : pad ? "PRESS A" : "PRESS ENTER"}</div>
         </div>
       )}
+      {phase === "playing" && credits && <Credits />}
     </div>
   );
 }

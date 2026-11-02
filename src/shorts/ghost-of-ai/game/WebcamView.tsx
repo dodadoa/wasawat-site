@@ -9,13 +9,13 @@ const H = 120;
 /** 4×4 ordered dither, the same family as the game's post effect */
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 
-/** C turns the webcam on and off, V shows or hides the little view of it. */
+/** K turns the webcam on and off in the game, V shows or hides the little view of it. */
 export function useWebcamKeys() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.repeat) return;
       if (useGame.getState().phase !== "playing") return;
-      if (e.code === "KeyC") toggleWebcam();
+      if (e.code === "KeyK" && useGame.getState().phase === "playing") toggleWebcam();
       if (e.code === "KeyV") useGame.getState().toggleWebcamView();
     };
     window.addEventListener("keydown", onKey);
@@ -91,10 +91,10 @@ export function WebcamView() {
 /** One line under the controls hint: what the webcam is doing. */
 export function webcamHint(status: ReturnType<typeof useGame.getState>["webcam"]) {
   switch (status) {
-    case "starting": return "C webcam · waking…";
-    case "on": return "C webcam off · V view";
-    case "denied": return "C webcam · not allowed";
-    case "error": return "C webcam · failed";
-    default: return "C webcam";
+    case "starting": return "K webcam · waking…";
+    case "on": return "K webcam off · V view";
+    case "denied": return "K webcam · not allowed";
+    case "error": return "K webcam · failed";
+    default: return "K webcam";
   }
 }

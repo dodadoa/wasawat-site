@@ -9,7 +9,7 @@ import { doorCreak, sting } from "./audio";
 import { guestReply, type GuestAction, type GuestEvent } from "./voice";
 import { reach, senseHand, type Aim } from "./reach";
 import {
-  AGAIN, ANSWERS, ANSWERS_AGAIN, CURTAIN_AT, FRAGMENTS, LOVER, NOIR, OPENING, PLANTED, STAIRS_AT,
+  AGAIN, ANSWERS, ANSWERS_AGAIN, CURTAIN_AT, FRAGMENTS, LOVER, NOIR, OPENING, PLANTED, ROLE, STAIRS_AT,
   collect, fill, inHall, memories, resetStory, sawThrough, story,
 } from "./story";
 
@@ -319,22 +319,20 @@ export function wakeGuest() {
   world.player.yaw = PLAYER_START.yaw;
 }
 
-/** The start, and every start after it: the house stops until you've given it someone to look for. */
+/** The start, and every start after it: the opening on black, then the house. */
 export function openStory(again = false) {
   const s = useGame.getState();
   world.locked = true;
   wakeGuest();
-  s.say(again ? AGAIN : OPENING, () => useGame.getState().setImplanting(true));
-}
-
-/** The false memory: the name you typed, which it will take for its own. */
-export function plantMemory(name: string) {
-  const s = useGame.getState();
-  story.lover = name.trim();
-  s.setImplanting(false);
-  s.say(PLANTED, () => {
-    world.locked = false;
-    think("wake");
+  s.setIntro(true);
+  s.say([...(again ? AGAIN : OPENING), ...PLANTED], () => {
+    const begin = () => {
+      world.locked = false;
+      think("wake");
+    };
+    useGame.getState().setIntro(false);
+    if (again) begin();
+    else useGame.getState().say(ROLE, begin);
   });
 }
 
@@ -430,7 +428,7 @@ function think(event: GuestEvent, thing: string[] = [], { led = false, at = "", 
   const p = world.player.pos;
   let fallback = local ?? pick(LOCAL[event]);
   if (event === "examine" && thing[0] && !local) fallback = [thing[0], led ? pick(["Is this what you wanted me to see?", "You brought me here. Why this?"]) : fallback[0]];
-  guestReply({ event, floor: floorAt(p.x), late: isLate(), thing, led, notes: g.notes, at, how, trust: g.trust, past: g.past, lover: story.lover, memories: memories(), recovered: recovered.map(fill), heard }).then((reply) => {
+  guestReply({ event, floor: floorAt(p.x), late: isLate(), thing, led, notes: g.notes, at, how, trust: g.trust, past: g.past, memories: memories(), recovered: recovered.map(fill), heard }).then((reply) => {
     if (id !== g.thought) return;
     g.thinking = false;
     const s = useGame.getState();

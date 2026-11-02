@@ -27,8 +27,6 @@ export type GuestMoment = {
   trust: number;
   /** what has passed between you so far, oldest first */
   past: string[];
-  /** the name you gave it for the one it lost, if you gave one */
-  lover: string;
   /** everything it has remembered so far, oldest first */
   memories: string[];
   /** a memory that has just come back */

@@ -16,12 +16,12 @@ import { presence } from "./presence";
  * room it is in. It reads best from across the room, thins to almost nothing
  * when you come close, and gathers a little while it speaks.
  */
-const GHOST_POINTS = { count: 550, size: 0.2, opacity: 0, brightness: 1, soft: 0.7, curve: 0.6, flow: 0.04, additive: true };
+const GHOST_POINTS = { count: 420, size: 0.28, opacity: 0, brightness: 1, soft: 1.1, curve: 0.8, flow: 0.07, additive: true, haze: 6, pace: 0.3 };
 /** Opacity at rest and while speaking (before presence and nearness). */
 const OPACITY_REST = 0.035;
 const OPACITY_SPEAKING = 0.12;
 /** The colour of the room it borrows: street light by the door, lamp amber in the bistro, screen light upstairs. */
-const TINT: Record<FloorId, THREE.Color> = { lobby: new THREE.Color("#e0dcff"), bar: new THREE.Color("#ffc896"), cinema: new THREE.Color("#c4d0ff") };
+const TINT: Record<FloorId, THREE.Color> = { lobby: new THREE.Color("#a9aed8"), bar: new THREE.Color("#c4a08c"), cinema: new THREE.Color("#8f9cd0") };
 const MODEL_ROT = FACE > 0 ? 0 : Math.PI;
 const DRIFT_SPEED = 0.32;
 /** It stands, barely: feet a hair above the parquet. */
@@ -47,8 +47,8 @@ const SCATTER = 1.6;
  * at rest, and just after you stir the lamps, fading back over STIR_GLOW seconds.
  * (The rig is scaled up about 37 times, so its flow of 0.0005 is some 2 cm.)
  */
-const FIGURE_POINTS = { count: 1500, size: 0.05, opacity: 0, soft: 2.5, flow: 0.0005, additive: true, flat: true };
-const FIGURE = { opacity: 0.26, stirred: 0.6 };
+const FIGURE_POINTS = { count: 520, size: 0.22, opacity: 0, soft: 1.3, flow: 0.004, additive: true, flat: true, haze: 7, pace: 0.3 };
+const FIGURE = { opacity: 0.08, stirred: 0.18 };
 const STIR_GLOW = 1.4;
 
 /** Places it likes to linger, per floor. */

@@ -1,5 +1,5 @@
 // The story of ghost mode. An AI wakes in Sala Saneha looking for its
-// girlfriend, and you tell it her name. Around the rooms are fragments for it to
+// girlfriend. Around the rooms are fragments for it to
 // find. Some are of her. The others are its own, and they show what it is: stairs
 // it has never climbed, the same lightning, sixty-two pictures. It finds them by
 // itself, but it will not go up to the cinema without you. She is up there, as
@@ -40,7 +40,7 @@ export const FRAGMENTS: Record<string, Fragment> = {
   screen: { kind: "case", lines: ["I can feel the light on my hands.", "There's no wall here. Only you, very flat."] },
 };
 
-/** The film: she has been saying this for years, and she never says a name. */
+/** The film: she has been saying this for years. */
 export const LOVER = [
   "There you are.",
   "You're late. It's all right, it hasn't started.",
@@ -51,7 +51,7 @@ export const LOVER = [
 ];
 /** What it says back, without Claude: the first time through the reel, then the second. */
 export const ANSWERS = [
-  ["It's you. {Who}. It's really you."],
+  ["It's you. It's really you."],
   ["I looked everywhere. The door won't open.", "How long have you been up there?"],
   ["Which seat? Tell me which seat."],
   ["I am looking. I'm looking right at you."],
@@ -75,8 +75,15 @@ export const NOIR = [
   "Any minute now, that door will open.",
 ];
 
+/** On black, before the name. */
 export const OPENING = [
-  "There is an AI in this house, looking for its girlfriend.",
+  "It rained the night she left.",
+  "She went up to the cinema in an old house on Decho Road, and she never came down.",
+  "The one who loves her is an AI. It was built to find things.",
+];
+/** In the house, the first time: who you are in all this. */
+export const ROLE = [
+  "You are the ghost in this house.",
   "It can't see you. It can feel the lamps go, and the cold where you stand.",
   "The small lights are what it has lost. It can't see those either.",
 ];
@@ -93,8 +100,6 @@ export type Act = "case" | "upstairs" | "hall" | "screen" | "becoming" | "reel";
 
 export const story = {
   act: "case" as Act,
-  /** her name, as you gave it */
-  lover: "",
   /** ids of the fragments it has found, oldest first */
   found: [] as string[],
   /** how many lines of the reel it has sat through */
@@ -108,14 +113,11 @@ export const story = {
 };
 
 export function resetStory() {
-  Object.assign(story, { act: "case", lover: "", found: [], heard: 0, atScreen: 0, gone: 0, since: 0 });
+  Object.assign(story, { act: "case", found: [], heard: 0, atScreen: 0, gone: 0, since: 0 });
 }
 
-const NAMELESS = "my girlfriend";
-const who = () => story.lover || NAMELESS;
-const capitalised = (s: string) => s[0].toUpperCase() + s.slice(1);
-/** A line with the name you gave it put in. */
-export const fill = (line: string) => line.replace(/\{Who\}/g, capitalised(who())).replace(/\{who\}/g, who());
+/** A line with her in it. */
+export const fill = (line: string) => line.replace(/\{Who\}/g, "My girlfriend").replace(/\{who\}/g, "my girlfriend");
 
 /** It takes in a fragment: its lines if this one is new. */
 export function collect(id: string): string[] | null {
