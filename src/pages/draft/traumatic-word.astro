@@ -1,0 +1,42 @@
+---
+import Layout from "../../layouts/layout.astro"
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
+
+// Draft: not linked from /work or the archive yet.
+export const prerender = true
+---
+
+<Layout title="Traumatic Word (draft)" preview="/images/traumatic-word/teaser-poster.jpg">
+  <div class="art-page relative z-10">
+    <div class="art-chrome wipe">
+      <a href="/work" class="btn back-index-link" aria-label="back to work">
+        <span class="back-arrow" aria-hidden="true">←</span>
+        <span class="back-label">Work</span>
+      </a>
+      <span class="data art-chrome-path">/draft/traumatic-word</span>
+    </div>
+    <h1 class="art-detail-title wipe">Traumatic Word</h1>
+    <div class="art-detail-body wipe">
+      <div class="mt-4 max-w-3xl">
+        <ArtworkMeta fields={[
+          { label: "Year", value: "2026" },
+          { label: "Status", value: "Draft / work in progress" },
+        ]} />
+
+        <p class="mb-4">
+          How do we learn? A word game in the look of an old educational platformer:
+          you walk through a village picking up letters.
+        </p>
+
+        <div class="art-media-grid">
+          <figure class="art-media-full">
+            <video controls preload="metadata" playsinline poster="/images/traumatic-word/teaser-poster.jpg">
+              <source src="/video/traumatic-teaser.mp4" type="video/mp4" />
+            </video>
+            <figcaption class="mt-2 text-sm opacity-70">Teaser</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
