@@ -1356,11 +1356,7 @@ const talk = [
   [1,"That's not a poem, you just made that up."],
   [0,"Somebody has to make them up."],
   [1,"I think the oaks turn before the maples this year. See the edges?"],
-  [0,"I broke up with someone under a tree like that. Nice tree. Wrong day."],
-  [1,"Do you still talk?"],
-  [0,"We send each other photos of dogs. It's enough."],
-  [1,"I like that. Love that got smaller but didn't leave."],
-  [0,"Now who's making up poems."],
+  [0,"I only notice when they're already on the ground."],
   [1,"Breathe in for four, out for six. It slows the heart. Try it on this stretch."],
   [0,"I can't count and walk at the same time."],
   [1,"Then just walk. That counts too."],
@@ -1453,45 +1449,88 @@ function scrollStep(dt){
 /* ---------- company: two friends a few paces ahead on the footpath ---------- */
 const friends = (() => {
   const SP=r=>new THREE.SphereGeometry(r,8,6), BX=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
-  // they are a memory, so they are painted the way the clouds are: the body swells a little like vapour,
-  // the rim is torn away by noise, and the rest is stippled so the hills show through
+  // they are a memory, so they are drawn the way a ghost is: a faint shell that only shows at the rim,
+  // and a haze of soft drifting motes sampled over the body, a few swelling wide and dim so the figure blooms
+  const GHOST = [.6,.67,.9];                                                // cool spectral blue over warm paper
+  const FADE = `
+      float nz = fbm(vW.xz*.8);
+      float edge = smoothstep(24.5, 18.5, max(abs(vW.x),abs(vW.z)) + (nz-.5)*4.);
+      float fog = 1.-smoothstep(4.,34.,vDist)*.85;`;
   const mat = new THREE.ShaderMaterial({
-    side:THREE.DoubleSide,
-    uniforms:{ uTime:{value:0} },
+    side:THREE.DoubleSide, transparent:true, depthWrite:false,
+    uniforms:{ uTime:{value:0}, uGhost:{value:new THREE.Vector3(...GHOST)} },
     vertexShader:`
       uniform float uTime; attribute vec3 aCol;
       varying vec3 vN; varying vec3 vW; varying vec3 vCol; varying float vDist;
       void main(){
         vec4 wp = modelMatrix*vec4(position,1.); vN = normalize(mat3(modelMatrix)*normal);
         float puff = sin(wp.x*310. + uTime*.9)*sin(wp.y*270. - uTime*.7)*sin(wp.z*290. + uTime*.5);
-        wp.xyz += vN*(.0022 + .0042*puff);
+        wp.xyz += vN*(.003 + .005*puff);
         vW = wp.xyz; vCol = aCol;
         vec4 mv = viewMatrix*wp; vDist = length(mv.xyz); gl_Position = projectionMatrix*mv;
       }`,
     fragmentShader:`
       precision highp float;
-      uniform float uTime; varying vec3 vN; varying vec3 vW; varying vec3 vCol; varying float vDist;
+      uniform float uTime; uniform vec3 uGhost; varying vec3 vN; varying vec3 vW; varying vec3 vCol; varying float vDist;
       ${GLSL_NOISE}
       void main(){
         vec3 n = normalize(vN), V = normalize(cameraPosition - vW);
         float facing = abs(dot(n,V));
         float rag = fbm(vW.xy*85. + vW.z*60. + vec2(uTime*.12, -uTime*.08));
-        if(facing < .1 + rag*.66) discard;                                  // torn, drifting edge
-        float thin = fbm(vW.xy*150. - vW.z*110. + vec2(-uTime*.2, uTime*.15) + 7.);
-        float body = .36 + .4*smoothstep(.2,.9,facing) - .65*smoothstep(.4,.76,thin);
-        if(hash(floor(gl_FragCoord.xy) + floor(uTime*8.)*.37) > body) discard;   // stipple: half there, half sky
-        float lit = smoothstep(-.4,.9, dot(n, normalize(vec3(-.55,.75,.35))));
-        vec3 c = vCol*(.8 + .35*lit);
-        c = mix(c, vec3(.74,.79,.87), min(.92, .16 + (1.-facing)*.7 + rag*.32));            // the ink thins to cloud grey toward the rim
-        c = 1.-(1.-c)*(.72 + .5*fbm(vW.xy*40. + vW.z*30.));
-        c = wcolor(c, vW, 14., 0., .4);
-        float nz = fbm(vW.xz*.8);
-        float edge = smoothstep(24.5, 18.5, max(abs(vW.x),abs(vW.z)) + (nz-.5)*4.);
-        float fog = 1.-smoothstep(4.,34.,vDist)*.85;
-        gl_FragColor = vec4(mix(vec3(1.), c, edge*fog), 1.);
+        float rim = pow(1.-facing, 2.2);
+        float a = (.02 + .22*rim)*(.55 + .7*rag);                          // see-through, a little thicker at the rim
+        vec3 c = mix(uGhost, vCol, .22*facing);
+        ${FADE}
+        gl_FragColor = vec4(c, a*edge*fog);
       }`
   });
-  const mesh = parts => { const m=new THREE.Mesh(merge(parts), mat); m.frustumCulled=false; return m; };
+  const pmat = new THREE.ShaderMaterial({
+    transparent:true, depthWrite:false,
+    uniforms:{ uTime:{value:0}, uScale:{value:300}, uSize:{value:.0075}, uGhost:{value:new THREE.Vector3(...GHOST)} },
+    vertexShader:`
+      uniform float uTime, uScale, uSize; attribute vec3 aCol; attribute vec3 aSeed;
+      varying vec3 vW; varying vec3 vCol; varying float vDist; varying float vFade;
+      void main(){
+        vec3 h = aSeed*6.2832, p = position;
+        p += .0022*vec3(sin(uTime*.6+h.x), sin(uTime*.8+h.y)*.6 + sin(uTime*.25+h.z)*.4, cos(uTime*.7+h.z));   // each mote on its own slow orbit
+        float big = 1. + 8.*aSeed.y*aSeed.y*aSeed.y;                         // a scattered few swell into wide dim blooms
+        vFade = 1./big;
+        vec4 wp = modelMatrix*vec4(p,1.); vW = wp.xyz; vCol = aCol;
+        vec4 mv = viewMatrix*wp; vDist = length(mv.xyz);
+        gl_PointSize = uSize*big*(.75 + .5*(.5+.5*sin(uTime*1.1 + h.y)))*uScale/-mv.z;
+        gl_Position = projectionMatrix*mv;
+      }`,
+    fragmentShader:`
+      precision highp float;
+      uniform vec3 uGhost; varying vec3 vW; varying vec3 vCol; varying float vDist; varying float vFade;
+      ${GLSL_NOISE}
+      void main(){
+        float r = length(gl_PointCoord-.5)*2.;
+        float a = exp(-r*r*1.4)*(1.-smoothstep(.7,1.,r));
+        if(a < .01) discard;
+        vec3 c = mix(uGhost, vCol, .3);
+        ${FADE}
+        gl_FragColor = vec4(c, a*.2*vFade*edge*fog);
+      }`
+  });
+  // motes scattered over the surface of a merged part, as many as its area deserves
+  const motes = g => {
+    const P = g.attributes.position.array, C = g.attributes.aCol.array, tris = P.length/9, area = new Float32Array(tris);
+    const A = new THREE.Vector3(), B = new THREE.Vector3(), Cc = new THREE.Vector3();
+    let sum = 0;
+    for(let t=0;t<tris;t++){ A.fromArray(P,t*9); B.fromArray(P,t*9+3); Cc.fromArray(P,t*9+6);
+      sum += B.sub(A).cross(Cc.sub(A)).length()*.5; area[t] = sum; }
+    const n = Math.max(12, Math.round(sum*3.5e4)), pos = new Float32Array(n*3), col = new Float32Array(n*3), seed = new Float32Array(n*3);
+    for(let i=0;i<n;i++){
+      const x = Math.random()*sum; let lo=0, hi=tris-1; while(lo<hi){ const m=(lo+hi)>>1; if(area[m]<x) lo=m+1; else hi=m; }
+      let u=Math.random(), v=Math.random(); if(u+v>1){ u=1-u; v=1-v; }
+      for(let k=0;k<3;k++){ const o=lo*9+k; pos[i*3+k] = P[o] + (P[o+3]-P[o])*u + (P[o+6]-P[o])*v; col[i*3+k] = C[lo*9+k]; seed[i*3+k] = Math.random(); }
+    }
+    const pg = new THREE.BufferGeometry();
+    pg.setAttribute("position", new THREE.BufferAttribute(pos,3)); pg.setAttribute("aCol", new THREE.BufferAttribute(col,3)); pg.setAttribute("aSeed", new THREE.BufferAttribute(seed,3));
+    const pts = new THREE.Points(pg, pmat); pts.frustumCulled = false; return pts;
+  };
+  const mesh = parts => { const g=merge(parts), m=new THREE.Mesh(g, mat); m.frustumCulled=false; m.add(motes(g)); return m; };
   const limb = (parent,x,y,parts) => { const g=new THREE.Group(); g.position.set(x,y,0); g.add(mesh(parts)); parent.add(g); return g; };
   const dark=[.16,.14,.15];
   // +z is the way a figure faces. hips at .047, shoulders at .08, about .108 tall
@@ -1534,7 +1573,7 @@ const friends = (() => {
   const st = { mode:"ahead", t:2.5, who:0, talker:0, talkT:1.5, phase:0, gait:0, still:0, dir:1 };
   const wrap = a => Math.atan2(Math.sin(a), Math.cos(a)), cl = (x,a,b) => Math.max(a,Math.min(b,x));
   function update(dt, T){
-    mat.uniforms.uTime.value = T;
+    mat.uniforms.uTime.value = T; pmat.uniforms.uTime.value = T; if(rt) pmat.uniforms.uScale.value = rt.height/2;
     const speed = Math.abs(walk.vel)*.04;                                   // km a second along the path
     const moving = speed > .004;
     st.still = moving ? 0 : st.still + dt;

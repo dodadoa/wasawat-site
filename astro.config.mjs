@@ -24,6 +24,7 @@ export default defineConfig({
     "/art": "/work",
     "/index": "/work",
     "/art/vina-v-para-cartography": "/art/from-scratch-live-coding#vina-v",
+    "/blog/seoul-sansu-walk": "/shorts/seoul-sansu-walk",
   },
   adapter: vercel({
     webAnalytics: {
