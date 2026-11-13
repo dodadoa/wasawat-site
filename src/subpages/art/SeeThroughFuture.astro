@@ -1,0 +1,80 @@
+---
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro"
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2026" },
+    { label: "Dates", value: "28 October – 11 November 2026, Tue–Sat, 18:00–24:00" },
+    { label: "Venue", value: "Badwater Project Room, Bangkok" },
+    { label: "Medium", value: "6 ESP32 nodes, WiFi router, aluminium profile structure, custom software, four screens, four speakers, real-time game, 1-channel video, printed documents" },
+    {
+      label: "Link",
+      value: '<a href="https://www.seethroughfuture.xyz/" target="_blank" rel="noopener noreferrer" style="color: inherit;">seethroughfuture.xyz</a>',
+      html: true,
+    },
+  ]} />
+
+  <p class="mb-4">
+    A room full of WiFi that nobody can connect to. Small boards whisper to each other all night, like insomniac
+    neighbours through a thin wall. When someone walks in, their body bends the conversation into audio and visual.
+  </p>
+
+  <p class="mb-4">
+    In another timeline, the artist, Wasawo Somnus, turns the room into a company and sells it to the
+    techno-military conglomerate, which is how these stories tend to end; until, years later, hacktivists send a
+    worm in after it.
+  </p>
+
+  <p class="mb-4">
+    The timeline unfolds with business cards, four screens, merger papers, and a game. The room goes on counting
+    whoever stands in it, patiently, the way rooms do.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">The installation</h2>
+
+  <p class="mb-4">
+    Six ESP32 boards broadcast WiFi signals across the room. As each transmission crosses it, a human body bends
+    it, and the installation reads this interference as presence, movement and position. It uses no camera and no
+    microphone. The visitor is detected not as an image but as a disturbance in a field, and this disturbance is
+    rendered as sound and image in real time.
+  </p>
+
+  <p class="mb-4">
+    Across four screens, the same signal is read four ways: as a falling field of raw data; as a company
+    simulation that grows from the number of people in the room; as the share price of XYZA Inc., a fictional
+    conglomerate that will acquire the artist's company, FireWire Corporation, in 2036; and as a 3D map of the
+    room in which the visitor's position appears only as an estimate.
+  </p>
+
+  <p class="mb-4">
+    WiFi sensing is a real and expanding technology, already embedded in the routers of homes, hotels and clinics.
+    The work treats it as both an instrument and a near future. It asks what happens when ambient infrastructure
+    becomes a means of counting bodies, and who profits when it does.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">The fiction</h2>
+
+  <p class="mb-4">
+    The installation sets the audiovisual piece beside a speculative fiction of how this could turn out, told the
+    way a company tells its own history: in objects and in paperwork. The four pieces in the room run along one
+    line through time.
+  </p>
+
+  <ol class="mb-4 space-y-1">
+    <li><strong>"Let's see Wasawo Somnus's card".</strong> Business card, past to present. The artist becomes the founder of FireWire Corporation, a record label first, and then a presence-sensing company.</li>
+    <li><strong>Will we see through the future, or hear it coming?</strong> Main piece, present to future. Four screens and four speakers in the middle of the room.</li>
+    <li><strong>Due Diligence Won't Be Forever Permanent.</strong> M&amp;A papers, 2036. Seven documents show the company being sold to XYZA Inc. for US$ 1.48bn.</li>
+    <li><strong>worm.agent (or How I Learned to Stop Worrying and Love the LLM).</strong> Game, 2046. Hacktivists send a worm into XYZA's network to destroy the mainframe. Pick up the controller and you are the worm.</li>
+  </ol>
+
+  <p class="mb-4">
+    The game is wired to the room. XYZA's stock rises with every body that walks into the gallery, and falls with
+    every enemy the worm takes down.
+  </p>
+
+  <p class="mb-4">
+    The full documentation, with diagrams, the seven papers and credits, is at
+    <a href="https://www.seethroughfuture.xyz/" target="_blank" rel="noopener noreferrer">seethroughfuture.xyz</a>.
+  </p>
+</div>

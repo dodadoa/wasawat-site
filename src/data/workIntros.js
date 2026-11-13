@@ -5,6 +5,8 @@
  * @type {Record<string, string>}
  */
 export const workIntros = {
+  "see-through-future":
+    "A room full of WiFi that nobody can connect to. Your body bends the signal into sound and image, and in another timeline the room is sold to a techno-military giant.",
   "eternal-gain-eternal-pain":
     "Four screens, four parallel worlds of a simulated roundworm: pain, pleasure, or no worm at all. It asks whether we should keep bringing things into existence. I'm embossed on its coffee table, by the way.",
   "here-now-absolute-elsewhere":

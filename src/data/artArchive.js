@@ -11,6 +11,12 @@ export const artSections = [
         title: "Installation",
         items: [
           {
+            label: "Will we see through the future, or hear it coming?",
+            slug: "see-through-future",
+            country: "Thailand",
+            date: "2026-10-28",
+          },
+          {
             label:
               "Eternal Gain, Eternal Pain. (Would You Still Love Me If I Was A Digital C. elegans)",
             slug: "eternal-gain-eternal-pain",
@@ -241,6 +247,7 @@ export const artworkPages = {
   "the-abstraction-of-violence": { title: "Business As Usual: The Abstraction of violence" },
   query: { title: "QUERY" },
   "get-in-user": { title: "Get in user, we're ordering pizza!: A HTML strike back" },
+  "see-through-future": { title: "Will we see through the future, or hear it coming?" },
   "tentacular-territoria": { title: "Tentacular Territoria" },
   "i-will-always-think-of-you-fondly": {
     title: "I will always think of you fondly. (with Tewprai Bualoi)",
