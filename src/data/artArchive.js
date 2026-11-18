@@ -78,7 +78,7 @@ export const artSections = [
             date: "2026-01-01",
           },
           {
-            label: "Business As Usual: The Abstraction of violence",
+            label: "Business As Usual: The Abstraction of Violence",
             slug: "the-abstraction-of-violence",
             country: "Vietnam",
             date: "2026-10-10",
@@ -244,7 +244,7 @@ export const artworkPages = {
   "as-if-you-would-still-be-here": {
     title: "As if you would still be here, if I keep thinking about you.",
   },
-  "the-abstraction-of-violence": { title: "Business As Usual: The Abstraction of violence" },
+  "the-abstraction-of-violence": { title: "Business As Usual: The Abstraction of Violence" },
   query: { title: "QUERY" },
   "get-in-user": { title: "Get in user, we're ordering pizza!: A HTML strike back" },
   "see-through-future": { title: "Will we see through the future, or hear it coming?" },
