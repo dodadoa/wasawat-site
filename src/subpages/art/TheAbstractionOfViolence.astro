@@ -5,7 +5,7 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
 const metaBy = linkInstagramMentions("@vietnam_media_lab");
 const metaSupport = linkInstagramMentions("Goethe-Institut Ho Chi Minh City (@goetheinstitut_hochiminh), under the patronage of the Consulate General of the Federal Republic of Germany in Ho Chi Minh City");
 const metaDemo = linkInstagramMentions("8 August 2026, as a demo at Shadowplay (@shadowplay.bkk), Bangkok, for Play Play Play: Transitional image after party, curated by @pasuthh & @vietnam_media_lab");
-const noteInspired = linkInstagramMentions("Some elements, like the drum machine, were inspired by @ko_hui_, and other ideas came out of our conversations.");
+const noteInspired = linkInstagramMentions("some elements, like the drum machine, were inspired by @ko_hui_, and other ideas came out of our conversations.");
 ---
 
 <div class="mt-4 max-w-3xl">
@@ -56,11 +56,15 @@ const noteInspired = linkInstagramMentions("Some elements, like the drum machine
     only a task, and a task can be automated, and it has to be finished whether or not it hurts a real human.
   </p>
 
-  <p class="mb-4">
-    I wanted to break this screen, so I end the set with a desktop destroyer.
-  </p>
+  <aside class="art-margin-note" id="inspired-note">
+    <p style="font-family: var(--f-data); font-size: 12px; line-height: 1.6; margin: 0;">
+      <strong>Inspiration</strong>: <Fragment set:html={noteInspired} />
+    </p>
+  </aside>
 
-  <p class="mb-4" set:html={noteInspired} />
+  <p class="mb-4">
+    I wanted to break this screen, so I end <a href="#inspired-note" class="art-callout">the set</a> with a desktop destroyer.
+  </p>
 
   <div class="art-footnotes">
     <p><sup>1</sup>Harun Farocki, <em>Eye/Machine I–III</em> (2000–03) and <em>Serious Games I–IV</em> (2009–10). See <a href="https://www.moma.org/calendar/exhibitions/1179" target="_blank" rel="noopener noreferrer">Harun Farocki: Images of War (at a Distance)</a>, MoMA.</p>
