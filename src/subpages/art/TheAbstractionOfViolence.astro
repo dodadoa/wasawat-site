@@ -5,7 +5,10 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
 const metaBy = linkInstagramMentions("@vietnam_media_lab");
 const metaSupport = linkInstagramMentions("Goethe-Institut Ho Chi Minh City (@goetheinstitut_hochiminh), under the patronage of the Consulate General of the Federal Republic of Germany in Ho Chi Minh City");
 const metaDemo = linkInstagramMentions("8 August 2026, as a demo at Shadowplay (@shadowplay.bkk), Bangkok, for Play Play Play: Transitional image after party, curated by @pasuthh & @vietnam_media_lab");
-const thanks = linkInstagramMentions("<strong>Special thanks</strong><br />@ko_hui_ — for inspiring some elements, like the drum machine, and for the ideas that came out of our conversations");
+const metaPhotos = linkInstagramMentions("@another_ndtu");
+const thanks1 = linkInstagramMentions("<strong>Big thanks</strong><br />@ko_hui_ — for inspiring some elements, like the drum machine, and for the ideas that came out of our conversations<br />@lebactan — my big brother, for all the support and feedback");
+const thanks2 = linkInstagramMentions("<strong>Special thanks, VINA/V</strong><br />@vuph_m<br />@nowheredweller<br />@phbatch");
+const thanks3 = linkInstagramMentions("<strong>Special thanks, Play Play Play</strong><br />@pasuthh<br />@quytrongdo<br />@shadowplay.bkk");
 ---
 
 <div class="mt-4 max-w-3xl">
@@ -17,6 +20,7 @@ const thanks = linkInstagramMentions("<strong>Special thanks</strong><br />@ko_h
     { label: "For", value: "VINA/V #05 — The Living Code Prelude, at the opening of Science Fair 2026" },
     { label: "Presented by", value: metaBy, html: true },
     { label: "Supported by", value: metaSupport, html: true },
+    { label: "Photos by", value: metaPhotos, html: true },
   ]} />
 
   <p class="mb-4">
@@ -68,6 +72,10 @@ const thanks = linkInstagramMentions("<strong>Special thanks</strong><br />@ko_h
 
   <div class="art-media-grid">
     <img src="/images/the-abstraction-of-violence/field-note-1.jpg" alt="Business As Usual: The Abstraction of Violence — performance documentation" class="art-media-full" />
+    <img src="/images/the-abstraction-of-violence/field-note-2.jpg" alt="Business As Usual at VINA/V #05 — the LED screen under the stage roof, purple scene" class="art-media-full" />
+    <img src="/images/the-abstraction-of-violence/field-note-3.jpg" alt="Business As Usual at VINA/V #05 — the LED screen under the stage roof, green scene" />
+    <img src="/images/the-abstraction-of-violence/field-note-4.jpg" alt="Business As Usual at VINA/V #05 — the LED screen under the stage roof, red scene" />
+    <img src="/images/the-abstraction-of-violence/field-note-5.jpg" alt="Business As Usual at VINA/V #05 — the stage from the side, with the performer at the desk" class="art-media-full" />
   </div>
 
   <h2 class="kicker art-kicker mt-8 mb-4">
@@ -79,6 +87,8 @@ const thanks = linkInstagramMentions("<strong>Special thanks</strong><br />@ko_h
   ]} />
 
   <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; gap: 2rem;">
-    <p class="text-sm" set:html={thanks} />
+    <p class="text-sm" set:html={thanks1} />
+    <p class="text-sm" set:html={thanks2} />
+    <p class="text-sm" set:html={thanks3} />
   </div>
 </div>
