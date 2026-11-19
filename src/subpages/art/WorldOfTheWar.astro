@@ -1,0 +1,206 @@
+---
+import { linkInstagramMentions } from "../../utils/instagramMentions";
+import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
+
+const metaFor = linkInstagramMentions("@diage.festival");
+const metaArm = linkInstagramMentions("@postcomputer & @wire_core");
+const armText = linkInstagramMentions(
+  "The lighting arm was created by @postcomputer and @wire_core. Inspired by @kevinpeterhe on the work of Live Cinema, here I created a server to sync all the lights' positions (using a network with OSC), so moving the position physically will move the lighting in the game digitally. The DMX protocol is synced as well, with the game's strobe and light, along with the sound from SuperCollider."
+);
+const thanks1 = linkInstagramMentions("<strong>Thank you</strong><br />@diage.festival, for the opportunity<br />@yellowtrash<br />@panlert_bent<br />@ahivardubbsided<br />@crsrcrsrrr<br />@naknanvruzy_kunan");
+const thanks2 = linkInstagramMentions("<strong>Special thanks</strong><br />@lebactan, for buying the costume with me that afternoon<br />@vuph_m<br />@pasinsaingthong<br />@pasuthh");
+---
+
+<div class="mt-4 max-w-3xl">
+  <ArtworkMeta fields={[
+    { label: "Year", value: "2026" },
+    { label: "Premiere", value: "1 November 2026" },
+    { label: "For", value: metaFor, html: true },
+    { label: "Medium", value: "Audiovisual performance: real-time game, steering wheel and pedals, MIDI mixer, robotic lighting arm, DMX lighting, custom OSC server" },
+    { label: "Lighting arm", value: metaArm, html: true },
+  ]} />
+
+  <p class="mb-4">
+    An audiovisual game performance with a wheel controller and a light crane, imagining an android fleeing from
+    the war, seeking the peaceful territory.
+  </p>
+
+  <p class="mb-4">
+    I had two ideas in mind at the time.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">1. The android running from the war</h2>
+
+  <p class="mb-4">
+    An audiovisual of an android running from the war, from the system that humans created a long time ago, even
+    though they have become extinct. Since I'm an antinatalist, I try to imagine the world after all humans are
+    gone, voluntarily. And all the attacks create the sound.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">2. Driving the laser</h2>
+
+  <p class="mb-4">
+    When you move the wheel and hit the pedal, you control the sound, along with the gear mechanic to change the
+    scene.
+  </p>
+
+  <h2 class="kicker art-kicker mt-8 mb-4">The lighting arm</h2>
+
+  <p class="mb-4" set:html={armText} />
+
+  <figure class="my-8 wotw-diagram">
+    <div class="wotw-scroll">
+      <svg viewBox="0 0 760 470" role="img" aria-labelledby="wotw-title wotw-desc" xmlns="http://www.w3.org/2000/svg">
+        <title id="wotw-title">World of the War: system diagram</title>
+        <desc id="wotw-desc">
+          The light crane sends its movement to the server over OSC, and the wheel controller and mixer send MIDI.
+          The server drives the stage lights through DMX and talks both ways with Unity and SuperCollider. Unity's strobe
+          drives the stage light. The wheel and mixer control the sound in SuperCollider and the game in Unity; the sound
+          drives the light and environment in Unity; the crane controls the position of the light pointing out of
+          the Laser Space Craft in the game.
+        </desc>
+        <defs>
+          <marker id="wotw-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,1 L9,5 L0,9" fill="none" stroke="var(--ink)" stroke-width="1.4" />
+          </marker>
+          <marker id="wotw-arrow-soft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,1 L9,5 L0,9" fill="none" stroke="var(--soft)" stroke-width="1.4" />
+          </marker>
+        </defs>
+
+        <!-- column headings -->
+        <g class="wotw-head">
+          <text x="125" y="22">INPUT · ON STAGE</text>
+          <text x="325" y="22">HUB</text>
+          <text x="595" y="22">OUTPUT</text>
+        </g>
+
+        <!-- solid: network signals -->
+        <g fill="none" stroke="var(--ink)" stroke-width="1.4">
+          <path d="M210,62 H235 V132 H257" marker-end="url(#wotw-arrow)" />
+          <path d="M210,218 H235 V156 H257" marker-end="url(#wotw-arrow)" />
+          <path d="M325,118 V62 H447" marker-end="url(#wotw-arrow)" />
+          <path d="M570,62 H617" marker-end="url(#wotw-arrow)" />
+          <path d="M393,150 H505 V210 H617" marker-start="url(#wotw-arrow)" marker-end="url(#wotw-arrow)" />
+          <path d="M325,173 V297" marker-start="url(#wotw-arrow)" marker-end="url(#wotw-arrow)" />
+        </g>
+
+        <!-- dashed: what controls what -->
+        <g fill="none" stroke="var(--soft)" stroke-width="1.2" stroke-dasharray="5 4">
+          <path d="M680,196 V87" marker-end="url(#wotw-arrow-soft)" />
+          <path d="M170,240 V322 H257" marker-end="url(#wotw-arrow-soft)" />
+          <path d="M390,322 H680 V243" marker-end="url(#wotw-arrow-soft)" />
+          <path d="M80,240 V380 H700 V243" marker-end="url(#wotw-arrow-soft)" />
+          <path d="M40,62 H24 V410 H720 V243" marker-end="url(#wotw-arrow-soft)" />
+        </g>
+
+        <!-- edge labels -->
+        <g class="wotw-label">
+          <text x="222" y="100" text-anchor="end">OSC</text>
+          <text x="222" y="190" text-anchor="end">MIDI</text>
+          <text x="448" y="144" text-anchor="middle">OSC</text>
+          <text x="690" y="145">strobe</text>
+          <text x="214" y="316" text-anchor="middle" class="soft">controls sound</text>
+          <text x="535" y="316" text-anchor="middle" class="soft">sound drives light &amp; environment</text>
+          <text x="390" y="374" text-anchor="middle" class="soft">controls the game</text>
+          <text x="372" y="404" text-anchor="middle" class="soft">controls the light pointing out of the Laser Space Craft</text>
+        </g>
+
+        <!-- nodes -->
+        <g class="wotw-node">
+          <rect x="40" y="40" width="170" height="44" />
+          <text x="125" y="67">Light Crane</text>
+
+          <rect x="40" y="196" width="170" height="44" />
+          <text x="125" y="215">Wheel Controller</text>
+          <text x="125" y="231" class="sub">+ pedals, mixer</text>
+
+          <rect x="260" y="118" width="130" height="52" class="hub" />
+          <text x="325" y="141">Server</text>
+          <text x="325" y="157" class="sub">OSC · MIDI · DMX</text>
+
+          <rect x="260" y="300" width="130" height="44" />
+          <text x="325" y="327">SuperCollider</text>
+
+          <rect x="450" y="40" width="120" height="44" />
+          <text x="510" y="67">DMX</text>
+
+          <rect x="620" y="40" width="120" height="44" />
+          <text x="680" y="67">Stage light</text>
+
+          <rect x="620" y="196" width="120" height="44" />
+          <text x="680" y="215">Unity</text>
+          <text x="680" y="231" class="sub">the game</text>
+        </g>
+
+        <!-- legend -->
+        <g class="wotw-label">
+          <line x1="40" y1="448" x2="80" y2="448" stroke="var(--ink)" stroke-width="1.4" />
+          <text x="90" y="452">network signal</text>
+          <line x1="220" y1="448" x2="260" y2="448" stroke="var(--soft)" stroke-width="1.2" stroke-dasharray="5 4" />
+          <text x="270" y="452" class="soft">what controls what</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="mt-2 opacity-70" style="font-size: calc(10px * var(--ui-scale, 1)); line-height: 1.5;">
+      System diagram.
+    </figcaption>
+  </figure>
+
+  <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; gap: 2rem;">
+    <p class="text-sm" set:html={thanks1} />
+    <p class="text-sm" set:html={thanks2} />
+  </div>
+</div>
+
+<style>
+  .wotw-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    padding: 12px;
+  }
+  .wotw-scroll svg {
+    display: block;
+    width: 100%;
+    min-width: 600px;
+    height: auto;
+  }
+  .wotw-head text {
+    font-family: var(--f-data);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    fill: var(--soft);
+    text-anchor: middle;
+  }
+  .wotw-node rect {
+    fill: var(--bg);
+    stroke: var(--ink);
+    stroke-width: 1.2;
+  }
+  .wotw-node rect.hub {
+    stroke-width: 2.4;
+  }
+  .wotw-node text {
+    font-family: var(--f-body);
+    font-size: 14px;
+    fill: var(--ink);
+    text-anchor: middle;
+  }
+  .wotw-node text.sub {
+    font-family: var(--f-data);
+    font-size: 10px;
+    fill: var(--soft);
+  }
+  .wotw-label text {
+    font-family: var(--f-data);
+    font-size: 11px;
+    fill: var(--ink);
+    paint-order: stroke;
+    stroke: var(--bg);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+  .wotw-label text.soft {
+    fill: var(--soft);
+  }
+</style>

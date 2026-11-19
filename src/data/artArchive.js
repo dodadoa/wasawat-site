@@ -45,6 +45,11 @@ export const artSections = [
       {
         items: [
           {
+            label: "World of the War",
+            slug: "world-of-the-war",
+            date: "2026-11-01",
+          },
+          {
             label: "From Scratch Live Coding From Scratch",
             slug: "from-scratch-live-coding",
           country: "Thailand / Vietnam",
@@ -248,6 +253,7 @@ export const artworkPages = {
   query: { title: "QUERY" },
   "get-in-user": { title: "Get in user, we're ordering pizza!: A HTML strike back" },
   "see-through-future": { title: "Will we see through the future, or hear it coming?" },
+  "world-of-the-war": { title: "World of the War" },
   "tentacular-territoria": { title: "Tentacular Territoria" },
   "i-will-always-think-of-you-fondly": {
     title: "I will always think of you fondly. (with Tewprai Bualoi)",

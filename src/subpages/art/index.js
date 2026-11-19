@@ -24,6 +24,7 @@ import TheAbstractionOfViolence from "./TheAbstractionOfViolence.astro"
 import Query from "./Query.astro"
 import GetInUser from "./GetInUser.astro"
 import SeeThroughFuture from "./SeeThroughFuture.astro"
+import WorldOfTheWar from "./WorldOfTheWar.astro"
 
 export const artComponents = {
   "do-the-npcs-hear-the-simulated-wind": DoTheNPCsHearTheSimulatedWind,
@@ -48,4 +49,5 @@ export const artComponents = {
   query: Query,
   "get-in-user": GetInUser,
   "see-through-future": SeeThroughFuture,
+  "world-of-the-war": WorldOfTheWar,
 }

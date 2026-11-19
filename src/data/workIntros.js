@@ -5,6 +5,8 @@
  * @type {Record<string, string>}
  */
 export const workIntros = {
+  "world-of-the-war":
+    "An android running from the war, from the system that humans created a long time ago. All the attacks create the sound, and moving the lighting arm on stage moves the lighting in the game.",
   "see-through-future":
     "A room full of WiFi that nobody can connect to. Your body bends the signal into sound and image, and in another timeline the room is sold to a techno-military giant.",
   "eternal-gain-eternal-pain":
