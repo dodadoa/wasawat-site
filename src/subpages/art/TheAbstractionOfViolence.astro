@@ -5,7 +5,7 @@ import ArtworkMeta from "../../components/art/ArtworkMeta.astro";
 const metaBy = linkInstagramMentions("@vietnam_media_lab");
 const metaSupport = linkInstagramMentions("Goethe-Institut Ho Chi Minh City (@goetheinstitut_hochiminh), under the patronage of the Consulate General of the Federal Republic of Germany in Ho Chi Minh City");
 const metaDemo = linkInstagramMentions("8 August 2026, as a demo at Shadowplay (@shadowplay.bkk), Bangkok, for Play Play Play: Transitional image after party, curated by @pasuthh & @vietnam_media_lab");
-const noteInspired = linkInstagramMentions("some elements, like the drum machine, were inspired by @ko_hui_, and other ideas came out of our conversations.");
+const thanks = linkInstagramMentions("<strong>Special thanks</strong><br />@ko_hui_ — for inspiring some elements, like the drum machine, and for the ideas that came out of our conversations");
 ---
 
 <div class="mt-4 max-w-3xl">
@@ -56,14 +56,8 @@ const noteInspired = linkInstagramMentions("some elements, like the drum machine
     only a task, and a task can be automated, and it has to be finished whether or not it hurts a real human.
   </p>
 
-  <aside class="art-margin-note" id="inspired-note">
-    <p style="font-family: var(--f-data); font-size: 12px; line-height: 1.6; margin: 0;">
-      <strong>Inspiration</strong>: <Fragment set:html={noteInspired} />
-    </p>
-  </aside>
-
   <p class="mb-4">
-    I wanted to break this screen, so I end <a href="#inspired-note" class="art-callout">the set</a> with a desktop destroyer.
+    I wanted to break this screen, so I end the set with a desktop destroyer.
   </p>
 
   <div class="art-footnotes">
@@ -83,4 +77,8 @@ const noteInspired = linkInstagramMentions("some elements, like the drum machine
   <ArtworkMeta fields={[
     { label: "First played", value: metaDemo, html: true },
   ]} />
+
+  <div class="mt-6 pt-4" style="border-top: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; gap: 2rem;">
+    <p class="text-sm" set:html={thanks} />
+  </div>
 </div>
